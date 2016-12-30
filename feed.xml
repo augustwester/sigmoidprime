@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>sigmoid prime</title>
+    <description>A blog about machine learning aimed at newcomers to the field.</description>
+    <link>http://localhost:4000/</link>
+    <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml"/>
+    <pubDate>Fri, 30 Dec 2016 15:04:00 +0100</pubDate>
+    <lastBuildDate>Fri, 30 Dec 2016 15:04:00 +0100</lastBuildDate>
+    <generator>Jekyll v3.3.0</generator>
+    
+      <item>
+        <title>How to Build (and Understand) a Neural Network Pt. 1: The Perceptron</title>
+        <description>
+&lt;p&gt;Building a neural network is fairly easy. It doesn’t require you to know any obscure programming language, and you can build a working model with surprisingly few lines of code. To understand how it works however — to &lt;em&gt;really&lt;/em&gt; understand it — takes mathematical insight more than anything else. While this may sound lofty, anyone with a firm grasp of high school level math is equipped to take on the task.&lt;/p&gt;
+
+&lt;p&gt;This is the first in a series of posts that will culminate in us building a neural network in Python. It will be a rudimentary one, but at the end, we will have covered all of the concepts that make it tick. Hopefully, this will set us both on a path to deepen our knowledge of how to make machines smart.&lt;/p&gt;
+
+&lt;p&gt;A good place for us to start is the &lt;a href=&quot;https://en.wikipedia.org/wiki/Perceptron&quot;&gt;perceptron algorithm&lt;/a&gt;. According to Wikipedia:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;em&gt;The perceptron algorithm dates back to the late 1950s; its first implementation, in custom hardware, was one of the first artificial neural networks to be produced.&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Perceptrons are a good place to start because they showcase the power and versatility of learning algorithms while remaining very simple. Once we are comfortable with perceptrons, we can use this as a springboard to tackle some of the more sophisticated concepts in machine learning.&lt;/p&gt;
+
+&lt;p&gt;We’ll start off with some overall theory, followed by an introduction to the actual algorithm. Finally, we’ll code a  working perceptron in Python.&lt;/p&gt;
+
+&lt;h2 id=&quot;overall-theory&quot;&gt;Overall theory&lt;/h2&gt;
+
+&lt;p&gt;The perceptron algorithm is a &lt;strong&gt;binary classification algorithm&lt;/strong&gt;, which is to say that it can tell whether a piece of data belongs to one of two classes. To get a better sense of what this means, let’s take a look at the following plot:&lt;/p&gt;
+
+&lt;div id=&quot;versicolorsetosa&quot; class=&quot;scatter-plot&quot;&gt;&lt;/div&gt;
+&lt;script type=&quot;text/javascript&quot; src=&quot;/js/versicolorsetosa.js&quot;&gt;&lt;/script&gt;
+
+&lt;p&gt;This is a scatter plot of part of the &lt;a href=&quot;https://archive.ics.uci.edu/ml/datasets/Iris&quot;&gt;iris dataset&lt;/a&gt;; the de facto dataset for training a perceptron. The full dataset contains 150 samples of three different types of iris flower (50 samples of each type). Each sample contains four features: sepal width, sepal length, petal width, and petal length. In the scatter plot above, we are only looking at two features (petal width and petal length) for two types of iris (setosa and versicolor).&lt;/p&gt;
+
+&lt;p&gt;The thing to notice about the data is that it is linearly separable. In other words, the points belonging to each iris type are clustered in such a way that you can separate them with a straight line. What the perceptron algorithm does is it automatically ‘learns’ the parameters for a model (in this case a linear function) that, when presented with the features of a sample, returns a positive number for one iris type, and a negative number for the other. This enables us to classify a sample as belonging to the setosa family or the versicolor family solely by looking at the features of the flower.&lt;/p&gt;
+
+&lt;p&gt;The following steps outline how to create a model with this capability.&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;We initialize a number of &lt;strong&gt;parameters&lt;/strong&gt; with random values between 0 and 1. If each of our samples has €n€ features, we initialize €n+1€ parameters. Out of these €n+1€ parameters,  there will be €n€ &lt;strong&gt;weights&lt;/strong&gt;, and one so-called &lt;strong&gt;bias&lt;/strong&gt;. There will &lt;em&gt;always&lt;/em&gt; be an equal number of weights and features. I will get to the point of the parameters in a minute, but for the moment, you can think of them as the knobs and dials of our model, which our algorithm uses to improve its performance.&lt;/li&gt;
+  &lt;li&gt;Having initialized our parameters, we now feed &lt;strong&gt;training data&lt;/strong&gt; to our (currently random, and thus highly inefficient) model one sample at a time. The model takes the features of a sample as input, and multiplies each feature by the model’s corresponding weight. This yields our &lt;strong&gt;weighted features&lt;/strong&gt;.&lt;/li&gt;
+  &lt;li&gt;Next, we calculate the sum of the weighted features and add the bias. At this point, all we are left with is a number. If this number is less than zero, we classify the sample as belonging to the setosa family; if the number is greater than zero, we classify the sample as being of type versicolor.&lt;/li&gt;
+  &lt;li&gt;Last but not least, if our prediction is wrong, we update our parameters. If our prediction is right, we do nothing, and move on to the next sample.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;This last step tells us that what we are dealing with here is &lt;strong&gt;supervised learning&lt;/strong&gt;. The reason it is “supervised” is that we already know the right answer — aka. the “label” — for every sample. The label will either be 0 or 1, respectively representing setosa and versicolor. Knowing the right answer lets us adjust the parameters of our model every time it performs poorly. That way, looping over each sample will incrementally improve its accuracy.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-math&quot;&gt;The math&lt;/h2&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/linear-separation.gif&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The animation above illustrates an example of a 2D plane separating setosa and versicolor points in 3D space. Our parameters define the plane — also known as the &lt;strong&gt;decision boundary&lt;/strong&gt; — and when these are multiplied by the coordinates of a point (the features), the result will be positive if the point is located above the plane, and negative when located below the plane. This is the core idea that makes our algorithm possible. Our job is to find a set of parameters that separate the classes perfectly (like the one above).&lt;/p&gt;
+
+&lt;p&gt;The four features of every sample will be represented by a four-dimensional vector €x€. The vector €\theta€ will be a four-dimensional vector containing the weights. If €b€ is the bias, we can mathematically represent our model like this:&lt;/p&gt;
+
+&lt;p&gt;€€
+\theta_1x_1 + \theta_2x_2 + \theta_3x_3 + \theta_4x_4 + b
+€€&lt;/p&gt;
+
+&lt;p&gt;This expression also defines a plane like the one shown in the animation; the only difference being that this one describes a 3D plane in 4D space, rather than a 2D plane in 3D space. Impossible to visualize, yes, but that doesn’t change a thing. Pretty cool, huh?&lt;/p&gt;
+
+&lt;p&gt;It is worth repeating that when this expression is positive, the point €x€ is located above the plane, and when the expression is negative, €x€ is located beneath the plane. The plane itself is defined by the parameters €\theta€ and €b€, where €\theta€ translates the plane, and €b€ either pushes or pulls the plane up or down in the coordinate space.&lt;/p&gt;
+
+&lt;p&gt;Keep in mind that our weights and features are represented as vectors. This allows us to rewrite the above expression by taking the &lt;a href=&quot;https://www.youtube.com/watch?v=WNuIhXo39_k&quot;&gt;dot product&lt;/a&gt; of €x€ and €\theta€, and then adding €b€ to the resulting scalar:&lt;/p&gt;
+
+&lt;p&gt;€€
+(x \cdot \theta) + b
+€€&lt;/p&gt;
+
+&lt;p&gt;To make things even more concise, we will add another element €x_0€ to our vector €x€ and make sure that it is always equal to 1. We will also add a corresponding weight €\theta_0€ to our vector €\theta€. This allows us to treat the bias (now represented as €\theta_0€) as part of our vector operations, so we can simplify the above expression even further:&lt;/p&gt;
+
+&lt;p&gt;€€
+x \cdot \theta
+€€&lt;/p&gt;
+
+&lt;p&gt;Spelled out, this is now equal to:&lt;/p&gt;
+
+&lt;p&gt;€€
+\begin{Bmatrix}1 \cr x_1 \cr x_2\cr x_3 \cr x_4 \end{Bmatrix}
+\cdot
+\begin{Bmatrix}\theta_0 \cr \theta_1 \cr \theta_2 \cr \theta_3 \cr \theta_4\end{Bmatrix} = \theta_0 + \theta_1x_1 \cdots + \theta_4x_4
+€€&lt;/p&gt;
+
+&lt;p&gt;All of this may seem like mere mathematical housekeeping, but as we will see, it will keep our code neat and tidy, and — much more importantly — it will allow us to vectorize our computations. Vectorization is important, since it enables significant computational speedups, as soon as we begin to handle more complex models with larger amounts of data. (For a small dataset like ours, it won’t really make a difference, but it is good practice to keep it in mind.)&lt;/p&gt;
+
+&lt;!-- You may remember from high school that a linear function has the form €ax + b€, where €a€ is the coefficient or 'slope' of the line, and €b€ is a constant that determines its y-intercept by moving the line up or down. This expression too is a linear function, but here we have four independent variables (€x_1€ through €x_4€) and four coefficients (€\theta_1€ through €\theta_4€), but still only one constant (€\theta_0€). This means that we are in a higher-dimensional space than the 2D space of €ax + b€. One consequence of this is that we are no longer working with 1D lines in 2D space, but with 3D 'hyperplanes' in 4D space. Sounds fancy, but the idea and the goal is still exactly the same: to find a bias and a configuration of €\theta€s that produces a negative number for setosa features, and a positive number for versicolor feaures. --&gt;
+
+&lt;p&gt;We will now define a function known as the &lt;a href=&quot;https://en.wikipedia.org/wiki/Heaviside_step_function&quot;&gt;heaviside step function&lt;/a&gt; or unit step function:&lt;/p&gt;
+
+&lt;p&gt;€€
+\sigma(z)=\begin{cases} 1 &amp;amp; {\small z &amp;gt; 0,} \cr 0 &amp;amp; {\small otherwise} \end{cases}
+€€&lt;/p&gt;
+
+&lt;p&gt;If it isn’t immediately obvious from this definition, the heaviside step function takes a scalar input €z€ and returns 1 if €z€ is positive, and 0 if €z€ is nonpositive. The sole purpose of the heaviside step function is to classify points below the decision boundary as 0, and points above the decision boundary as 1. The output will thus be our prediction of the iris type.&lt;/p&gt;
+
+&lt;p&gt;For each sample, the output €\hat{y}€ of our model will be:&lt;/p&gt;
+
+&lt;p&gt;€€
+\hat{y} = \sigma(x \cdot \theta)
+€€&lt;/p&gt;
+
+&lt;p&gt;Now to the most important part. In order for the network to ‘learn’ a  function — which is to say a bias and a set of weights — that produces a plane which separates setosa and versicolor points, we will need a &lt;strong&gt;learning algorithm&lt;/strong&gt;. Fortunately, the perceptron learning algorithm is super simple:&lt;/p&gt;
+
+&lt;p&gt;€€
+\Delta \theta_i = (y^{(j)} - \hat{y}^{(j)})x_i^{(j)}
+€€&lt;/p&gt;
+
+&lt;p class=&quot;subtext&quot;&gt;€j€ represents the €j€th sample, and €i€ represents the €i€th feature. €y^{(j)}€ is the true label.&lt;/p&gt;
+
+&lt;p&gt;If you are not used to mathematical notation, this may seem a little intimidating. Not to worry; it is easy to see what is happening here by looking at an example.&lt;/p&gt;
+
+&lt;p&gt;Let’s assume that, during training, the model erroneously interprets setosa features for versicolor features. The heaviside step function would then output a 1 when it should have given us a 0. In this case, €\Delta \theta_i€ would be:&lt;/p&gt;
+
+&lt;p&gt;€€
+\Delta \theta_i = (0 - 1)x_i^{(j)}
+€€&lt;/p&gt;
+
+&lt;p&gt;If €x_i^{(j)}€ were, say, the petal length of our misclassified sample with a value of 1.9, the equation would look like this:&lt;/p&gt;
+
+&lt;p&gt;€€
+\Delta \theta_i = (-1) \cdot 1.9 = -1.9
+€€&lt;/p&gt;
+
+&lt;p&gt;We would then subtract 1.9 from €\theta_i€’s current value.&lt;/p&gt;
+
+&lt;p&gt;To see why we subtract, remember that the output of the model was 1 when it should have been 0. This means that the result of the dot product €(x \cdot \theta)€ was positive when it should have been negative, and therefore that the parameters are currently adjusted too high. Had we predicted a 0 when the true label was 1, the value of €\theta_i€ would have been increased by 1.9. &lt;!-- The reason we multiply by the corresponding feature €x_i^{(j)}€ is to ensure that big errors (that is, wrong predictions in the face of very striking features) result in big adjustments and small errors in small adjustments. --&gt;&lt;/p&gt;
+
+&lt;p&gt;This same learning algorithm holds for the bias. However, since the bias’ corresponding “feature” is 1, this leaves us with:&lt;/p&gt;
+
+&lt;p&gt;€€
+\Delta \theta_0 = (y^{(j)} - \hat{y}^{(j)})
+€€&lt;/p&gt;
+
+&lt;p&gt;And that’s it!&lt;/p&gt;
+
+&lt;p&gt;A cool thing about the perceptron algorithm is that it is guaranteed to find exactly the right parameters that separate the two classes at 100% accuracy (granted that the data is linearly separable of course). The question is whether these parameters generalize and enable the model to correctly predict the classes of samples that weren’t in the training set. Finding patterns in unlabelled data is, after all, the purpose of all machine learning algorithms. We’ll see how to do this once we code up our perceptron in the next section.&lt;/p&gt;
+
+&lt;h2 id=&quot;getting-our-hands-dirty&quot;&gt;Getting our hands dirty&lt;/h2&gt;
+
+&lt;p&gt;To start off, make sure that you have Python and &lt;a href=&quot;http://www.numpy.org/&quot;&gt;NumPy&lt;/a&gt; installed on your machine. If you are not already familiar with NumPy, it is an essential package for Python for doing matrix and vector operations. There will be tons of these going forward.&lt;/p&gt;
+
+&lt;p&gt;To import and handle the iris dataset, we will use &lt;a href=&quot;http://pandas.pydata.org&quot;&gt;Pandas&lt;/a&gt;. NumPy as well as Pandas can be installed by running &lt;code class=&quot;highlighter-rouge&quot;&gt;pip numpy&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;pip pandas&lt;/code&gt; in the command line. Once you’ve got everything set up, we’ll create a new Python file and do the requisite imports at the top. We will also be including the iris dataset made available from &lt;a href=&quot;https://archive.ics.uci.edu/ml/datasets/Iris&quot;&gt;UCI’s website&lt;/a&gt;. As a courtesy, I recommend that you download the file and reference it locally in order to spare UCI of unnecessary traffic.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;numpy&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;np&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;pandas&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;pd&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;dataset&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read_csv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# Combining half the setosa features and half the versicolor features into our training dataset&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;train_features&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dataset&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;iloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;25&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dataset&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;iloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;50&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;75&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;axis&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;train_targets&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dataset&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;iloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;25&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dataset&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;iloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;50&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;75&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;axis&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# Combining the remaining setosa and versicolor features into the test dataset&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;test_features&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dataset&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;iloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;25&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;50&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dataset&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;iloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;75&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;100&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;axis&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;test_targets&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dataset&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;iloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;25&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;50&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dataset&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;iloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;75&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;100&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;axis&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# Appending 1 as the first feature of each sample, so theta0 can act as the bias&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;train_features&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;c_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ones&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;train_targets&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;shape&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;train_features&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;test_features&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;c_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ones&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;test_targets&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;shape&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;test_features&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# Changing the name of the two flower types into our target values 0 and 1&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;train_targets&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;where&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;train_targets&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;Iris-setosa&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;test_targets&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;where&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;test_targets&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;Iris-setosa&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# Converting the target arrays from 50x1 matrices to 50D vectors&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;train_targets&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;train_targets&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;reshape&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;50&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;test_targets&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;test_targets&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;reshape&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;50&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;I hope the comments make it clear what is going on here. We will use the training features to train the model, and our test features to verify whether the model generalizes and correctly predicts the classes of unseen examples. A 50/50 split between training and test samples is not very common (usually it is 60/40 or 70/30 with the majority going to the training samples), but it should suffice for this example.&lt;/p&gt;
+
+&lt;p&gt;Note that all training samples are now stored within a 50x5 matrix €X€. If you are unfamiliar with matrices, they can simply be thought of as containers of multiple vectors. Thus, the 50x5 matrix contains 50 samples/vectors, and each of those vectors contains four features &lt;em&gt;and&lt;/em&gt; a 1 for the bias term. In other words, our matrix €X€ contains 50 €x€s.&lt;/p&gt;
+
+&lt;p&gt;Now that we have our data organized and ready, it is time to code the actual perceptron. Let’s start by creating a &lt;code class=&quot;highlighter-rouge&quot;&gt;Perceptron&lt;/code&gt; class with a &lt;code class=&quot;highlighter-rouge&quot;&gt;fit&lt;/code&gt; method that takes three parameters: &lt;code class=&quot;highlighter-rouge&quot;&gt;X&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;y&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;epochs&lt;/code&gt;. &lt;code class=&quot;highlighter-rouge&quot;&gt;X&lt;/code&gt; will be our matrix of features, &lt;code class=&quot;highlighter-rouge&quot;&gt;y&lt;/code&gt; will be a vector containing the corresponding target values, and &lt;code class=&quot;highlighter-rouge&quot;&gt;epochs&lt;/code&gt; will be an integer specifying how many times to loop over the training data. If we didn’t specify the number of epochs, we would only have 50 iterations to update our parameters, which probably wouldn’t be enough for them to converge on the most optimal values.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Perceptron&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;object&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;nb&quot;&gt;super&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Perceptron&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;theta&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;random&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;fit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;epochs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;epochs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)):&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;weighted_input&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dot&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;theta&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;y_hat&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;heaviside_step&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;weighted_input&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+                &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;theta&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;multiply&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;y_hat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;heaviside_step&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;weighted_input&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;where&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;weighted_input&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Believe it or not, this is the whole perceptron algorithm!&lt;/p&gt;
+
+&lt;p&gt;We start by initializing five random weights between 0 and 1. Then, the &lt;code class=&quot;highlighter-rouge&quot;&gt;fit&lt;/code&gt; method loops over all samples &lt;code class=&quot;highlighter-rouge&quot;&gt;epochs&lt;/code&gt; number of times. In the inner-most loop, we take the dot product between every feature vector &lt;code class=&quot;highlighter-rouge&quot;&gt;X[i]&lt;/code&gt; and the parameter vector &lt;code class=&quot;highlighter-rouge&quot;&gt;self.theta&lt;/code&gt;. The result of the dot product is handed over to the heaviside step function yielding our &lt;code class=&quot;highlighter-rouge&quot;&gt;y_hat&lt;/code&gt;, and the parameters are then updated.&lt;/p&gt;
+
+&lt;p&gt;To benchmark how well our model performs, we will add a &lt;code class=&quot;highlighter-rouge&quot;&gt;predict&lt;/code&gt; method to our class that uses the learned parameters &lt;code class=&quot;highlighter-rouge&quot;&gt;self.theta&lt;/code&gt; to predict the classes of our test samples:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;predict&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;weighted_input&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dot&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;theta&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;heaviside_step&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;weighted_input&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;All there is left to do is feed some data to a &lt;code class=&quot;highlighter-rouge&quot;&gt;Perceptron&lt;/code&gt; object:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;c&quot;&gt;# Initializing a Perceptron object and feeding it our training data&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;pcpt&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Perceptron&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;pcpt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;train_features&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;train_targets&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# The model has now been trained. Time to benchmark!&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;est&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pcpt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;predict&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;test_features&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;est&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;test_targets&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;where&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;acc&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;float&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;test_targets&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;test_targets&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;Accuracy: &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;f&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;acc&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;When running the script, you should see the following output:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;python perceptron.py
+Accuracy: 1.000000&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Because the data is linearly separable, the algorithm found the optimal values for €\theta€, and is now able to correctly classify all 50 test samples. Had the data not been linearly separable, it would have been a &lt;em&gt;whole&lt;/em&gt; other story.&lt;/p&gt;
+
+&lt;p&gt;In the next post, we will cover some slightly more complex terrain in order to see how we can get closer to modelling data that is not linearly separable.&lt;/p&gt;
+</description>
+        <pubDate>Fri, 30 Dec 2016 09:20:27 +0100</pubDate>
+        <link>http://localhost:4000/post/how-to-build-a-neural-network-pt-1/</link>
+        <guid isPermaLink="true">http://localhost:4000/post/how-to-build-a-neural-network-pt-1/</guid>
+        
+        
+      </item>
+    
+  </channel>
+</rss>

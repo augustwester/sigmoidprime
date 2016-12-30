@@ -1,0 +1,190 @@
+* {
+  margin: 0;
+  padding: 0; }
+
+a {
+  text-decoration: none; }
+
+body {
+  background-color: #fcfcff; }
+
+h1, h2, h3 {
+  font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial;
+  color: #e32d2d;
+  background: -webkit-linear-gradient(45deg, #e32d2d, #d249aa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent; }
+
+h1 {
+  width: 800px;
+  margin-bottom: 10px;
+  font-size: 39px; }
+
+h2 {
+  margin-top: 50px;
+  margin-bottom: 20px; }
+
+.top-header {
+  width: 100%;
+  height: 241px;
+  background-image: url(/assets/dots.png);
+  background-size: 1661px 241px;
+  background-repeat: no-repeat; }
+  .top-header .inner-header {
+    width: 1000px;
+    height: inherit;
+    margin: 0 auto; }
+    .top-header .inner-header .logo-container {
+      float: left;
+      margin-top: 13px; }
+      .top-header .inner-header .logo-container .logo {
+        font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial;
+        color: #333749;
+        font-size: 30px; }
+      .top-header .inner-header .logo-container .prime {
+        font-size: 50px;
+        background: -webkit-linear-gradient(-90deg, #e32d2d, #d249aa);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent; }
+      .top-header .inner-header .logo-container .tagline {
+        font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial;
+        font-size: 18px;
+        color: rgba(51, 55, 73, 0.5);
+        display: block; }
+    .top-header .inner-header .menu {
+      list-style-type: none;
+      overflow: hidden;
+      float: right;
+      margin-top: 50px; }
+      .top-header .inner-header .menu li {
+        float: left; }
+        .top-header .inner-header .menu li a {
+          color: #a2a6b8;
+          text-align: center;
+          padding: 0 26px;
+          text-transform: uppercase;
+          font-size: 16px;
+          font-weight: 500; }
+        .top-header .inner-header .menu li .selected {
+          font-weight: 600;
+          background: -webkit-linear-gradient(-90deg, #e32d2d, #d249aa);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent; }
+
+main {
+  width: 100%;
+  margin: 0 auto; }
+
+.reading-time {
+  font-weight: 600;
+  font-size: 14px;
+  color: #a2a6b8;
+  margin-bottom: 100px; }
+
+.date-ct {
+  width: inherit;
+  height: auto;
+  margin-bottom: 50px; }
+  .date-ct p {
+    font-weight: 600;
+    font-size: 14px;
+    color: #a2a6b8;
+    text-transform: uppercase; }
+
+ul, ol, p {
+  font-weight: 350;
+  color: #333749;
+  font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial;
+  font-size: 18px;
+  line-height: 40px; }
+  ul code, ol code, p code {
+    font-size: 16px;
+    padding: 5px;
+    background-color: #fafafa; }
+
+code {
+  width: 800px;
+  font-family: Menlo, Monaco;
+  line-height: 27px;
+  font-size: 14px;
+  border: 1px solid #e7ebee; }
+
+.highlight {
+  width: 100%;
+  margin-bottom: 25px; }
+
+.katex-display {
+  font-size: 24px; }
+
+.plot {
+  font-family: Helvetica;
+  margin: 20px 0 20px -33px; }
+
+.scatter-plot {
+  margin: 20px 0 20px -33px; }
+
+.article-container, .front-page-article-container {
+  width: 100%;
+  height: auto;
+  padding: 50px 0 0 0;
+  background-size: 100% 320px;
+  background-repeat: no-repeat;
+  background-position: 0 -100px; }
+  .article-container a, .front-page-article-container a {
+    color: #e32d2d; }
+
+.front-page-article-container {
+  height: 515px; }
+
+.seperating-line {
+  width: 100%;
+  height: 1px;
+  background-color: rgba(162, 166, 184, 0.2); }
+
+.fuckyeah {
+  background-color: #f7f8f9; }
+
+article {
+  width: 1000px;
+  margin: 0 auto;
+  margin-bottom: 30px; }
+  article p {
+    font-size: 18px;
+    width: 800px;
+    margin-bottom: 30px; }
+  article img {
+    display: block;
+    margin: 0 auto;
+    text-align: center; }
+  article .subtext {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 17px;
+    width: 800px;
+    color: rgba(51, 55, 73, 0.5); }
+  article li {
+    margin-bottom: 15px;
+    width: 800px; }
+
+footer {
+  width: 1000px;
+  margin: auto; }
+  footer .inner-footer {
+    border-top: 1px solid #e7ebee;
+    padding: 30px 0 30px 0;
+    width: 800px; }
+
+.archive-year {
+  color: #333749;
+  font-size: 36px;
+  font-weight: 600; }
+
+.archive-list {
+  list-style: none;
+  text-indent: 20px; }
+
+.archive-day {
+  color: rgba(51, 55, 73, 0.5); }
+
+.archive-link {
+  font-weight: 600; }
