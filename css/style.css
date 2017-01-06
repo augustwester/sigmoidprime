@@ -1,3 +1,4 @@
+@import url(font-specification.css);
 * {
   margin: 0;
   padding: 0; }
@@ -118,10 +119,13 @@ code {
 
 .plot {
   font-family: Helvetica;
-  margin: 20px 0 20px -33px; }
+  text-align: center;
+  width: 800px; }
 
 .scatter-plot {
-  margin: 20px 0 20px -33px; }
+  margin: 20px 0 20px -33px;
+  width: 800px;
+  height: 300px; }
 
 .article-container, .front-page-article-container {
   width: 100%;
