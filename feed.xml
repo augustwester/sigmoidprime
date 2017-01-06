@@ -3,10 +3,10 @@
   <channel>
     <title>sigmoid prime</title>
     <description>A blog about machine learning aimed at newcomers to the field.</description>
-    <link>http://0.0.0.0:4000//</link>
-    <atom:link href="http://0.0.0.0:4000//feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Fri, 06 Jan 2017 14:36:27 +0100</pubDate>
-    <lastBuildDate>Fri, 06 Jan 2017 14:36:27 +0100</lastBuildDate>
+    <link>http://sigmoidprime.com//</link>
+    <atom:link href="http://sigmoidprime.com//feed.xml" rel="self" type="application/rss+xml"/>
+    <pubDate>Fri, 06 Jan 2017 16:01:19 +0100</pubDate>
+    <lastBuildDate>Fri, 06 Jan 2017 16:01:19 +0100</lastBuildDate>
     <generator>Jekyll v3.3.0</generator>
     
       <item>
@@ -224,8 +224,8 @@ Accuracy: 1.000000&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 &lt;p&gt;In the next post, we will cover some slightly more complex terrain in order to see how we can get closer to modelling data that is not linearly separable.&lt;/p&gt;
 </description>
         <pubDate>Fri, 30 Dec 2016 09:20:27 +0100</pubDate>
-        <link>http://0.0.0.0:4000//post/how-to-build-a-neural-network-pt-1/</link>
-        <guid isPermaLink="true">http://0.0.0.0:4000//post/how-to-build-a-neural-network-pt-1/</guid>
+        <link>http://sigmoidprime.com//post/how-to-build-a-neural-network-pt-1/</link>
+        <guid isPermaLink="true">http://sigmoidprime.com//post/how-to-build-a-neural-network-pt-1/</guid>
         
         
       </item>
