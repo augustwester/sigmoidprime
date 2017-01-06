@@ -2,10 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-
     <title>sigmoid prime: approachable machine learning</title>
+    <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport' />
 
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/mobile.css" media="only screen and (max-device-width: 750px)">
     <link rel="stylesheet" href="/libs/highlight/styles/atom-one-light.css">
     <link rel="stylesheet" href="/libs/katex/katex.min.css">
     <link rel="stylesheet" href="/libs/c3/c3.min.css">
@@ -28,8 +29,8 @@
     <script src="/libs/katex/katex.min.js"></script>
     <script src="/libs/katex/auto-render.min.js"></script>
     <script src="/libs/d3/d3.v3.min.js"></script>
-    <script src="/libs/c3/c3.min.js">
-    <script src="/libs/function_plot/function-plot.js"></script>
+    <script src="/libs/c3/c3.min.js"></script>
+    <script src="/libs/function-plot/function-plot.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>
   </head>
   <body>
@@ -77,9 +78,9 @@
 <div id="versicolorsetosa" class="scatter-plot"></div>
 <script type="text/javascript" src="/js/versicolorsetosa.js"></script>
 
-<p>This is a scatter plot of part of the <a href="https://archive.ics.uci.edu/ml/datasets/Iris">iris dataset</a>; the de facto dataset for training a perceptron. The full dataset contains 150 samples of three different types of iris flower (50 samples of each type). Each sample contains four features: sepal width, sepal length, petal width, and petal length. In the scatter plot above, we are only looking at two features (petal width and petal length) for two types of iris (setosa and versicolor).</p>
+<p>This is a scatter plot of part of the <a href="https://archive.ics.uci.edu/ml/datasets/Iris">Iris dataset</a>; the de facto dataset for training a perceptron. The full dataset contains 150 samples of three different types of Iris flower (50 samples of each type). Each sample contains four features: sepal width, sepal length, petal width, and petal length. In the scatter plot above, we are only looking at two features (petal width and petal length) for two types of Iris (setosa and versicolor).</p>
 
-<p>The thing to notice about the data is that it is linearly separable. In other words, the points belonging to each iris type are clustered in such a way that you can separate them with a straight line. What the perceptron algorithm does is it automatically ‘learns’ the parameters for a model (in this case a linear function) that, when presented with the features of a sample, returns a positive number for one iris type, and a negative number for the other. This enables us to classify a sample as belonging to the setosa family or the versicolor family solely by looking at the features of the flower.</p>
+<p>The thing to notice about the data is that it is linearly separable. In other words, the points belonging to each Iris type are clustered in such a way that you can separate them with a straight line. What the perceptron algorithm does is it automatically ‘learns’ the parameters for a model (in this case a linear function) that, when presented with the features of a sample, returns a positive number for one Iris type, and a negative number for the other. This enables us to classify a sample as belonging to the setosa family or the versicolor family solely by looking at the features of the flower.</p>
 
 <p>The following steps outline how to create a model with this capability.</p>
 
@@ -138,7 +139,7 @@ x \cdot \theta
 \sigma(z)=\begin{cases} 1 &amp; {\small z &gt; 0,} \cr 0 &amp; {\small otherwise} \end{cases}
 €€</p>
 
-<p>If it isn’t immediately obvious from this definition, the heaviside step function takes a scalar input €z€ and returns 1 if €z€ is positive, and 0 if €z€ is nonpositive. The sole purpose of the heaviside step function is to classify points below the decision boundary as 0, and points above the decision boundary as 1. The output will thus be our prediction of the iris type.</p>
+<p>If it isn’t immediately obvious from this definition, the heaviside step function takes a scalar input €z€ and returns 1 if €z€ is positive, and 0 if €z€ is nonpositive. The sole purpose of the heaviside step function is to classify points below the decision boundary as 0, and points above the decision boundary as 1. The output will thus be our prediction of the Iris type.</p>
 
 <p>For each sample, the output €\hat{y}€ of our model will be:</p>
 
@@ -186,7 +187,7 @@ x \cdot \theta
 
 <p>To start off, make sure that you have Python and <a href="http://www.numpy.org/">NumPy</a> installed on your machine. If you are not already familiar with NumPy, it is an essential package for Python for doing matrix and vector operations. There will be tons of these going forward.</p>
 
-<p>To import and handle the iris dataset, we will use <a href="http://pandas.pydata.org">Pandas</a>. NumPy as well as Pandas can be installed by running <code class="highlighter-rouge">pip numpy</code> and <code class="highlighter-rouge">pip pandas</code> in the command line. Once you’ve got everything set up, we’ll create a new Python file and do the requisite imports at the top. We will also be including the iris dataset made available from <a href="https://archive.ics.uci.edu/ml/datasets/Iris">UCI’s website</a>. As a courtesy, I recommend that you download the file and reference it locally in order to spare UCI of unnecessary traffic.</p>
+<p>To import and handle the Iris dataset, we will use <a href="http://pandas.pydata.org">Pandas</a>. NumPy as well as Pandas can be installed by running <code class="highlighter-rouge">pip numpy</code> and <code class="highlighter-rouge">pip pandas</code> in the command line. Once you’ve got everything set up, we’ll create a new Python file and do the requisite imports at the top. We will also be including the Iris dataset made available from <a href="https://archive.ics.uci.edu/ml/datasets/Iris">UCI’s website</a>. As a courtesy, I recommend that you download the file and reference it locally in order to spare UCI of unnecessary traffic.</p>
 
 <figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
@@ -268,6 +269,15 @@ Accuracy: 1.000000</code></pre></figure>
 <p>In the next post, we will cover some slightly more complex terrain in order to see how we can get closer to modelling data that is not linearly separable.</p>
 
     </article>
+
+    <script type="text/javascript">
+      var viewportWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+      var functionPlotContainer = document.getElementById("quad");
+      var functionPlot = functionPlotContainer.children[0];
+      var scaleRatio = viewportWidth / functionPlot.clientWidth;
+      functionPlotContainer.style = "-webkit-transform:scale(" + scaleRatio + ")";
+    </script>
+
     <br /><br />
     <footer>
       <div class="inner-footer">
@@ -283,13 +293,6 @@ Accuracy: 1.000000</code></pre></figure>
       var config = [{left:'€€', right:'€€', display:true}, {left: '€', right:'€', display:false}];
       renderMathInElement(document.body, {delimiters: config});
     </script>
-    <script>
-      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-      ga('create', 'UA-89251189-1', 'auto');
-      ga('send', 'pageview');
-    </script>
+    
   </body>
 </html>

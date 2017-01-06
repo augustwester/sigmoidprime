@@ -28,9 +28,9 @@ var versicolorsetosa = c3.generate({
       label: 'petal width'
     }
   },
-  
-  size: {
+
+  /*size: {
     width: 800,
     height: 300
-  }
+  }*/
 });

@@ -3,10 +3,10 @@
   <channel>
     <title>sigmoid prime</title>
     <description>A blog about machine learning aimed at newcomers to the field.</description>
-    <link>http://localhost:4000/</link>
-    <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Fri, 30 Dec 2016 15:04:00 +0100</pubDate>
-    <lastBuildDate>Fri, 30 Dec 2016 15:04:00 +0100</lastBuildDate>
+    <link>http://0.0.0.0:4000//</link>
+    <atom:link href="http://0.0.0.0:4000//feed.xml" rel="self" type="application/rss+xml"/>
+    <pubDate>Fri, 06 Jan 2017 14:36:27 +0100</pubDate>
+    <lastBuildDate>Fri, 06 Jan 2017 14:36:27 +0100</lastBuildDate>
     <generator>Jekyll v3.3.0</generator>
     
       <item>
@@ -33,9 +33,9 @@
 &lt;div id=&quot;versicolorsetosa&quot; class=&quot;scatter-plot&quot;&gt;&lt;/div&gt;
 &lt;script type=&quot;text/javascript&quot; src=&quot;/js/versicolorsetosa.js&quot;&gt;&lt;/script&gt;
 
-&lt;p&gt;This is a scatter plot of part of the &lt;a href=&quot;https://archive.ics.uci.edu/ml/datasets/Iris&quot;&gt;iris dataset&lt;/a&gt;; the de facto dataset for training a perceptron. The full dataset contains 150 samples of three different types of iris flower (50 samples of each type). Each sample contains four features: sepal width, sepal length, petal width, and petal length. In the scatter plot above, we are only looking at two features (petal width and petal length) for two types of iris (setosa and versicolor).&lt;/p&gt;
+&lt;p&gt;This is a scatter plot of part of the &lt;a href=&quot;https://archive.ics.uci.edu/ml/datasets/Iris&quot;&gt;Iris dataset&lt;/a&gt;; the de facto dataset for training a perceptron. The full dataset contains 150 samples of three different types of Iris flower (50 samples of each type). Each sample contains four features: sepal width, sepal length, petal width, and petal length. In the scatter plot above, we are only looking at two features (petal width and petal length) for two types of Iris (setosa and versicolor).&lt;/p&gt;
 
-&lt;p&gt;The thing to notice about the data is that it is linearly separable. In other words, the points belonging to each iris type are clustered in such a way that you can separate them with a straight line. What the perceptron algorithm does is it automatically ‘learns’ the parameters for a model (in this case a linear function) that, when presented with the features of a sample, returns a positive number for one iris type, and a negative number for the other. This enables us to classify a sample as belonging to the setosa family or the versicolor family solely by looking at the features of the flower.&lt;/p&gt;
+&lt;p&gt;The thing to notice about the data is that it is linearly separable. In other words, the points belonging to each Iris type are clustered in such a way that you can separate them with a straight line. What the perceptron algorithm does is it automatically ‘learns’ the parameters for a model (in this case a linear function) that, when presented with the features of a sample, returns a positive number for one Iris type, and a negative number for the other. This enables us to classify a sample as belonging to the setosa family or the versicolor family solely by looking at the features of the flower.&lt;/p&gt;
 
 &lt;p&gt;The following steps outline how to create a model with this capability.&lt;/p&gt;
 
@@ -94,7 +94,7 @@ x \cdot \theta
 \sigma(z)=\begin{cases} 1 &amp;amp; {\small z &amp;gt; 0,} \cr 0 &amp;amp; {\small otherwise} \end{cases}
 €€&lt;/p&gt;
 
-&lt;p&gt;If it isn’t immediately obvious from this definition, the heaviside step function takes a scalar input €z€ and returns 1 if €z€ is positive, and 0 if €z€ is nonpositive. The sole purpose of the heaviside step function is to classify points below the decision boundary as 0, and points above the decision boundary as 1. The output will thus be our prediction of the iris type.&lt;/p&gt;
+&lt;p&gt;If it isn’t immediately obvious from this definition, the heaviside step function takes a scalar input €z€ and returns 1 if €z€ is positive, and 0 if €z€ is nonpositive. The sole purpose of the heaviside step function is to classify points below the decision boundary as 0, and points above the decision boundary as 1. The output will thus be our prediction of the Iris type.&lt;/p&gt;
 
 &lt;p&gt;For each sample, the output €\hat{y}€ of our model will be:&lt;/p&gt;
 
@@ -142,7 +142,7 @@ x \cdot \theta
 
 &lt;p&gt;To start off, make sure that you have Python and &lt;a href=&quot;http://www.numpy.org/&quot;&gt;NumPy&lt;/a&gt; installed on your machine. If you are not already familiar with NumPy, it is an essential package for Python for doing matrix and vector operations. There will be tons of these going forward.&lt;/p&gt;
 
-&lt;p&gt;To import and handle the iris dataset, we will use &lt;a href=&quot;http://pandas.pydata.org&quot;&gt;Pandas&lt;/a&gt;. NumPy as well as Pandas can be installed by running &lt;code class=&quot;highlighter-rouge&quot;&gt;pip numpy&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;pip pandas&lt;/code&gt; in the command line. Once you’ve got everything set up, we’ll create a new Python file and do the requisite imports at the top. We will also be including the iris dataset made available from &lt;a href=&quot;https://archive.ics.uci.edu/ml/datasets/Iris&quot;&gt;UCI’s website&lt;/a&gt;. As a courtesy, I recommend that you download the file and reference it locally in order to spare UCI of unnecessary traffic.&lt;/p&gt;
+&lt;p&gt;To import and handle the Iris dataset, we will use &lt;a href=&quot;http://pandas.pydata.org&quot;&gt;Pandas&lt;/a&gt;. NumPy as well as Pandas can be installed by running &lt;code class=&quot;highlighter-rouge&quot;&gt;pip numpy&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;pip pandas&lt;/code&gt; in the command line. Once you’ve got everything set up, we’ll create a new Python file and do the requisite imports at the top. We will also be including the Iris dataset made available from &lt;a href=&quot;https://archive.ics.uci.edu/ml/datasets/Iris&quot;&gt;UCI’s website&lt;/a&gt;. As a courtesy, I recommend that you download the file and reference it locally in order to spare UCI of unnecessary traffic.&lt;/p&gt;
 
 &lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;numpy&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;np&lt;/span&gt;
 &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;pandas&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;pd&lt;/span&gt;
@@ -224,8 +224,8 @@ Accuracy: 1.000000&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 &lt;p&gt;In the next post, we will cover some slightly more complex terrain in order to see how we can get closer to modelling data that is not linearly separable.&lt;/p&gt;
 </description>
         <pubDate>Fri, 30 Dec 2016 09:20:27 +0100</pubDate>
-        <link>http://localhost:4000/post/how-to-build-a-neural-network-pt-1/</link>
-        <guid isPermaLink="true">http://localhost:4000/post/how-to-build-a-neural-network-pt-1/</guid>
+        <link>http://0.0.0.0:4000//post/how-to-build-a-neural-network-pt-1/</link>
+        <guid isPermaLink="true">http://0.0.0.0:4000//post/how-to-build-a-neural-network-pt-1/</guid>
         
         
       </item>
