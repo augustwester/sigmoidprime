@@ -6,9 +6,6 @@
 a {
   text-decoration: none; }
 
-body {
-  background-color: #fcfcff; }
-
 h1, h2, h3 {
   font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial;
   color: #e32d2d;
@@ -87,7 +84,7 @@ main {
   height: auto;
   margin-bottom: 50px; }
   .date-ct p {
-    font-weight: 600;
+    font-weight: 500;
     font-size: 14px;
     color: #a2a6b8;
     text-transform: uppercase; }
@@ -133,7 +130,8 @@ code {
   padding: 50px 0 0 0;
   background-size: 100% 320px;
   background-repeat: no-repeat;
-  background-position: 0 -100px; }
+  background-position: 0 -100px;
+  position: relative; }
   .article-container a, .front-page-article-container a {
     color: #e32d2d; }
 
@@ -144,9 +142,6 @@ code {
   width: 100%;
   height: 1px;
   background-color: rgba(162, 166, 184, 0.2); }
-
-.fuckyeah {
-  background-color: #f7f8f9; }
 
 article {
   width: 1000px;
@@ -186,6 +181,8 @@ footer {
 .archive-list {
   list-style: none;
   text-indent: 20px; }
+  .archive-list li {
+    width: 100%; }
 
 .archive-day {
   color: rgba(51, 55, 73, 0.5); }

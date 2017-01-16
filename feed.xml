@@ -5,9 +5,303 @@
     <description>A blog about machine learning aimed at newcomers to the field.</description>
     <link>http://sigmoidprime.com//</link>
     <atom:link href="http://sigmoidprime.com//feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Fri, 06 Jan 2017 16:01:19 +0100</pubDate>
-    <lastBuildDate>Fri, 06 Jan 2017 16:01:19 +0100</lastBuildDate>
+    <pubDate>Mon, 16 Jan 2017 01:07:43 +0100</pubDate>
+    <lastBuildDate>Mon, 16 Jan 2017 01:07:43 +0100</lastBuildDate>
     <generator>Jekyll v3.3.0</generator>
+    
+      <item>
+        <title>How to Build (and Understand) a Neural Network Pt. 2: Logistic Regression</title>
+        <description>
+&lt;p&gt;In the &lt;a href=&quot;http://sigmoidprime.com/post/how-to-build-a-neural-network-pt-1/&quot;&gt;previous post&lt;/a&gt;, we saw how the perceptron algorithm automatically figured out how to distinguish between the classes of two different types of data samples. This time, we will explore the ideas behind another algorithm — &lt;strong&gt;logistic regression&lt;/strong&gt; — to see how and why it plays a central role in many neural network architectures. We will also demonstrate how it can be used to model slightly more complex and interesting data than the Iris dataset from Pt. 1.&lt;/p&gt;
+
+&lt;h2 id=&quot;predicting-university-admissions&quot;&gt;Predicting university admissions&lt;/h2&gt;
+
+&lt;p&gt;For this example, I have taken the liberty of using a dataset offered in Andrew Ng’s &lt;em&gt;fantastic&lt;/em&gt; &lt;a href=&quot;https://www.coursera.org/learn/machine-learning&quot;&gt;Coursera course on machine learning&lt;/a&gt;. (If you are reading this blog, I can’t recommend the course enough.) Like the Iris dataset, this one is split into samples of two classes: Admitted and Not Admitted to a university. Each sample only contains two features; namely the score on two different exams. When you plot the samples, they look like this:&lt;/p&gt;
+
+&lt;div id=&quot;university-admissions&quot; class=&quot;scatter-plot&quot;&gt;&lt;/div&gt;
+&lt;script type=&quot;text/javascript&quot; src=&quot;/js/university-admissions.js&quot;&gt;&lt;/script&gt;
+
+&lt;p&gt;This dataset is a little more complex than the Iris dataset in that it cannot be perfectly separated by a straight line. In fact, if we wanted to separate the two classes at 100% accuracy, it would require a very complex decision boundary similar to this one:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/posts/2/complex-decision-boundary.png&quot; width=&quot;800&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;To achieve this kind of decision boundary would be marvellous, right? Well; actually it wouldn’t. Decision boundaries like this are a prototypical example of &lt;strong&gt;overfitting&lt;/strong&gt;. Overfitting means that our model has adjusted itself too much to our data, and is therefore unlikely to perform optimally when asked to classify samples it has never seen before. Instead, what we want is a decision boundary that follows the principle of &lt;a href=&quot;https://en.wikipedia.org/wiki/Occam's_razor&quot;&gt;Occam’s Razor&lt;/a&gt;: It needs to define the boundary according to the simplest overall trend(s) in the data by disregarding random noise.&lt;/p&gt;
+
+&lt;p&gt;So, counterintuitive as it may seem, we don’t want overfitting. However, a simple linear (or slightly curved) decision boundary would also inevitably entail some level of uncertainty about our classification. Wouldn’t it be better if we could estimate the &lt;em&gt;probability&lt;/em&gt; of an applicant being admitted rather than a black and white binary prediction?&lt;/p&gt;
+
+&lt;p&gt;This is what separates &lt;em&gt;regression&lt;/em&gt; from &lt;em&gt;classification&lt;/em&gt;. When we do classification, we &lt;em&gt;predict&lt;/em&gt; that some sample €x^{(i)}€ belongs to some class €y^{(i)}€. Regression, on the other hand, deals with &lt;em&gt;estimating&lt;/em&gt; some real number value related to €x^{(i)}€. One example of regression would be if we tried to estimate tomorrow’s value of the S&amp;amp;P 500. Similarly, when we try to estimate the probability that an applicant will be admitted to a university, this is also a regression problem.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-sigmoid-function&quot;&gt;The sigmoid function&lt;/h2&gt;
+
+&lt;p&gt;The logistic function — in machine learning circles better known as the “sigmoid” function —  is a simple mathematical function that takes an S-like shape when you plot it on a graph:&lt;/p&gt;
+
+&lt;div id=&quot;quad&quot; class=&quot;plot&quot;&gt;&lt;/div&gt;
+&lt;script type=&quot;text/javascript&quot;&gt;functionPlot({target:&quot;#quad&quot;,xAxis:{domain:[-7,7]},yAxis:{domain:[0,1]},grid:true,disableZoom:true,width:500,height:300,data:[{fn:&quot;1/(1+exp(-x))&quot;}]})&lt;/script&gt;
+
+&lt;p&gt;The function itself — which we will denote as €\sigma€ — can be expressed mathematically as:&lt;/p&gt;
+
+&lt;p&gt;€€
+\sigma(z) = \frac{1}{1 + e^{-z}}
+€€&lt;/p&gt;
+
+&lt;p class=&quot;subtext&quot;&gt;Can you see from the equation why the function looks the way it does?&lt;/p&gt;
+
+&lt;p&gt;Besides its pretty shape, there is one thing in particular to note about the sigmoid: No matter how big or small the value of €z€ becomes, the function always outputs a real number between 0 and 1. This is handy, since it enables us to think of €\sigma€ as a probability distribution, where €\sigma = 0.5€ when €z = 0€, and €\sigma = 1€ as €z\rightarrow\infty€. The output of €\sigma€ will thus be our estimate of the probability that an applicant will be admitted to the university.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/posts/2/lr-db.png&quot; width=&quot;800px&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;This is a contour plot showing the “decision boundary” of a model that has been trained on our dataset with logistic regression. You will notice that we no longer have a simple straight line that separates the two classes, but rather a more nuanced boundary with the dark blue region indicating near certainty that €x^{(i)}€ is admitted (€\hat{y}^{(i)}\approx1€), and the dark red region indicating the opposite (€\hat{y}^{(i)}\approx0€). This is pretty nice since it reveals when our model is faced with uncertainty.&lt;/p&gt;
+
+&lt;h2 id=&quot;defining-our-model&quot;&gt;Defining our model&lt;/h2&gt;
+
+&lt;p&gt;In Pt. 1, we saw how the perceptron model was a linear function of the form&lt;/p&gt;
+
+&lt;p&gt;€€
+\theta_1x_1 + \theta_2x_2 \cdots +\theta_nx_n + b
+€€&lt;/p&gt;
+
+&lt;p&gt;where €\theta€ was an €n€-dimensional vector of weights, and €x€ was an €n€-dimensional vector of features. We also saw how we could simplify this expression by adding €b€ as an element €\theta_0€ to the vector €\theta€, and by ensuring that the corresponding element in the vector €x€ was always 1:&lt;/p&gt;
+
+&lt;p&gt;€€
+\theta \cdot x = \begin{Bmatrix}\theta_0 \cr \theta_1 \cr \theta_2 \cr \vdots \cr \theta_n\end{Bmatrix}
+\cdot
+\begin{Bmatrix}1 \cr x_1 \cr x_2\cr \vdots \cr x_n \end{Bmatrix}= \theta_0 + \theta_1x_1 \cdots + \theta_nx_n
+€€&lt;/p&gt;
+
+&lt;p&gt;In logistic regression, we do exactly the same. However, instead of stopping here, we feed the result of the dot product between €\theta€ and €x€ to the sigmoid function €\sigma€. Concretely, this means that given a two-dimensional vector €x€ containing an applicant’s exam-scores, the probability that they will be admitted to the university is calculated as:&lt;/p&gt;
+
+&lt;p&gt;€€
+\sigma(\theta \cdot x) = \frac{1}{1+e^{-(\theta \cdot x)}}
+€€&lt;/p&gt;
+
+&lt;p&gt;When we first initialize our logistic regression model, our parameters €\theta€ will again have random values between 0 and 1. As a result, the probabilities outputted by €\sigma€ will be way off the intended values in the beginning. To improve our parameters, we need a learning algorithm.&lt;/p&gt;
+
+&lt;h2 id=&quot;quantifying-errors-using-cost-functions&quot;&gt;Quantifying errors using cost functions&lt;/h2&gt;
+
+&lt;p&gt;The learning algorithm for logistic regression is slightly more advanced than what we saw with the perceptron in the previous post. To understand how it works, we need to familiarize ourselves with the idea of a &lt;strong&gt;cost function&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;A cost function is a mathematical function that calculates the deviation of a prediction from the target value (aka. the &lt;strong&gt;ground truth&lt;/strong&gt;). Let’s see what this means by looking at the cost function for logistic regression:&lt;/p&gt;
+
+&lt;p&gt;€€
+\frac{1}{m}\sum\limits_{i=1}^{m}-y^{(i)} \log(\hat{y}^{(i)}) - (1-y^{(i)}) \log(1-\hat{y}^{(i)})
+€€&lt;/p&gt;
+
+&lt;p class=&quot;subtext&quot;&gt;€(i)€ is the index of sample €i€, €y^{(i)}€ is the corresponding ground truth, and €\hat{y}^{(i)}€ is our probability estimate. €m€ is the total number of samples. Multiplying by €\frac{1}{m}€ gives us the mean cost.&lt;/p&gt;
+
+&lt;p&gt;Yikes! Looks pretty involved, right? Fortunately, it is not that bad once you break it up.&lt;/p&gt;
+
+&lt;p&gt;Suppose we take a sample €x^{(i)}€ from our dataset with a ground truth €y^{(i)}€ of 1 (Admitted). When we begin training our model, it estimates the probability of €x^{(i)}€ being admitted at 0.36 (a pretty bad estimate). Plugging these values into the cost function, we get:&lt;/p&gt;
+
+&lt;p&gt;€€
+-1 \cdot \log(0.36) - 0 \cdot \log(1-0.36)
+€€&lt;/p&gt;
+
+&lt;p class=&quot;subtext&quot;&gt;I have omitted the fraction and the summation, since we are only looking at the error of a single sample.&lt;/p&gt;
+
+&lt;p&gt;Because €y^{(i)}=1€, the second term in the expression falls away, and all we are left with is:&lt;/p&gt;
+
+&lt;p&gt;€€
+-1 \cdot \log(0.36) \approx 0.44
+€€&lt;/p&gt;
+
+&lt;p&gt;Now suppose we take another sample from our set; this time with a ground truth of 0. For simplicity’s sake, let’s assume that our probability estimate for this sample is 0.36 as well.&lt;/p&gt;
+
+&lt;p&gt;€€
+0 \cdot \log(0.36) - 1 \cdot \log(1-0.36)
+€€&lt;/p&gt;
+
+&lt;p&gt;This time, the first term falls away, leaving us with:&lt;/p&gt;
+
+&lt;p&gt;€€
+-1 \cdot \log(1-0.36) \approx 0.19
+€€&lt;/p&gt;
+
+&lt;p&gt;Notice how the cost was higher when €y^{(i)}=1€. This is exactly what we want, since our estimate of 0.36 is farther from 1 than from 0.&lt;/p&gt;
+
+&lt;p&gt;We know for a fact that each of our samples €x^{(i)}€ has a ground truth €y^{(i)}€ of either 0 or 1. It is never in between. This is nice, because it tells us that the cost of each sample can only be expressed as either €-1 \cdot \log(\hat{y}^{(i)})€ or €-1 \cdot \log(1-\hat{y}^{(i)})€. To see why this is both convenient and useful, it helps to plot the two functions:&lt;/p&gt;
+
+&lt;div id=&quot;log1&quot; class=&quot;plot&quot;&gt;&lt;/div&gt;
+&lt;script type=&quot;text/javascript&quot;&gt;functionPlot({target:&quot;#log1&quot;,xAxis:{domain:[0,1]},yAxis:{domain:[0,5]},grid:true,disableZoom:true,width:500,height:300,data:[{fn:&quot;-1*log(x)&quot;,derivative:{fn:&quot;-1/x&quot;, updateOnMouseMove:true}}]})&lt;/script&gt;
+
+&lt;p class=&quot;subtext&quot;&gt;€-1 \cdot \log(\hat{y}^{(i)})€&lt;/p&gt;
+
+&lt;div id=&quot;log2&quot; class=&quot;plot&quot;&gt;&lt;/div&gt;
+&lt;script type=&quot;text/javascript&quot;&gt;functionPlot({target:&quot;#log2&quot;,xAxis:{domain:[0,1]},yAxis:{domain:[0,5]},grid:true,disableZoom:true,width:500,height:300,data:[{fn:&quot;-1*log(1-x)&quot;,derivative:{fn:&quot;1/(1-x)&quot;, updateOnMouseMove:true}}]})&lt;/script&gt;
+
+&lt;p class=&quot;subtext&quot;&gt;€-1 \cdot \log(1-\hat{y}^{(i)})€&lt;/p&gt;
+
+&lt;p&gt;Two very useful features are evident from these plots:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Both functions are continuous and therefore differentiable.&lt;/li&gt;
+  &lt;li&gt;The functions are 0 when the estimated probability €\hat{y}^{(i)}€ is equal to the ground truth €y^{(i)}€, and they both approach infinity as €\hat{y}^{(i)}€ moves in the opposite direction.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;To see why this is useful, we need to talk about a beautiful and extremely powerful idea known as &lt;strong&gt;gradient descent&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;minimizing-error-with-gradient-descent&quot;&gt;Minimizing error with gradient descent&lt;/h2&gt;
+
+&lt;p&gt;We just saw how we could quantify the error of our model’s probability estimates by using a cost function. The beauty of a cost function is that it can be effectively minimized with the help of some relatively straightforward calculus. (If your calculus is shaky, I suggest you take a &lt;a href=&quot;https://www.youtube.com/watch?v=EKvHQc3QEow&amp;amp;list=PL19E79A0638C8D449&quot;&gt;crash course with Sal&lt;/a&gt; until you are comfortable with derivates — it is really not that bad.)&lt;/p&gt;
+
+&lt;p&gt;Recall that we calculate the probability of a sample €x^{(i)}€ being admitted as:&lt;/p&gt;
+
+&lt;p&gt;€€
+\sigma(\theta \cdot x^{(i)}) = \frac{1}{1+e^{-(\theta \cdot x^{(i)})}}
+€€&lt;/p&gt;
+
+&lt;p&gt;This means that €\sigma(\theta \cdot x^{(i)})=\hat{y}^{(i)}€. For clarity, let’s try to represent our complicated-looking-but-really-very-simple cost function by referring to our probability estimate this way.&lt;/p&gt;
+
+&lt;p&gt;€€
+\frac{1}{m}\sum\limits_{i=1}^{m}-y^{(i)} \log(\hat{y}^{(i)}) - (1-y^{(i)}) \log(1-\hat{y}^{(i)})
+€€
+€€
+\downarrow
+€€
+€€
+\frac{1}{m}\sum\limits_{i=1}^{m}-y^{(i)} \log(\sigma(\theta \cdot x^{(i)})) - (1-y^{(i)}) \log(1-\sigma(\theta \cdot x^{(i)}))
+€€&lt;/p&gt;
+
+&lt;p&gt;In the previous section, I mentioned that the cost function above is differentiable. I did not mention that the sigmoid function is as well. This is significant because — and this is where it gets cool — by having all the layers of our algorithm be differentiable, we can calculate the derivates of the cost function with respect to our parameters €\theta€! Let that sink in for a while.&lt;/p&gt;
+
+&lt;p&gt;What this means is that we can measure &lt;em&gt;exactly&lt;/em&gt; how a change in our parameters €\theta€ affects a change in our cost function. When you think about it, this is unbelievably cool. In theory, you could filter €x^{(i)}€ through thousands of layers of manipulations, and as long as they are all differentiable, you can calculate how each individual one of them is affecting the final cost (and thus how to change them in order to improve your model). In fact, this is not merely theoretical; it is &lt;em&gt;exactly&lt;/em&gt; how immensely sophisticated neural networks improve themselves when exposed to new data. We will explore this technique in more detail in the next post.&lt;/p&gt;
+
+&lt;p&gt;The partial derivative of our cost function (which I will henceforth refer to as €C€) w.r.t. a single parameter €\theta_j€ looks like this:&lt;/p&gt;
+
+&lt;p&gt;€€
+\frac{\partial C}{\partial \theta_j}=(\sigma(\theta \cdot x^{(i)})-y^{(i)})x_j^{(i)}
+€€&lt;/p&gt;
+
+&lt;p class=&quot;subtext&quot;&gt;€j€ refers to the €j€th feature of sample €i€. If you are curious about the steps behind the derivation, check out the top-rated answer &lt;a href=&quot;http://math.stackexchange.com/questions/477207/derivative-of-cost-function-for-logistic-regression?newreg=193313544a574729babc17a42602a428&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;A more general way of writing this would be to use the gradient expression instead:&lt;/p&gt;
+
+&lt;p&gt;€€
+\nabla_\theta C = (\sigma(\theta \cdot x^{(i)})-y^{(i)})x^{(i)}
+€€&lt;/p&gt;
+
+&lt;p class=&quot;subtext&quot;&gt;Note that €(\sigma(\theta \cdot x^{(i)})-y^{(i)})€ is a scalar, while €x^{(i)}€ is a vector.&lt;/p&gt;
+
+&lt;p&gt;A gradient (denoted by the symbol €\nabla€) is no more than a collection of partial derivatives. In this particular example, we have three parameters: the bias €\theta_0€ and the weights €\theta_1€ and €\theta_2€. Since we have three parameters and want to know how each one of them influences the cost €C€, we end up with three different derivatives. The gradient will therefore be a three-dimensional vector containing the derivatives for our three parameters.&lt;/p&gt;
+
+&lt;p&gt;You probably remember that a positive derivative means that we are moving “uphill” while a negative derivative means that we are moving “downhill”. Thus, if we get a positive derivative for one of our parameters, we want the value of that particular parameter to move in the opposite direction (since moving uphill is equivalent to increasing our cost).&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/posts/2/gradient-descent.png&quot; width=&quot;690&quot; style=&quot;margin:0;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;But hold on. The above definition of our gradient only deals with a single sample! We &lt;em&gt;could&lt;/em&gt; choose to “walk downhill” with the help of this gradient alone, but by doing that, we would only be walking down the cost function &lt;em&gt;for this particular sample&lt;/em&gt;. To get a gradient that will improve our parameters with respect to &lt;em&gt;all&lt;/em&gt; €n€ samples, we have to find the mean gradient like so:&lt;/p&gt;
+
+&lt;p&gt;€€
+\nabla_\theta C = \frac{1}{m}\sum\limits_{i=1}^{m}(\sigma(\theta \cdot x^{(i)})-y^{(i)})x^{(i)}
+€€&lt;/p&gt;
+
+&lt;p&gt;That is more like it. When we perform this calculation, we get a gradient containing the mean — or distillation if you will — of all of the partial derivatives w.r.t. €\theta€ in our training set. One way to think of this is that each derivative gets a vote on how to tune its corresponding parameter. When we use the mean of all the votes, we move in the direction that causes the cost to go down for the majority of our samples.&lt;/p&gt;
+
+&lt;p&gt;As mentioned, if the derivative for a particular parameter €\theta_j€ is positive, we want to decrease the value of €\theta_j€. Likewise, if €\theta_j€ has a negative derivative, we want to increase the value of €\theta_j€. For now, the increments by which we change €\theta_j€’s current value will simply be the same as the value of the derivatives. The following update rule describes exactly this procedure.&lt;/p&gt;
+
+&lt;p&gt;€€
+\theta := \theta -\nabla_\theta C
+€€&lt;/p&gt;
+
+&lt;p&gt;Because of the minus sign, negative derivatives will cause the value of €\theta_j€ to increase, and positive values will cause €\theta_j€ to decrease. Exactly what we want! If we do this for enough iterations (aka. &lt;strong&gt;epochs&lt;/strong&gt;), our algorithm should converge on the parameters that cause the total cost to be as small as possible. Let’s see if this works by applying what we have learned in code.&lt;/p&gt;
+
+&lt;h2 id=&quot;creating-a-logistic-regression-model-in-python&quot;&gt;Creating a logistic regression model in Python&lt;/h2&gt;
+
+&lt;p&gt;To create our logistic regression model, we will again be using &lt;a href=&quot;http://www.numpy.org/&quot;&gt;NumPy&lt;/a&gt; to handle all of our matrix and vector operations as well as &lt;a href=&quot;http://matplotlib.org/&quot;&gt;matplotlib&lt;/a&gt; to visualize what is going on. Both of these can be installed by running &lt;code class=&quot;highlighter-rouge&quot;&gt;pip numpy&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;pip matplotlib&lt;/code&gt; in the command line. Besides NumPy and matplotlib, make sure that you also download the dataset &lt;a href=&quot;/assets/posts/2/exam_scores.zip&quot;&gt;here&lt;/a&gt;. Place the dataset in a dedicated folder for the project, and create a new Python file called &lt;code class=&quot;highlighter-rouge&quot;&gt;logistic_regression.py&lt;/code&gt; in the same folder.&lt;/p&gt;
+
+&lt;p&gt;First, we will set up a &lt;code class=&quot;highlighter-rouge&quot;&gt;LogisticRegression&lt;/code&gt; class. The &lt;code class=&quot;highlighter-rouge&quot;&gt;init&lt;/code&gt; method will initialize an array &lt;code class=&quot;highlighter-rouge&quot;&gt;self.theta&lt;/code&gt; containing our three random parameters.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;numpy&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;np&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;matplotlib.pyplot&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;plt&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;LogisticRegression&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;object&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;nb&quot;&gt;super&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LogisticRegression&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;theta&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;random&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rand&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;fit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;epochs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;X&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;standardize&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;weighted_input&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dot&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;theta&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;probs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sigmoid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;weighted_input&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;epochs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;gradients&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cost_prime&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;probs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;theta&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;gradients&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;weighted_input&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dot&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;theta&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;probs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sigmoid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;weighted_input&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;Training finished&quot;&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;standardize&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;X_std&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ones&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;shape&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;shape&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]):&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;# no need to standardize the x_0 column&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;X_std&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[:,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[:,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mean&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[:,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]))&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;std&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[:,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;X_std&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;We haven’t yet implemented all of the referenced methods, but if you analyze &lt;code class=&quot;highlighter-rouge&quot;&gt;fit&lt;/code&gt;, you will see that — except for the &lt;code class=&quot;highlighter-rouge&quot;&gt;standardize&lt;/code&gt; part — we have covered the theory behind everything that is happening. So, before we proceed, what does &lt;code class=&quot;highlighter-rouge&quot;&gt;standardize&lt;/code&gt; do?&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://sebastianraschka.com/Articles/2014_about_feature_scaling.html#about-standardization&quot;&gt;Standardization&lt;/a&gt; is done using the following formula, and forces the features of a dataset to follow a normal distribution with mean €\mu=0€ and standard deviation €\sigma=1€ (not to be confused with the sigmoid function, which we also denoted as €\sigma€).&lt;/p&gt;
+
+&lt;p&gt;€€
+\frac{x_j^{(i)}-\mu}{\sigma}
+€€&lt;/p&gt;
+
+&lt;p&gt;Performing this trick on our particular dataset squishes the features of our first sample from around &lt;code class=&quot;highlighter-rouge&quot;&gt;34.62&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;78.02&lt;/code&gt; down to about &lt;code class=&quot;highlighter-rouge&quot;&gt;-1.60&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;0.63&lt;/code&gt; respectively. We need to do this, because the dot product €\theta \cdot x^{(i)}€ has to be pretty small in order to avoid &lt;strong&gt;saturation&lt;/strong&gt;. Saturation happens when we plug large values into the sigmoid function. This will return a number extremely close to 1, and we thus run the risk of numerical overflow. To avoid this, we use standardization to scale our features down to have zero-mean while still maintaining the ratios between the features.&lt;/p&gt;
+
+&lt;p&gt;We will now add the partial derivative of the cost function with respect to our parameters:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;cost_prime&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;probs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;gradients&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;empty&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;theta&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;theta&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)):&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;gradients&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;1.0&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;probs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;probs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[:,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;gradients&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;This method outputs our gradient; an array with the same dimensions as &lt;code class=&quot;highlighter-rouge&quot;&gt;self.theta&lt;/code&gt; containing one derivative per parameter. If you inspect the calculation, you will see that it is exactly the same as the gradient formula we talked about a few moments ago.&lt;/p&gt;
+
+&lt;p&gt;At this point, every piece of the puzzle is in place for the algorithm to train a working model. To see the fruits of our labor, though, we need to implement one last method:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;estimate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;X&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;standardize&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sigmoid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dot&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;theta&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;estimate&lt;/code&gt; will simply take a matrix (or &lt;em&gt;2D array&lt;/em&gt; in NumPy-speak) of samples, and return the model’s estimated probabilities of admission for each sample. We will use this method to generate a contour plot like the one we saw earlier.&lt;/p&gt;
+
+&lt;p&gt;Alright! Our &lt;code class=&quot;highlighter-rouge&quot;&gt;LogisticRegression&lt;/code&gt; class is done; now we need to import the dataset, train the model, and make a contour plot like the one we saw earlier.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;n&quot;&gt;data&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;loadtxt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;exam_scores.txt&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;delimiter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;,&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;# importing the data&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;data&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;c_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ones&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;# making sure that x_0=1 for all samples&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[:,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[:,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;lr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;LogisticRegression&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;lr&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;100&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;# 100 epochs&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# Creating a set of all possible exam scores between 20 and 110 in increments&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# of .5. Feeding this to our trained model will color our contour plot.&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;xx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;yy&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mgrid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;20&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;110&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;20&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;110&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;comb&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;c_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;xx&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ravel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;yy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ravel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()]&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;comb&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;c_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ones&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;comb&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;comb&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;probs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lr&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;estimate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;comb&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;reshape&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;xx&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;shape&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ax&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;subplots&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;figsize&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;12&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;8&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;contour&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ax&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;contourf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;xx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;yy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;probs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;20&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cmap&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;RdYlBu&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;vmin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;vmax&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[:,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;# admitted samples&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;na&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[:,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;# non-admitted samples&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;ax&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;scatter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[:,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[:,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;28.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;255&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;159.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;255&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;251.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;255&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;ax&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;scatter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;na&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[:,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;na&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[:,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;252.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;255&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;81.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;255&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;80.0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;255&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;If you run this, you should see a contour plot exactly like the one I showed in the beginning.&lt;/p&gt;
+
+&lt;p&gt;Pat yourself on the back if you have followed along this far. You are now very well suited to tackle the final problem in this series: to build a neural network.&lt;/p&gt;
+</description>
+        <pubDate>Mon, 16 Jan 2017 00:07:27 +0100</pubDate>
+        <link>http://sigmoidprime.com//post/how-to-build-a-neural-network-pt-2/</link>
+        <guid isPermaLink="true">http://sigmoidprime.com//post/how-to-build-a-neural-network-pt-2/</guid>
+        
+        
+      </item>
     
       <item>
         <title>How to Build (and Understand) a Neural Network Pt. 1: The Perceptron</title>
@@ -50,7 +344,7 @@
 
 &lt;h2 id=&quot;the-math&quot;&gt;The math&lt;/h2&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/linear-separation.gif&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/posts/1/linear-separation.gif&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;The animation above illustrates an example of a 2D plane separating setosa and versicolor points in 3D space. Our parameters define the plane — also known as the &lt;strong&gt;decision boundary&lt;/strong&gt; — and when these are multiplied by the coordinates of a point (the features), the result will be positive if the point is located above the plane, and negative when located below the plane. This is the core idea that makes our algorithm possible. Our job is to find a set of parameters that separate the classes perfectly (like the one above).&lt;/p&gt;
 
@@ -221,7 +515,7 @@ Accuracy: 1.000000&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;p&gt;Because the data is linearly separable, the algorithm found the optimal values for €\theta€, and is now able to correctly classify all 50 test samples. Had the data not been linearly separable, it would have been a &lt;em&gt;whole&lt;/em&gt; other story.&lt;/p&gt;
 
-&lt;p&gt;In the next post, we will cover some slightly more complex terrain in order to see how we can get closer to modelling data that is not linearly separable.&lt;/p&gt;
+&lt;p&gt;In the &lt;a href=&quot;http://sigmoidprime.com/post/how-to-build-a-neural-network-pt-2&quot;&gt;next post&lt;/a&gt;, we will cover some slightly more complex terrain in order to see how we can get closer to modelling data that is not linearly separable.&lt;/p&gt;
 </description>
         <pubDate>Fri, 30 Dec 2016 09:20:27 +0100</pubDate>
         <link>http://sigmoidprime.com//post/how-to-build-a-neural-network-pt-1/</link>
