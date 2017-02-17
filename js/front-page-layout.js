@@ -3,7 +3,7 @@ usragent_regex = new RegExp("Android|webOS|iPhone|iPad|iPod|BlackBerry");
 
 for (x in article_containers) {
   if (x % 2) {
-    article_containers[x].style = "background-color:rgb(244,248,249);";
+    article_containers[x].style = "background-color:rgba(244,248,249,1);";
   }
 
   if (x != 0 && !usragent_regex.test(navigator.userAgent)) {

@@ -5,8 +5,8 @@
     <description>A blog about machine learning aimed at newcomers to the field.</description>
     <link>http://sigmoidprime.com//</link>
     <atom:link href="http://sigmoidprime.com//feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Mon, 16 Jan 2017 10:16:08 +0100</pubDate>
-    <lastBuildDate>Mon, 16 Jan 2017 10:16:08 +0100</lastBuildDate>
+    <pubDate>Fri, 17 Feb 2017 15:06:04 +0100</pubDate>
+    <lastBuildDate>Fri, 17 Feb 2017 15:06:04 +0100</lastBuildDate>
     <generator>Jekyll v3.3.0</generator>
     
       <item>
@@ -50,7 +50,7 @@
 
 &lt;p&gt;&lt;img src=&quot;/assets/posts/2/lr-db.png&quot; width=&quot;800px&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;This is a contour plot showing the “decision boundary” of a model that has been trained on our dataset with logistic regression. You will notice that we no longer have a simple straight line that separates the two classes, but rather a more nuanced boundary with the dark blue region indicating near certainty that €x^{(i)}€ is admitted (€\hat{y}^{(i)}\approx1€), and the dark red region indicating the opposite (€\hat{y}^{(i)}\approx0€). This is pretty nice since it reveals when our model is faced with uncertainty.&lt;/p&gt;
+&lt;p&gt;This is a contour plot showing the “decision boundary” of a model that has been trained on our dataset with logistic regression. Even though the boundary is still linear, it has now  become more nuanced with the dark blue region indicating near certainty that €x^{(i)}€ is admitted (€\hat{y}^{(i)}\approx1€), and the dark red region indicating the opposite (€\hat{y}^{(i)}\approx0€). This is pretty nice since it reveals when our model is faced with uncertainty.&lt;/p&gt;
 
 &lt;h2 id=&quot;defining-our-model&quot;&gt;Defining our model&lt;/h2&gt;
 
@@ -185,7 +185,9 @@
 
 &lt;p&gt;You probably remember that a positive derivative means that we are moving “uphill” while a negative derivative means that we are moving “downhill”. Thus, if we get a positive derivative for one of our parameters, we want the value of that particular parameter to move in the opposite direction (since moving uphill is equivalent to increasing our cost).&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/posts/2/gradient-descent.png&quot; width=&quot;690&quot; style=&quot;margin:0;&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/posts/2/gradient-descent.png&quot; width=&quot;480&quot; /&gt;&lt;/p&gt;
+
+&lt;p class=&quot;subtext&quot;&gt;A contrived example showing how we want €\theta€ to move in the direction that minimizes the cost. Here, €\theta€ would be a three-dimensional vector with each element representing a coordinate.&lt;/p&gt;
 
 &lt;p&gt;But hold on. The above definition of our gradient only deals with a single sample! We &lt;em&gt;could&lt;/em&gt; choose to “walk downhill” with the help of this gradient alone, but by doing that, we would only be walking down the cost function &lt;em&gt;for this particular sample&lt;/em&gt;. To get a gradient that will improve our parameters with respect to &lt;em&gt;all&lt;/em&gt; €n€ samples, we have to find the mean gradient like so:&lt;/p&gt;
 

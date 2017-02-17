@@ -147,14 +147,13 @@ article {
   width: 1000px;
   margin: 0 auto;
   margin-bottom: 30px; }
-  article p {
+  article p, article ul {
     font-size: 18px;
     width: 800px;
     margin-bottom: 30px; }
   article img {
     display: block;
-    margin: 0 auto;
-    text-align: center; }
+    margin: 0 auto; }
   article .subtext {
     text-align: center;
     margin-bottom: 20px;
@@ -164,6 +163,12 @@ article {
   article li {
     margin-bottom: 15px;
     width: 800px; }
+  article iframe {
+    display: block;
+    width: 600px;
+    height: 330px;
+    margin: 0 auto;
+    margin-bottom: 30px; }
 
 footer {
   width: 1000px;
