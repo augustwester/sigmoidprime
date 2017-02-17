@@ -92,7 +92,7 @@
 
 <p class="subtext">Can you see from the equation why the function looks the way it does?</p>
 
-<p>Besides its pretty shape, there is one thing in particular to note about the sigmoid: No matter how big or small the value of €z€ becomes, the function always outputs a real number between 0 and 1. This is handy, since it enables us to think of €\sigma€ as a probability distribution, where €\sigma = 0.5€ when €z = 0€, and €\sigma = 1€ as €z\rightarrow\infty€. The output of €\sigma€ will thus be our estimate of the probability that an applicant will be admitted to the university.</p>
+<p>Besides its pretty shape, there is one thing in particular to note about the sigmoid: No matter how big or small the value of €z€ becomes, the function always outputs a real number between 0 and 1. This is handy, since it enables us to think of €\sigma€ as outputting a probability, where €\sigma = 0.5€ when €z = 0€, and €\sigma = 1€ as €z\rightarrow\infty€. The output of €\sigma€ will thus be our estimate of the probability that an applicant will be admitted to the university.</p>
 
 <p><img src="/assets/posts/2/lr-db.png" width="800px" /></p>
 
@@ -106,7 +106,7 @@
 \theta_1x_1 + \theta_2x_2 \cdots +\theta_nx_n + b
 €€</p>
 
-<p>where €\theta€ was an €n€-dimensional vector of weights, and €x€ was an €n€-dimensional vector of features. We also saw how we could simplify this expression by adding €b€ as an element €\theta_0€ to the vector €\theta€, and by ensuring that the corresponding element in the vector €x€ was always 1:</p>
+<p>where €\theta€ was an €n€-dimensional vector of weights, and €x€ was an €n€-dimensional vector of features. We also saw how we could simplify this expression by adding €b€ as an element €\theta_0€ to the vector €\theta€, and by ensuring that its corresponding element in the vector €x€ was always 1:</p>
 
 <p>€€
 \theta \cdot x = \begin{Bmatrix}\theta_0 \cr \theta_1 \cr \theta_2 \cr \vdots \cr \theta_n\end{Bmatrix}
@@ -114,11 +114,13 @@
 \begin{Bmatrix}1 \cr x_1 \cr x_2\cr \vdots \cr x_n \end{Bmatrix}= \theta_0 + \theta_1x_1 \cdots + \theta_nx_n
 €€</p>
 
-<p>In logistic regression, we do exactly the same. However, instead of stopping here, we feed the result of the dot product between €\theta€ and €x€ to the sigmoid function €\sigma€. Concretely, this means that given a two-dimensional vector €x€ containing an applicant’s exam-scores, the probability that they will be admitted to the university is calculated as:</p>
+<p>In logistic regression, we do exactly the same. However, instead of stopping here, we feed the result of the dot product between €\theta€ and €x€ to the sigmoid function €\sigma€. Concretely, this means that given a vector €x€ containing an applicant’s exam-scores, the probability that they will be admitted to the university is calculated as:</p>
 
 <p>€€
 \sigma(\theta \cdot x) = \frac{1}{1+e^{-(\theta \cdot x)}}
 €€</p>
+
+<p>The fact that we run the input data through the same linear function as the perceptron algorithm is the reason why the decision boundary remains linear. The nuance of the contour plot above is simply the result of passing the output of our linear function as a parameter to €\sigma€.</p>
 
 <p>When we first initialize our logistic regression model, our parameters €\theta€ will again have random values between 0 and 1. As a result, the probabilities outputted by €\sigma€ will be way off the intended values in the beginning. To improve our parameters, we need a learning algorithm.</p>
 
