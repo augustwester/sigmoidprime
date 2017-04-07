@@ -5,9 +5,376 @@
     <description>A blog about machine learning aimed at newcomers to the field.</description>
     <link>http://sigmoidprime.com//</link>
     <atom:link href="http://sigmoidprime.com//feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Fri, 17 Feb 2017 15:51:50 +0100</pubDate>
-    <lastBuildDate>Fri, 17 Feb 2017 15:51:50 +0100</lastBuildDate>
+    <pubDate>Fri, 07 Apr 2017 19:19:22 +0200</pubDate>
+    <lastBuildDate>Fri, 07 Apr 2017 19:19:22 +0200</lastBuildDate>
     <generator>Jekyll v3.3.0</generator>
+    
+      <item>
+        <title>How to Build (and Understand) a Neural Network Pt. 3: The Forward Pass</title>
+        <description>
+&lt;p&gt;By now, we have covered a whole lot of material. We have talked about decision boundaries, cost functions, and gradient descent, and we have built our own linear models using the perceptron and logistic regression algorithms. In this penultimate post of the series, we will analyze the first half of a neural network — the &lt;strong&gt;forward pass&lt;/strong&gt; — and we will use linear algebra to explore a visual interpretation of what happens to our data as it flows through a neural net.&lt;/p&gt;
+
+&lt;h2 id=&quot;a-birds-eye-view&quot;&gt;A bird’s-eye view&lt;/h2&gt;
+&lt;!-- Neural networks are often described as computational models that loosely mimic the mechanics of the brain. In other words, innumerable nerve cells (neurons), each connected through synapses to neighbouring nerve cells. The communication between these neurons results in an extremely intricate system for processing information; the result of which is immensely complex systems like you and me. While thinking about neural nets in this way rightfully makes them sound cool and exciting, it doesn’t tell you much about what they actually do.
+
+&lt;img src=&quot;/assets/posts/3/nn_2.png&quot; width=&quot;500&quot;&gt;
+
+{:.subtext}
+The obligatory neural net diagram 
+--&gt;
+&lt;p&gt;This diagram shows a three-layered neural network composed of an &lt;strong&gt;input layer&lt;/strong&gt; (green), two &lt;strong&gt;hidden layers&lt;/strong&gt; (purple), and an &lt;strong&gt;output layer&lt;/strong&gt; (red).&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/posts/3/nn_2.png&quot; width=&quot;450&quot; /&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;Input layer:&lt;/strong&gt; The input layer doesn’t do much at all; it merely represents the input of raw data to the network. The input is always a numerical representation of a piece of data (e.g. a grayscale value between 0 and 1 representing the intensity of a pixel in an image).&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Hidden layer:&lt;/strong&gt; Above, we have two hidden layers, each consisting of three neurons. (The term ‘hidden’ is silly, and refers to nothing more than the fact that the layers lie between the input and the output of the network.) The job of each hidden neuron is to take its input and apply it to a mathematical function known as an &lt;strong&gt;activation function&lt;/strong&gt;. The output of the activation function — the &lt;strong&gt;activation&lt;/strong&gt; — is then passed on to the next layer in the network.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Output layer&lt;/strong&gt;: The output layer is the last part of a  neural net. Each neuron in the output layer receives the full set of activations from the final hidden layer. On the basis of this, it then outputs a probabilistic estimate that enables us to infer something about the input data. In non-binary classification problems, there is one output neuron for each of the classes we wish to distinguish between. The output of each output neuron is the probability that a sample belongs to whatever class the output neuron represents.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Besides indicating the transfer of data, the synapses (lines) in the diagram also represent weights. As with the perceptron and logistic regression algorithms, weights are crucial to how a neural net operates. Every time a value is passed from one neuron to the next, it is multiplied by a unique weight. When we first initialize a neural net, the weights are all chosen at random. However, as we train the network, we adjust the weights up or down with the help of gradient descent to make them all converge on a combination that approximates a desired end result.&lt;/p&gt;
+
+&lt;p&gt;In addition to the weights, there is also a unique bias coupled to each hidden neuron and each output neuron. The biases are added to the neurons’ sum of weighted inputs &lt;em&gt;before&lt;/em&gt; the activation function is applied.&lt;/p&gt;
+
+&lt;p&gt;Once a neural net has been trained, it can be used to classify unseen samples by sending them through the network and looking at the result of the output neurons. Since there are no theoretical restrictions on the number of layers and neurons, a neural network can be used to approximate any mathematical function at all. We will see why later in this post.&lt;/p&gt;
+
+&lt;h2 id=&quot;mnist&quot;&gt;MNIST&lt;/h2&gt;
+
+&lt;p&gt;The most well-known dataset in the machine learning community (perhaps only rivalled by Iris) is called &lt;a href=&quot;http://yann.lecun.com/exdb/mnist/&quot;&gt;MNIST&lt;/a&gt;. MNIST contains 70,000 grayscale images of handwritten digits from 0-9. 60,000 of these are training samples, while the remaining 10,000 are test samples. Each image is 28x28 pixels, giving us 784 pixels per image. Because the images are all grayscale, each pixel can be represented as a floating point value between 0 and 1.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/posts/3/mnist.png&quot; width=&quot;350&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;In a traditional neural network (like the one we are building today), we don’t preserve the dimensionality of the images by representing them as matrices. Instead we choose to &lt;strong&gt;unroll&lt;/strong&gt; each one of them into a flat 784-dimensional vector €x€. This is in contrast to &lt;a href=&quot;http://cs231n.github.io/convolutional-networks/&quot;&gt;convolutional neural networks&lt;/a&gt; that are specifically optimized for computer vision, and need to preserve the spatial locality of every pixel.&lt;/p&gt;
+
+&lt;p&gt;It is intuitive to think of €x€ as a regular image with only visual qualities. However, as machine learning practitioners, we need to accustom ourselves to thinking about our data in the way that our algorithms see it; namely as a collection of numbers.&lt;/p&gt;
+
+&lt;p&gt;When an image is viewed as a 784-dimensional vector, we can think of it as occupying a point in 784-dimensional space. When we do this, we find that images that are visually (&lt;em&gt;not&lt;/em&gt; conceptually) similar group together and form clusters. In the case of MNIST, this means that each digit has its own cluster in the 784-dimensional space that the images inhabit.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/posts/3/tsnemnist.png&quot; width=&quot;800&quot; /&gt;&lt;/p&gt;
+
+&lt;p class=&quot;subtext&quot;&gt;30,000 MNIST images reduced from 784 dimensions to two dimensions using &lt;a href=&quot;http://distill.pub/2016/misread-tsne/&quot;&gt;t-SNE&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;At this point, a reasonable suggestion would be to use &lt;a href=&quot;https://en.wikipedia.org/wiki/K-nearest_neighbors_algorithm&quot;&gt;k-nearest neighbor&lt;/a&gt; to classify an image based on the cluster in which it is located. However, there is a myriad of problems with this approach: First, each digit has a fair amount of outliers (i.e. 5s that look like 6s). Second, most clusters are located very close to each other, which makes it hard to classify test samples that fall around the edges of a cluster. Additionally (and most importantly), with 60,000 training samples, it would be &lt;em&gt;extremely&lt;/em&gt; computationally inefficient to calculate the Euclidean distance to each point before we could draw any conclusions about the data.&lt;/p&gt;
+
+&lt;p&gt;The million dollar question now is whether or not it is possible to minimize the amount of outliers, pull apart the clusters, and maintain computational efficiency. The answer to this question, of course, is “yes”, and we are going to demonstrate it using a neural network.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-forward-pass&quot;&gt;The forward pass&lt;/h2&gt;
+
+&lt;p&gt;Before we get into the details of &lt;em&gt;why&lt;/em&gt; neural nets work, it might be helpful to see the calculations involved in sending a &lt;strong&gt;mini-batch&lt;/strong&gt; of 75 MNIST samples through a very simple, hypothetical network. This operation is called the &lt;strong&gt;forward pass&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Because we unroll our 28x28 images into a 784-dimensional vector, our network will have 784 input neurons. For the sake of keeping things simple, our hypothetical network will only have a single hidden layer consisting of three hidden neurons. This would not be enough for an actual neural network, but it will suffice for the purposes of this example.&lt;/p&gt;
+
+&lt;p&gt;Since we are looking to classify each sample as being a digit between 0-9, we will have 10 output neurons at the end of the network.&lt;/p&gt;
+
+&lt;p&gt;With 75 samples each containing 784 features, we can represent our mini-batch as a 784x75 matrix. Each column will thus contain the pixel values for a single image, while the rows contain the grayscale value for the same particular pixel across our 75 different images. Since all 784 features are connected through their own “synapse” to all three hidden neurons, the weights between the input layer and the hidden layer can be represented as a 3x784 matrix.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;To follow along from here, make sure that you are familiar with &lt;a href=&quot;https://www.youtube.com/embed/kT4Mp9EdVqs&quot;&gt;matrix multiplication&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Using a single matrix multiplication, we can represent the multiplication of all 784x75 features with their corresponding weight &lt;em&gt;as well as&lt;/em&gt; each hidden neuron’s summation of its weighted input. With the columns representing a single sample, our input matrix €X€ looks like this:&lt;/p&gt;
+
+&lt;p&gt;€€
+\begin{bmatrix}
+x_{1,1} &amp;amp; x_{1,2} &amp;amp; \cdots &amp;amp; x_{1,75}
+\cr\cr
+\vdots &amp;amp; \vdots &amp;amp; \vdots &amp;amp; \vdots
+\cr\cr
+x_{784,1} &amp;amp; x_{784,2} &amp;amp; \cdots &amp;amp; x_{784,75}
+\end{bmatrix}
+€€&lt;/p&gt;
+
+&lt;p&gt;In our first weight matrix €\Theta^{(1)}€, the rows represent the weights that lead to each particular hidden neuron. With three hidden neurons, this gives us a 3x784 matrix:&lt;/p&gt;
+
+&lt;p&gt;€€
+\begin{bmatrix}
+\theta_{1,1} &amp;amp; \theta_{1,2} &amp;amp; \cdots &amp;amp; \theta_{1,784}
+\cr\cr
+\theta_{2,1} &amp;amp; \theta_{2,2} &amp;amp; \cdots &amp;amp; \theta_{2,784}
+\cr\cr
+\theta_{3,1} &amp;amp; \theta_{3,2} &amp;amp; \cdots &amp;amp; \theta_{3,784}
+\end{bmatrix}
+€€&lt;/p&gt;
+
+&lt;p&gt;When we multiply €X€ and €\Theta^{(1)}€, we get the matrix below. (Note that subscript €*€ either signifies entire rows or entire columns, so that €\theta_{i *}€ means “the entire €i€th row of €\Theta€”, and €\theta_{* j}€ means “the entire €j€th column of €\Theta€”.)&lt;/p&gt;
+
+&lt;p&gt;€€
+\Theta^{(1)}X=\begin{bmatrix}
+\theta_{1 *}x_{* 1} &amp;amp; \theta_{1 *}x_{* 2} &amp;amp; \cdots &amp;amp; \theta_{1 *}x_{* 75}
+\cr\cr
+\theta_{2 *}x_{* 1} &amp;amp; \theta_{2 *}x_{* 2} &amp;amp; \cdots &amp;amp; \theta_{2 *}x_{* 75}
+\cr\cr
+\theta_{3 *}x_{* 1} &amp;amp; \theta_{3 *}x_{* 2} &amp;amp; \cdots &amp;amp; \theta_{3 *}x_{* 75}
+\end{bmatrix}
+€€&lt;/p&gt;
+
+&lt;p&gt;Our matrix of samples €X€ contains 75 column vectors €x_{*j}€, while our matrix of weights €\Theta^{(1)}€ contains 3 row vectors €\theta_{i*}€. When we multiply these, every column vector (sample) in €X€ is &lt;a href=&quot;https://www.youtube.com/watch?v=WNuIhXo39_k&amp;amp;t=20s&quot;&gt;dotted&lt;/a&gt; with every row vector in €\Theta^{(1)}€. This yields a new 3x75 matrix that contains the sum of the weighted inputs for all three hidden neurons and &lt;em&gt;for all 75 samples&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;An easy way to remember the dynamics of matrix multiplication is that a matrix of dimensions &lt;strong&gt;AxB&lt;/strong&gt; multiplied with a matrix of dimensions &lt;strong&gt;BxD&lt;/strong&gt; results in a matrix of dimensions &lt;strong&gt;AxD&lt;/strong&gt;. Thus, when we multiply a 3x784 matrix with a 784x75 matrix, we get a 3x75 matrix.&lt;/p&gt;
+
+&lt;p&gt;For practical reasons that we will see later, our biases are kept in their own self-contained vector. Since each hidden neuron has its own bias, the bias vector for the hidden layer €b^{(1)}€ is three-dimensional. To proceed with the forward pass, we add each bias to the sum of the weighted input for its corresponding hidden neuron. This yields a new matrix €Z^{(1)}€.&lt;/p&gt;
+
+&lt;p&gt;Now that we have a matrix containing the sum of the weighted inputs for all three hidden neurons and for all 75 samples, we need to pass it through a nonlinear activation function (we will see why this is later). Just as in &lt;a href=&quot;http://sigmoidprime.com/post/how-to-build-a-neural-network-pt-2/&quot;&gt;Pt. 2&lt;/a&gt;, we will be using the logistic sigmoid function:&lt;/p&gt;
+
+&lt;p&gt;€€
+\sigma(z) = \frac{1}{1+\exp(-z)}
+€€&lt;/p&gt;
+
+&lt;p&gt;Once we apply the sigmoid function element-wise to the sums of the weighted inputs, we have the full set of activations from the hidden layer in the form of a matrix €A€. Like €Z^{(1)}€, €A€ has dimensions 3x75. In order to send the activations on through the network, they need to be multiplied with the second set of weights €\Theta^{(2)}€ (this is the one between the hidden layer and the output layer). Because we have three hidden neurons and 10 output neurons, the dimensions of the second weight matrix will be 10x3.&lt;/p&gt;
+
+&lt;p&gt;Can you guess what happens next? We simply take our 3x75 matrix of activations from the hidden layer and multiply it by the second weight matrix €\Theta^{(2)}€. This gives us a new 10x75 matrix. Adding the 10-dimensional bias vector €b^{(2)}€ to each of the 75 columns yields a matrix containing the sums of the weighted inputs €Z^{(2)}€ for the output layer.&lt;/p&gt;
+
+&lt;p&gt;At this point, we are almost finished. Now we just need to convert the sums of the weighted inputs to the output layer €Z^{(2)}€ into the actual output of the network €\hat{Y}€. It might be tempting to apply the sigmoid function again, but doing so would end up posing a problem.&lt;/p&gt;
+
+&lt;p&gt;You may remember from previously that we interpreted the output of the sigmoid function as the probability of a sample belonging to one of two classes. In a neural network with multiple output neurons however, if we apply the sigmoid function at the output layer, the output of each neuron will be independent from all the others. This would have the undesirable consequence that we would be unable to interpret the output of the network as a probability distribution.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/posts/3/wrong_output_2.png&quot; width=&quot;250&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;To avoid this problem, we will instead be using a function known as the &lt;strong&gt;softmax function&lt;/strong&gt;. The softmax function will &lt;em&gt;only&lt;/em&gt; be applied at the output layer, and will be denoted as €\delta€.&lt;/p&gt;
+
+&lt;p&gt;€€
+\hat{y}_{i,j} = \delta({z_{i, j}})
+=
+\frac{\exp({z_{i,j})}}{\sum\limits_{k=1}^{n}\exp(z_{k,j})}
+€€&lt;/p&gt;
+
+&lt;p&gt;Here, €z_{i, j}€ is the summed input to output neuron €i€ for sample €j€. With 10 output neurons and 75 samples, €i€ would thus range from 1 to 10, and €j€ from 1 to 75. €n€ is the number of outputs for each sample, and is therefore equal to the number of output neurons.&lt;/p&gt;
+
+&lt;p&gt;Can you tell what the function does by looking at the expression?&lt;/p&gt;
+
+&lt;p&gt;By placing €\exp(z_{i,j})€ in the numerator and €\sum\limits_{k=1}^{n}\exp(z_{k,j})€ in the denominator, we ensure that the total output of the network always sums to 1. Now, when the network outputs vectors of numbers, we can interpret the output as a probability distribution. This allows us to then choose to classify the sample as belonging to whatever class the output neuron with the highest probability represents.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/posts/3/right_output_2.png&quot; width=&quot;240&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;This marks the end of the forward pass. Now to some intuition!&lt;/p&gt;
+
+&lt;!-- ## The forward pass
+
+Before we get into the details of *why* neural nets work, it might be helpful to see the calculations involved in sending a data sample through a simple network. This operation is called the **forward pass**.
+
+Suppose we have 50 hypothetical data samples each of which contains 8 features. Our hypothetical network contains one hidden layer with five hidden neurons. If we wanted our network to classify the samples as belonging to one of three distinct classes, we would have three output neurons at the end:
+
+To start off, we can represent our 50 data samples with a 50x8 matrix (one row for each sample and one column for each feature). Since all 8 features are connected through their own &quot;synapse&quot; to all five hidden neurons, our weights can be represented as an 8x5 matrix.
+
+Alright. So far, we have two matrices; one containing our samples and the other containing the weights between the input layer and the hidden layer. To follow along from here, make sure that you are familiar with matrix multiplication.
+
+&lt;iframe src=&quot;https://www.youtube.com/embed/kT4Mp9EdVqs&quot; frameborder=&quot;0&quot; allowfullscreen&gt;&lt;/iframe&gt;
+ 
+Using matrix multiplication alone, we can now represent the multiplication of all 50x8 features with their corresponding weight *as well as* each hidden neuron's summation of its weighted input.
+
+€€
+\begin{bmatrix}x^{(1)}_1 &amp; x^{(1)}_2 \cdots x^{(1)}_8 \cr x^{(2)}_1 &amp; x^{(2)}_2 \cdots x^{(2)}_8 \cr\cr \vdots \cr \cr x^{(50)}_1 &amp; x^{(50)}_2 \cdots x^{(50)}_8\end{bmatrix}
+\times
+\begin{bmatrix}\theta^{(1)}_1 &amp; \theta^{(2)}_1 \cdots \theta^{(5)}_1 \cr \theta^{(1)}_2 &amp; \theta^{(2)}_2 \cdots x^{(5)}_2 \cr\cr \vdots \cr \cr \theta^{(1)}_8 &amp; \theta^{(2)}_8 \cdots \theta^{(5)}_8\end{bmatrix}
+€€
+€€
+\downarrow
+€€
+€€
+\begin{bmatrix}x^{(1)}\cdot\theta^{(1)} &amp; x^{(1)}\cdot\theta^{(2)} \cdots x^{(1)}\cdot\theta^{(5)} \cr x^{(2)}\cdot\theta^{(1)} &amp; x^{(2)}\cdot\theta^{(2)} \cdots x^{(2)}\cdot\theta^{(5)} \cr\cr \vdots \cr \cr x^{(50)}\cdot\theta^{(1)} &amp; x^{(50)}\cdot\theta^{(2)} \cdots x^{(50)}\cdot\theta^{(5)}\end{bmatrix}
+€€
+
+{:.subtext}
+Superscript represents the sample index. Subscript represents the feature index. See if you can spot the pattern.
+
+Our matrix of samples €X€ contains 50 row vectors €x^{(i)}€, while our matrix of weights €\Theta^{(1)}€ contains 5 column vectors €\theta^{(i)}€. When we multiply these two matrices, every row vector (sample) in €X€ is [dotted](https://www.youtube.com/watch?v=WNuIhXo39_k&amp;t=20s) with every column vector (weight) in €\Theta^{(1)}€. This yields a new 50x5 matrix €z^{(1)}€ that contains the sum of the weighted inputs for all 5 hidden neurons *for all 50 samples*.
+
+*An easy way to remember the dynamics of matrix multiplication is that a matrix of dimensions AxB multiplied with a matrix of dimensions BxD results in a matrix of dimensions AxD. Thus, when we multiply a 50x8 matrix with an 8x5 matrix, we get a 50x5 matrix.*
+
+Now that we have a matrix containing the sum of the weighted inputs for all hidden neurons and for all 50 samples, we need to pass these 250 values through a nonlinear activation function (we will see why this is later). Just as in Pt. 2, we will be using the sigmoid function:
+
+€€
+\sigma(z) = \frac{1}{1+e^{-z}}
+€€
+
+Once we apply the sigmoid function to the sums of the weighted inputs, we have the full set of activations €a€ from the hidden layer. Now, in order to send these activations on through the network, they need to be multiplied with the second set of weights €\Theta^{(2)}€ (the one between the hidden layer and the output layer). Because we have five hidden neurons and three output neurons, the dimensions of the second weight matrix will be 5x3.
+
+Can you guess what happens next? We simply take our 50x5 matrix of activations €a€ from the hidden layer and multiply it by the second weight matrix €\Theta^{(2)}€ of dimensions 5x3. This gives us a new 50x3 matrix €z^{(2)}€ containing the sums of the weighted inputs for each of our three output neurons and for each of the 50 samples.
+
+At this point, we are almost finished. Now we just need to convert the sums of the weighted inputs to the output layer €z^{(2)}€ into the actual output of the network €\hat{y}€. It might be tempting to apply the sigmoid function again, but doing so would end up posing a problem.
+
+You may remember from Pt. 2 that we interpreted the output of the sigmoid function as the probability of a sample belonging to one of two classes. In a neural network with multiple output neurons however, if we apply the sigmoid function at the output layer, the output of each neuron will be independent from all the others. This would have the undesirable effect that we would be unable to interpret the output of the network as a probability distribution.
+
+&lt;img src=&quot;/assets/posts/3/wrong_output_2.png&quot; width=&quot;240&quot;&gt;
+
+To avoid this problem, we will instead be using a function known as the **softmax function**. The softmax function will *only* be applied at the output layer, and will be denoted as €\pi€.
+
+€€
+\pi({z_j}^{(2,i)}) = \frac{e^{\{z_j}^{(2,i)}}}{\sum\limits_{k=1}^{n}e^{\{z_j}^{(2,i)}}}
+€€
+
+Here, €z^{(2,i)}€ is the vector of summed inputs to each output neuron for sample €i€, while €j€ is the specific input to the €j€th output neuron. With three output neurons and 50 samples, €i€ would thus range from 1 to 50, and each €z^{(2,i)}€ would be three-dimensional. €n€ is the number of outputs from the network for each sample, and is therefore equal to the number of output neurons as well as the size of €z^{(2,i)}€.
+
+Can you tell what the function does by looking at the expression?
+
+By placing €e^{z^{(i)}}€ in the numerator and €\sum\limits_{k=1}^{n}e^{\{z_k}^{(i)}}€ in the denominator, we ensure that the total output of the network always sums to 1. Now, when the network outputs a vector of numbers, we can interpret the output as a probability distribution. This allows us to then choose to classify the sample as belonging to whatever class the output neuron with the highest probability represents.
+
+&lt;img src=&quot;/assets/posts/3/right_output.png&quot; width=&quot;350&quot;&gt;
+
+This marks the end of the forward pass. Now to the interesting part: How do we enable our network to improve itself by learning  from the data we show it? The answer lies in the **backward pass**.--&gt;
+
+&lt;h2 id=&quot;what-is-actually-happening-here&quot;&gt;What is actually happening here?&lt;/h2&gt;
+
+&lt;p&gt;Now that we have seen &lt;em&gt;what&lt;/em&gt; a neural network does, it is time to answer the question of &lt;em&gt;why&lt;/em&gt; it works. &lt;a href=&quot;http://colah.github.io/posts/2014-03-NN-Manifolds-Topology/&quot;&gt;As explained by Chris Olah&lt;/a&gt;, the process can be separated into three distinct steps: &lt;strong&gt;linear transformations&lt;/strong&gt;, &lt;strong&gt;translations&lt;/strong&gt;, and applications of a &lt;strong&gt;nonlinearity&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Linear transformations and translations&lt;/strong&gt;: A linear transformation scales, skews, or rotates a coordinate space by redefining the directions and amplitudes of its &lt;strong&gt;basis vectors&lt;/strong&gt;. In the case of a 2D coordinate space, the only two basis vectors  — €\bar{x}€ and €\bar{y}€ — are defined as €\begin{bmatrix}1 \cr 0 \end{bmatrix}€ and €\begin{bmatrix}0 \cr 1 \end{bmatrix}€ respectively. While they may not look like much, €\bar{x}€ and €\bar{y}€ fully define their own coordinate space. To see why, let us first join them into a matrix:&lt;/p&gt;
+
+&lt;p&gt;€€
+\begin{bmatrix}1 &amp;amp; 0 \cr 0 &amp;amp; 1 \end{bmatrix}
+€€&lt;/p&gt;
+
+&lt;p&gt;Then, let us take an arbitrary point €\begin{bmatrix}x \cr y \end{bmatrix}€ and multiply it by our matrix:&lt;/p&gt;
+
+&lt;p&gt;€€
+\begin{bmatrix}1 &amp;amp; 0 \cr 0 &amp;amp; 1 \end{bmatrix} \begin{bmatrix}x \cr y \end{bmatrix} = \begin{bmatrix}1x+0y \cr 0x+1y \end{bmatrix} = \begin{bmatrix}x \cr y \end{bmatrix}
+€€&lt;/p&gt;
+
+&lt;p&gt;Using matrix-vector multiplication, we just showed that in a coordinate space with these basis vectors, the point €\begin{bmatrix}x \cr y \end{bmatrix}€ remains unchanged.&lt;/p&gt;
+
+&lt;p&gt;Now let’s see what happens when we double €\bar{x}€:&lt;/p&gt;
+
+&lt;p&gt;€€
+\begin{bmatrix}2 &amp;amp; 0 \cr 0 &amp;amp; 1 \end{bmatrix} \begin{bmatrix}x \cr y \end{bmatrix} = \begin{bmatrix}2x+0y \cr 0x+1y \end{bmatrix} = \begin{bmatrix}2x \cr y \end{bmatrix}
+€€&lt;/p&gt;
+
+&lt;p&gt;Here, the original point €\begin{bmatrix}x \cr y \end{bmatrix}€ gets moved to €\begin{bmatrix}2x \cr y \end{bmatrix}€ when we apply the transformation. Since this is true of any and all points, we can visualize this as a transformation of the space itself:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/posts/3/animated.gif&quot; width=&quot;800&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Pretty straightforward, right? Now, let’s do something a little more interesting. Instead of merely shrinking or stretching the axes, let’s try to make them codependent. For instance, we could define a transformation like this:&lt;/p&gt;
+
+&lt;p&gt;€€
+\begin{bmatrix}2 &amp;amp; 0 \cr 1 &amp;amp; 1 \end{bmatrix} \begin{bmatrix}x \cr y \end{bmatrix} = \begin{bmatrix}2x+0y \cr 1x+1y \end{bmatrix} = \begin{bmatrix}2x \cr x+y \end{bmatrix}
+€€&lt;/p&gt;
+
+&lt;p&gt;This transformation — known as a &lt;a href=&quot;https://en.wikipedia.org/wiki/Shear_mapping&quot;&gt;shear&lt;/a&gt; — has the effect that every time we increase €x€ by 1, we also increase €y€ by 1. Let’s visualize this to gain some intuition:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/posts/3/animated2.gif&quot; width=&quot;500&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Now it is easier to see what is happening. As soon as we begin increasing €x€, not only are we moving to the right, but also upwards. In this transformed space, it is impossible to change €x€ without also changing €y€. A change in €y€, however, does not affect €x€, since the &lt;em&gt;y&lt;/em&gt;-axis remains orthogonal to the original &lt;em&gt;x&lt;/em&gt;-axis.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;When we pass data into a neural network, this kind of transformation is what happens during the weight multiplication.&lt;/strong&gt; One thing to note, however, is that the number of hidden neurons in each layer might be smaller or larger than the number of neurons in the layer that preceded it. This results in the dimensionality of the data either getting reduced or expanded as it passes through the network. If there are more neurons in the first hidden layer than in the input layer, this causes the dimensionality of the data to be expanded. Likewise, if there are less hidden neurons than input neurons, the dimensionality will be reduced.&lt;/p&gt;
+
+&lt;p&gt;Adding a unique bias to each hidden or output neuron has the effect of &lt;strong&gt;translating&lt;/strong&gt; the space; that is, pushing or pulling our data in different directions for each dimension. Again, let’s see what this looks like:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/posts/3/translation.gif&quot; width=&quot;500&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Here, we first transform the space, and then translate it by €\begin{bmatrix}3 \cr 2 \end{bmatrix}€. Note that unless we keep the original space in the background, translations can be hard to visualize while properly keeping the space in view. I will therefore ignore them in future visualizations.&lt;/p&gt;
+
+&lt;p&gt;Finally — and perhaps most significantly — is the effect of applying a nonlinear activation function (like the logistic sigmoid function). This takes all the points of the space and applies the function to each of the point’s components individually.&lt;/p&gt;
+
+&lt;p&gt;The “nonlinear” part is important here. As opposed to linear transformations like the ones we just saw, nonlinear transformations are able to warp space in very dynamic and elastic ways. As shown below, this can make for some quite beautiful visualizations.&lt;/p&gt;
+
+&lt;!-- &lt;div style=&quot;width:inherit;height:auto;display:block;&quot;&gt;
+&lt;img src=&quot;/assets/posts/3/nonlinear_1.gif&quot; style=&quot;width:200px;float:left;&quot;&gt;
+&lt;img src=&quot;/assets/posts/3/nonlinear_2.gif&quot; style=&quot;width:200px;float:left;margin-left:100px;&quot;&gt;
+&lt;img src=&quot;/assets/posts/3/nonlinear_3.gif&quot; style=&quot;width:200px;float:right;&quot;&gt;
+&lt;div style=&quot;clear:both;&quot;&gt;&lt;/div&gt;
+&lt;img src=&quot;/assets/posts/3/nonlinear_4.gif&quot; style=&quot;width:200px;float:left;&quot;&gt;
+&lt;img src=&quot;/assets/posts/3/nonlinear_5.gif&quot; style=&quot;width:200px;float:left;margin-left:100px;&quot;&gt;
+&lt;img src=&quot;/assets/posts/3/nonlinear_6.gif&quot; style=&quot;width:200px;float:right;&quot;&gt;
+&lt;div style=&quot;clear:both;&quot;&gt;&lt;/div&gt;
+&lt;/div&gt; --&gt;
+
+&lt;div style=&quot;width:inherit;height:auto;display:block;&quot;&gt;
+&lt;img src=&quot;/assets/posts/3/nonlinear_1.gif&quot; style=&quot;width:25%;float:left;&quot; /&gt;
+&lt;img src=&quot;/assets/posts/3/nonlinear_2.gif&quot; style=&quot;width:25%;float:left;margin-left:12.5%;&quot; /&gt;
+&lt;img src=&quot;/assets/posts/3/nonlinear_3.gif&quot; style=&quot;width:25%;float:right;&quot; /&gt;
+&lt;div style=&quot;clear:both;&quot;&gt;&lt;/div&gt;
+&lt;img src=&quot;/assets/posts/3/nonlinear_4.gif&quot; style=&quot;width:25%;float:left;&quot; /&gt;
+&lt;img src=&quot;/assets/posts/3/nonlinear_5.gif&quot; style=&quot;width:25%;float:left;margin-left:12.5%;&quot; /&gt;
+&lt;img src=&quot;/assets/posts/3/nonlinear_6.gif&quot; style=&quot;width:25%;float:right;&quot; /&gt;
+&lt;div style=&quot;clear:both;&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;p&gt;As you can see, the shape of a space transformed by a sigmoid function is highly dependent on the space to which it is applied. This is why the weights and biases are so important; they do the groundwork that lets the activation function bend the data in the most optimal way.&lt;/p&gt;
+
+&lt;p&gt;But what is “the most optimal way?” To answer this question, we need to turn our eyes to the output layer. As we touched on in &lt;a href=&quot;http://sigmoidprime.com/post/how-to-build-a-neural-network-pt-1/&quot;&gt;Pt. 1&lt;/a&gt;, the equation for a line, a plane, or a hyperplane can be expressed as the variables (€{x_1, \cdots, x_n}€) that, when multiplied by their corresponding coefficient (€{y_1, \cdots, y_n}€), sums to 0:&lt;/p&gt;
+
+&lt;p&gt;€€
+x_1y_1 + x_2y_2 + \cdots + x_ny_n=0
+€€&lt;/p&gt;
+
+&lt;p&gt;We also saw how the exact same thing could be expressed as the dot product between vectors:&lt;/p&gt;
+
+&lt;p&gt;€€
+x \cdot y = 0
+€€&lt;/p&gt;
+
+&lt;p&gt;When we have a set of activations that pass from the final hidden layer of a neural net to the output layer, we are essentially taking the vector dot product between the activations and the set of weights that lead to a particular output neuron. Each neuron then runs its input through the softmax function and interprets the output as a probability distribution over the (mutually exclusive) classes that the neurons represent.&lt;/p&gt;
+
+&lt;p&gt;Sounds familiar to logistic regression? That’s because it is. In fact, using the softmax function to generate probability distributions is also known as &lt;strong&gt;multinomial logistic regression&lt;/strong&gt; in that it is used in non-binary settings.&lt;/p&gt;
+
+&lt;p&gt;This tells us something really interesting: In order for the output layer to distinguish between different classes, it needs to be able to separate them with a straight line just as in Pt. 1 and Pt. 2. However, where the perceptron and logistic regression algorithms could only handle data that was linearly separable from the get-go, a neural net takes its input data and transforms it into becoming linearly separable if it isn’t already!&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/posts/3/nn_visualization.gif&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;This is the same dataset as the one we used in the previous post. Unlike our logistic regression algorithm however, a neural net is able to perfectly distinguish between the classes because the output layer only sees the space in which they are linearly separable.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-code&quot;&gt;The code&lt;/h2&gt;
+
+&lt;p&gt;A thing that surprised me when I set up my first neural network was the brevity of the actual program. While the underlying concepts can sometimes be a challenge to fully grasp, the number of lines of code required to build one is actually very modest.&lt;/p&gt;
+
+&lt;p&gt;Let’s begin by setting up a &lt;code class=&quot;highlighter-rouge&quot;&gt;NeuralNetwork&lt;/code&gt; class. We will use the &lt;code class=&quot;highlighter-rouge&quot;&gt;__init__&lt;/code&gt; method to instantiate our hyperparameters:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;NeuralNetwork&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;object&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;layer_sizes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alpha&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;1.0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;nb&quot;&gt;super&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NeuralNetwork&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+
+        &lt;span class=&quot;n&quot;&gt;n_layers&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;layer_sizes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;n_layers&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+            &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;thetas&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;
+            &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;biases&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;
+
+            &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;n_layers&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;# a network with n layers has n-1 set of weights and biases&lt;/span&gt;
+                &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;thetas&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;random&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;randn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;layer_sizes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;layer_sizes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]))&lt;/span&gt;
+                &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;biases&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;random&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;randn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;layer_sizes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]))&lt;/span&gt;
+
+            &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;thetas&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;thetas&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;biases&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;biases&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;alpha&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alpha&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;raise&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;ValueError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;The minimum number of layers is 3 (&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;i provided)&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;n_layers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Our &lt;code class=&quot;highlighter-rouge&quot;&gt;__init__&lt;/code&gt; method takes two parameters: &lt;code class=&quot;highlighter-rouge&quot;&gt;layer_sizes&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;alpha&lt;/code&gt;. &lt;code class=&quot;highlighter-rouge&quot;&gt;layer_sizes&lt;/code&gt; will be a list of numbers specifying the size (number of neurons) of each layer in the network. Therefore, it will also implicitly define the size of the network itself. As to the &lt;code class=&quot;highlighter-rouge&quot;&gt;alpha&lt;/code&gt; parameter, there is no need to worry about that just yet; we will explore what it means in the next post.&lt;/p&gt;
+
+&lt;p&gt;To implement the forward pass, we will add a &lt;code class=&quot;highlighter-rouge&quot;&gt;forward_pass&lt;/code&gt; method to &lt;code class=&quot;highlighter-rouge&quot;&gt;NeuralNetwork&lt;/code&gt;:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;forward_pass&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;A&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;Zs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;As&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;thetas&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)):&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dot&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;thetas&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;A&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;biases&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;Zs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;thetas&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;A&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sigmoid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;As&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;A&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;Y_hat&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;softmax&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Zs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;As&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y_hat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;sigmoid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;1.0&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;1.0&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;exp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;softmax&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;exp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;exp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;axis&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)[:,&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Here, &lt;code class=&quot;highlighter-rouge&quot;&gt;forward_pass&lt;/code&gt; takes the activations of the first layer &lt;code class=&quot;highlighter-rouge&quot;&gt;A&lt;/code&gt; (aka. the raw input), and runs it through the network. It completes by returning the following:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;A list &lt;code class=&quot;highlighter-rouge&quot;&gt;Zs&lt;/code&gt; containing matrices of weighted inputs for the hidden layers and the output layer.&lt;/li&gt;
+  &lt;li&gt;A list &lt;code class=&quot;highlighter-rouge&quot;&gt;As&lt;/code&gt; containing matrices of activations for each hidden layer.&lt;/li&gt;
+  &lt;li&gt;A matrix &lt;code class=&quot;highlighter-rouge&quot;&gt;Y_hat&lt;/code&gt; containing the probability distribution over all possible classes and for all samples in &lt;code class=&quot;highlighter-rouge&quot;&gt;A&lt;/code&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;This concludes our implementation of the forward pass for our neural network. In the next (and final) post of the series, we will explore how our network can automatically find the right values for our weights and biases using &lt;strong&gt;backpropagation&lt;/strong&gt;.&lt;/p&gt;
+
+</description>
+        <pubDate>Fri, 07 Apr 2017 00:00:00 +0200</pubDate>
+        <link>http://sigmoidprime.com//post/how-to-build-a-neural-network-pt-3/</link>
+        <guid isPermaLink="true">http://sigmoidprime.com//post/how-to-build-a-neural-network-pt-3/</guid>
+        
+        
+      </item>
     
       <item>
         <title>How to Build (and Understand) a Neural Network Pt. 2: Logistic Regression</title>
@@ -41,7 +408,7 @@
 &lt;p&gt;The function itself — which we will denote as €\sigma€ — can be expressed mathematically as:&lt;/p&gt;
 
 &lt;p&gt;€€
-\sigma(z) = \frac{1}{1 + e^{-z}}
+\sigma(z) = \frac{1}{1 + \exp(-z)}
 €€&lt;/p&gt;
 
 &lt;p class=&quot;subtext&quot;&gt;Can you see from the equation why the function looks the way it does?&lt;/p&gt;
@@ -71,7 +438,7 @@
 &lt;p&gt;In logistic regression, we do exactly the same. However, instead of stopping here, we feed the result of the dot product between €\theta€ and €x€ to the sigmoid function €\sigma€. Concretely, this means that given a vector €x€ containing an applicant’s exam-scores, the probability that they will be admitted to the university is calculated as:&lt;/p&gt;
 
 &lt;p&gt;€€
-\sigma(\theta \cdot x) = \frac{1}{1+e^{-(\theta \cdot x)}}
+\sigma(\theta \cdot x) = \frac{1}{1+\exp(-(\theta \cdot x))}
 €€&lt;/p&gt;
 
 &lt;p&gt;The fact that we run the input data through the same linear function as the perceptron algorithm is the reason why the decision boundary remains linear. The nuance of the contour plot above is simply the result of passing the output of our linear function as a parameter to €\sigma€.&lt;/p&gt;
@@ -148,7 +515,7 @@
 &lt;p&gt;Recall that we calculate the probability of a sample €x^{(i)}€ being admitted as:&lt;/p&gt;
 
 &lt;p&gt;€€
-\sigma(\theta \cdot x^{(i)}) = \frac{1}{1+e^{-(\theta \cdot x^{(i)})}}
+\sigma(\theta \cdot x^{(i)}) = \frac{1}{1+\exp(-\theta \cdot x^{(i)})}
 €€&lt;/p&gt;
 
 &lt;p&gt;This means that €\sigma(\theta \cdot x^{(i)})=\hat{y}^{(i)}€. For clarity, let’s try to represent our complicated-looking-but-really-very-simple cost function by referring to our probability estimate this way.&lt;/p&gt;
@@ -248,7 +615,7 @@
 \frac{x_j^{(i)}-\mu}{\sigma}
 €€&lt;/p&gt;
 
-&lt;p&gt;Performing this trick on our particular dataset squishes the features of our first sample from around &lt;code class=&quot;highlighter-rouge&quot;&gt;34.62&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;78.02&lt;/code&gt; down to about &lt;code class=&quot;highlighter-rouge&quot;&gt;-1.60&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;0.63&lt;/code&gt; respectively. We need to do this, because the dot product €\theta \cdot x^{(i)}€ has to be pretty small in order to avoid &lt;strong&gt;saturation&lt;/strong&gt;. Saturation happens when we plug large values into the sigmoid function. This will return a number extremely close to 1, and we thus run the risk of numerical overflow. To avoid this, we use standardization to scale our features down to have zero-mean while still maintaining the ratios between the features.&lt;/p&gt;
+&lt;p&gt;Performing this trick on our particular dataset squishes the features of our first sample from around &lt;code class=&quot;highlighter-rouge&quot;&gt;34.62&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;78.02&lt;/code&gt; down to about &lt;code class=&quot;highlighter-rouge&quot;&gt;-1.60&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;0.63&lt;/code&gt; respectively. We need to do this, because the dot product €\theta \cdot x^{(i)}€ has to be pretty small in order to avoid &lt;strong&gt;saturation&lt;/strong&gt;. Saturation happens when we plug large values into the sigmoid function. This will return a number extremely close to 1, and we thus run the risk of numerical overflow and &lt;a href=&quot;https://www.quora.com/What-is-the-vanishing-gradient-problem/answer/Nikhil-Garg?srid=06OE&quot;&gt;vanishing gradients&lt;/a&gt;. To avoid this, we use standardization to scale our features down to have zero-mean while still maintaining the ratios between the features.&lt;/p&gt;
 
 &lt;p&gt;We will now add the partial derivative of the cost function with respect to our parameters:&lt;/p&gt;
 
@@ -298,7 +665,7 @@
 
 &lt;p&gt;If you run this, you should see a contour plot exactly like the one I showed in the beginning.&lt;/p&gt;
 
-&lt;p&gt;Pat yourself on the back if you have followed along this far. You are now very well suited to tackle the final problem in this series: to build a neural network.&lt;/p&gt;
+&lt;p&gt;Pat yourself on the back if you have followed along this far. You are now very well suited to tackle the final problem in this series: building a neural network.&lt;/p&gt;
 </description>
         <pubDate>Mon, 16 Jan 2017 00:07:27 +0100</pubDate>
         <link>http://sigmoidprime.com//post/how-to-build-a-neural-network-pt-2/</link>

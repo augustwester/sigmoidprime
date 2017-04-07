@@ -7,7 +7,6 @@
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
 
     <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="/css/mobile.css" media="only screen and (max-device-width: 750px)">
     <link rel="stylesheet" href="/libs/highlight/styles/atom-one-light.css">
     <link rel="stylesheet" href="/libs/katex/katex.min.css">
     <link rel="stylesheet" href="/libs/c3/c3.min.css">
@@ -38,26 +37,20 @@
     <header class="top-header">
       <div class="inner-header">
         <div class="logo-container">
-          <a href="/"><span class="logo">sigmoid<span class="prime">′</span></span></a>
-          <span class="tagline">approachable machine learning.</span>
+          <a href="/"><span class="logo" style="font-size:25px;">sigmoid<span class="prime" style="font-size:42px">′</span></span></a>
         </div>
-        <ul class="menu">
-          
-          <li><a href=/about>About</a></li>
-          <li><a href=/archive>Archive</a></li>
-          <li><a href=/credits>Credits</a></li>
-          
-        </ul>
       </div>
     </div>
-    <main>
-  <div class="article-container ">
-    <article>
-      <header>
-        <h1>How to Build (and Understand) a Neural Network Pt. 2: Logistic Regression</h1>
-      </header>
-      <div class="date-ct"><p>August Wester — 16 January 2017</p></div>
-      
+    <main style="margin-top:0px;">
+      <div class="article-container ">
+        <article>
+          <header>
+            <h1 class="post-title">How to Build (and Understand) a Neural Network Pt. 2: Logistic Regression</h1>
+          </header>
+          <div class="date-ct">
+            <p>By August Wester on 16 January 2017</p>
+          </div>
+          
 <p>In the <a href="http://sigmoidprime.com/post/how-to-build-a-neural-network-pt-1/">previous post</a>, we saw how the perceptron algorithm automatically figured out how to distinguish between the classes of two different types of data samples. This time, we will explore the ideas behind another algorithm — <strong>logistic regression</strong> — to see how and why it plays a central role in many neural network architectures. We will also demonstrate how it can be used to model slightly more complex and interesting data than the Iris dataset from Pt. 1.</p>
 
 <h2 id="predicting-university-admissions">Predicting university admissions</h2>
@@ -87,7 +80,7 @@
 <p>The function itself — which we will denote as €\sigma€ — can be expressed mathematically as:</p>
 
 <p>€€
-\sigma(z) = \frac{1}{1 + e^{-z}}
+\sigma(z) = \frac{1}{1 + \exp(-z)}
 €€</p>
 
 <p class="subtext">Can you see from the equation why the function looks the way it does?</p>
@@ -117,7 +110,7 @@
 <p>In logistic regression, we do exactly the same. However, instead of stopping here, we feed the result of the dot product between €\theta€ and €x€ to the sigmoid function €\sigma€. Concretely, this means that given a vector €x€ containing an applicant’s exam-scores, the probability that they will be admitted to the university is calculated as:</p>
 
 <p>€€
-\sigma(\theta \cdot x) = \frac{1}{1+e^{-(\theta \cdot x)}}
+\sigma(\theta \cdot x) = \frac{1}{1+\exp(-(\theta \cdot x))}
 €€</p>
 
 <p>The fact that we run the input data through the same linear function as the perceptron algorithm is the reason why the decision boundary remains linear. The nuance of the contour plot above is simply the result of passing the output of our linear function as a parameter to €\sigma€.</p>
@@ -194,7 +187,7 @@
 <p>Recall that we calculate the probability of a sample €x^{(i)}€ being admitted as:</p>
 
 <p>€€
-\sigma(\theta \cdot x^{(i)}) = \frac{1}{1+e^{-(\theta \cdot x^{(i)})}}
+\sigma(\theta \cdot x^{(i)}) = \frac{1}{1+\exp(-\theta \cdot x^{(i)})}
 €€</p>
 
 <p>This means that €\sigma(\theta \cdot x^{(i)})=\hat{y}^{(i)}€. For clarity, let’s try to represent our complicated-looking-but-really-very-simple cost function by referring to our probability estimate this way.</p>
@@ -294,7 +287,7 @@
 \frac{x_j^{(i)}-\mu}{\sigma}
 €€</p>
 
-<p>Performing this trick on our particular dataset squishes the features of our first sample from around <code class="highlighter-rouge">34.62</code> and <code class="highlighter-rouge">78.02</code> down to about <code class="highlighter-rouge">-1.60</code> and <code class="highlighter-rouge">0.63</code> respectively. We need to do this, because the dot product €\theta \cdot x^{(i)}€ has to be pretty small in order to avoid <strong>saturation</strong>. Saturation happens when we plug large values into the sigmoid function. This will return a number extremely close to 1, and we thus run the risk of numerical overflow. To avoid this, we use standardization to scale our features down to have zero-mean while still maintaining the ratios between the features.</p>
+<p>Performing this trick on our particular dataset squishes the features of our first sample from around <code class="highlighter-rouge">34.62</code> and <code class="highlighter-rouge">78.02</code> down to about <code class="highlighter-rouge">-1.60</code> and <code class="highlighter-rouge">0.63</code> respectively. We need to do this, because the dot product €\theta \cdot x^{(i)}€ has to be pretty small in order to avoid <strong>saturation</strong>. Saturation happens when we plug large values into the sigmoid function. This will return a number extremely close to 1, and we thus run the risk of numerical overflow and <a href="https://www.quora.com/What-is-the-vanishing-gradient-problem/answer/Nikhil-Garg?srid=06OE">vanishing gradients</a>. To avoid this, we use standardization to scale our features down to have zero-mean while still maintaining the ratios between the features.</p>
 
 <p>We will now add the partial derivative of the cost function with respect to our parameters:</p>
 
@@ -344,29 +337,19 @@
 
 <p>If you run this, you should see a contour plot exactly like the one I showed in the beginning.</p>
 
-<p>Pat yourself on the back if you have followed along this far. You are now very well suited to tackle the final problem in this series: to build a neural network.</p>
+<p>Pat yourself on the back if you have followed along this far. You are now very well suited to tackle the final problem in this series: building a neural network.</p>
 
-    </article>
-
-    <script type="text/javascript">
-      /*var viewportWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
-      var functionPlotContainer = document.getElementById("quad");
-      var functionPlot = functionPlotContainer.children[0];
-      var scaleRatio = viewportWidth / functionPlot.clientWidth;
-      functionPlotContainer.style = "-webkit-transform:scale(" + scaleRatio + ")";*/
-    </script>
-
-    <br /><br />
-    <footer>
-      <div class="inner-footer">
-        <p><b>Questions? Comments? Corrections?</b></p>
-        <br />
-        <p>Whatever it may be, don't hesitate to let me know. You can get in touch on <a href="http://twitter.com/wster" target="_blank">Twitter</a> or via <a href="mailto:august.wester@gmail.com">email</a>.</p>
+        </article>
+        <br /><br />
+        <footer>
+          <div class="inner-footer">
+            <p><b>Questions? Comments? Corrections?</b></p>
+            <br />
+            <p>Whatever it may be, don't hesitate to let me know. You can get in touch on <a href="http://twitter.com/wster" target="_blank">Twitter</a> or via <a href="mailto:august.wester@gmail.com">email</a>.</p>
+          </div>
+        </footer>
       </div>
-    </footer>
-  </div>
-</main>
-
+    </main>
     <script type="text/javascript">
       var config = [{left:"€€", right:"€€", display:true}, {left: "€", right:"€", display:false}];
       renderMathInElement(document.body, {delimiters: config});

@@ -7,7 +7,6 @@
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
 
     <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="/css/mobile.css" media="only screen and (max-device-width: 750px)">
     <link rel="stylesheet" href="/libs/highlight/styles/atom-one-light.css">
     <link rel="stylesheet" href="/libs/katex/katex.min.css">
     <link rel="stylesheet" href="/libs/c3/c3.min.css">
@@ -38,26 +37,20 @@
     <header class="top-header">
       <div class="inner-header">
         <div class="logo-container">
-          <a href="/"><span class="logo">sigmoid<span class="prime">′</span></span></a>
-          <span class="tagline">approachable machine learning.</span>
+          <a href="/"><span class="logo" style="font-size:25px;">sigmoid<span class="prime" style="font-size:42px">′</span></span></a>
         </div>
-        <ul class="menu">
-          
-          <li><a href=/about>About</a></li>
-          <li><a href=/archive>Archive</a></li>
-          <li><a href=/credits>Credits</a></li>
-          
-        </ul>
       </div>
     </div>
-    <main>
-  <div class="article-container ">
-    <article>
-      <header>
-        <h1>How to Build (and Understand) a Neural Network Pt. 1: The Perceptron</h1>
-      </header>
-      <div class="date-ct"><p>August Wester — 30 December 2016</p></div>
-      
+    <main style="margin-top:0px;">
+      <div class="article-container ">
+        <article>
+          <header>
+            <h1 class="post-title">How to Build (and Understand) a Neural Network Pt. 1: The Perceptron</h1>
+          </header>
+          <div class="date-ct">
+            <p>By August Wester on 30 December 2016</p>
+          </div>
+          
 <p>Building a neural network is fairly easy. It doesn’t require you to know any obscure programming language, and you can build a working model with surprisingly few lines of code. To understand how it works however — to <em>really</em> understand it — takes mathematical insight more than anything else. While this may sound lofty, anyone with a firm grasp of high school level math is equipped to take on the task.</p>
 
 <p>This is the first in a series of posts that will culminate in us building a neural network in Python. It will be a rudimentary one, but at the end, we will have covered all of the concepts that make it tick. Hopefully, this will set us both on a path to deepen our knowledge of how to make machines smart.</p>
@@ -269,27 +262,17 @@ Accuracy: 1.000000</code></pre></figure>
 
 <p>In the <a href="http://sigmoidprime.com/post/how-to-build-a-neural-network-pt-2">next post</a>, we will cover some slightly more complex terrain in order to see how we can get closer to modelling data that is not linearly separable.</p>
 
-    </article>
-
-    <script type="text/javascript">
-      /*var viewportWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
-      var functionPlotContainer = document.getElementById("quad");
-      var functionPlot = functionPlotContainer.children[0];
-      var scaleRatio = viewportWidth / functionPlot.clientWidth;
-      functionPlotContainer.style = "-webkit-transform:scale(" + scaleRatio + ")";*/
-    </script>
-
-    <br /><br />
-    <footer>
-      <div class="inner-footer">
-        <p><b>Questions? Comments? Corrections?</b></p>
-        <br />
-        <p>Whatever it may be, don't hesitate to let me know. You can get in touch on <a href="http://twitter.com/wster" target="_blank">Twitter</a> or via <a href="mailto:august.wester@gmail.com">email</a>.</p>
+        </article>
+        <br /><br />
+        <footer>
+          <div class="inner-footer">
+            <p><b>Questions? Comments? Corrections?</b></p>
+            <br />
+            <p>Whatever it may be, don't hesitate to let me know. You can get in touch on <a href="http://twitter.com/wster" target="_blank">Twitter</a> or via <a href="mailto:august.wester@gmail.com">email</a>.</p>
+          </div>
+        </footer>
       </div>
-    </footer>
-  </div>
-</main>
-
+    </main>
     <script type="text/javascript">
       var config = [{left:"€€", right:"€€", display:true}, {left: "€", right:"€", display:false}];
       renderMathInElement(document.body, {delimiters: config});
