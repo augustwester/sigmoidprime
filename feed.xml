@@ -2,11 +2,11 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>sigmoid prime</title>
-    <description>A blog about machine learning aimed at newcomers to the field.</description>
+    <description>Striving for intuitive explanations of machine learning concepts.</description>
     <link>http://sigmoidprime.com//</link>
     <atom:link href="http://sigmoidprime.com//feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Fri, 07 Apr 2017 19:58:54 +0200</pubDate>
-    <lastBuildDate>Fri, 07 Apr 2017 19:58:54 +0200</lastBuildDate>
+    <pubDate>Sat, 08 Apr 2017 12:19:45 +0200</pubDate>
+    <lastBuildDate>Sat, 08 Apr 2017 12:19:45 +0200</lastBuildDate>
     <generator>Jekyll v3.3.0</generator>
     
       <item>
