@@ -5,8 +5,8 @@
     <description>Striving for intuitive explanations of concepts in machine learning.</description>
     <link>http://sigmoidprime.com//</link>
     <atom:link href="http://sigmoidprime.com//feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Sat, 08 Apr 2017 13:27:42 +0200</pubDate>
-    <lastBuildDate>Sat, 08 Apr 2017 13:27:42 +0200</lastBuildDate>
+    <pubDate>Sat, 10 Jun 2017 19:58:57 +0200</pubDate>
+    <lastBuildDate>Sat, 10 Jun 2017 19:58:57 +0200</lastBuildDate>
     <generator>Jekyll v3.3.0</generator>
     
       <item>
@@ -121,10 +121,10 @@ x_{784,1} &amp;amp; x_{784,2} &amp;amp; \cdots &amp;amp; x_{784,75}
 
 &lt;p&gt;&lt;img src=&quot;/assets/posts/3/wrong_output_2.png&quot; width=&quot;250&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;To avoid this problem, we will instead be using a function known as the &lt;strong&gt;softmax function&lt;/strong&gt;. The softmax function will &lt;em&gt;only&lt;/em&gt; be applied at the output layer, and will be denoted as €\delta€.&lt;/p&gt;
+&lt;p&gt;To avoid this problem, we will instead be using a function known as the &lt;strong&gt;softmax function&lt;/strong&gt;, which will only be applied at the output layer.&lt;/p&gt;
 
 &lt;p&gt;€€
-\hat{y}_{i,j} = \delta({z_{i, j}})
+\hat{y}_{i,j} = \text{softmax}({z_{i, j}})
 =
 \frac{\exp({z_{i,j})}}{\sum\limits_{k=1}^{n}\exp(z_{k,j})}
 €€&lt;/p&gt;
@@ -218,7 +218,7 @@ x \cdot y = 0
 
 &lt;p&gt;When we have a set of activations that pass from the final hidden layer of a neural net to the output layer, we are essentially taking the vector dot product between the activations and the set of weights that lead to a particular output neuron. Each neuron then runs its input through the softmax function and interprets the output as a probability distribution over the (mutually exclusive) classes that the neurons represent.&lt;/p&gt;
 
-&lt;p&gt;Sounds familiar to logistic regression? That’s because it is. In fact, using the softmax function to generate probability distributions is also known as &lt;strong&gt;multinomial logistic regression&lt;/strong&gt; in that it is used in non-binary settings.&lt;/p&gt;
+&lt;p&gt;Sounds familiar to logistic regression? That’s because it is. In fact, using the softmax function to generate probability distributions is also known as &lt;strong&gt;multinomial logistic regression&lt;/strong&gt;.&lt;/p&gt;
 
 &lt;p&gt;This tells us something really interesting: In order for the output layer to distinguish between different classes, it needs to be able to separate them with a straight line just as in Pt. 1 and Pt. 2. However, where the perceptron and logistic regression algorithms could only handle data that was linearly separable from the get-go, a neural net takes its input data and transforms it into becoming linearly separable if it isn’t already!&lt;/p&gt;
 
