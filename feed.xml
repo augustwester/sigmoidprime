@@ -5,8 +5,8 @@
     <description>Striving for intuitive explanations of concepts in machine learning.</description>
     <link>http://sigmoidprime.com//</link>
     <atom:link href="http://sigmoidprime.com//feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Sat, 10 Jun 2017 19:58:57 +0200</pubDate>
-    <lastBuildDate>Sat, 10 Jun 2017 19:58:57 +0200</lastBuildDate>
+    <pubDate>Sat, 10 Jun 2017 20:07:33 +0200</pubDate>
+    <lastBuildDate>Sat, 10 Jun 2017 20:07:33 +0200</lastBuildDate>
     <generator>Jekyll v3.3.0</generator>
     
       <item>
@@ -29,7 +29,7 @@
 
 &lt;p&gt;In addition to the weights, there is also a unique bias coupled to each hidden neuron and each output neuron. The biases are added to the neurons’ sum of weighted inputs &lt;em&gt;before&lt;/em&gt; the activation function is applied.&lt;/p&gt;
 
-&lt;p&gt;Once a neural net has been trained, it can be used to classify unseen samples by sending them through the network and looking at the result of the output neurons. Since there are no theoretical restrictions on the number of layers and neurons, a neural network can be used to approximate any mathematical function at all. We will see why later in this post.&lt;/p&gt;
+&lt;p&gt;Once a neural net has been trained, it can be used to classify unseen samples by sending them through the network and looking at the result of the output neurons. Since there are no theoretical restrictions on the number of layers and neurons, a neural network is said to be a &lt;strong&gt;universal function approximator&lt;/strong&gt;, meaning that it can learn to approximate any mathematical function at all. For an in-depth exploration of this topic, see &lt;a href=&quot;http://neuralnetworksanddeeplearning.com/chap4.html&quot;&gt;chapter four&lt;/a&gt; from Michael Nielsen’s free online book &lt;a href=&quot;http://neuralnetworksanddeeplearning.com/index.html&quot;&gt;&lt;em&gt;Neural Networks and Deep Learning&lt;/em&gt;&lt;/a&gt;.&lt;/p&gt;
 
 &lt;h2 id=&quot;mnist&quot;&gt;MNIST&lt;/h2&gt;
 
