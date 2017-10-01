@@ -86,7 +86,7 @@
 
 <ol>
   <li>We initialize a number of <strong>parameters</strong> with random values between 0 and 1. If each of our samples has €n€ features, we initialize €n+1€ parameters. Out of these €n+1€ parameters,  there will be €n€ <strong>weights</strong>, and one so-called <strong>bias</strong>. There will <em>always</em> be an equal number of weights and features. I will get to the point of the parameters in a minute, but for the moment, you can think of them as the knobs and dials of our model, which our algorithm uses to improve its performance.</li>
-  <li>Having initialized our parameters, we now feed <strong>training data</strong> to our (currently random, and thus highly inefficient) model one sample at a time. The model takes the features of a sample as input, and multiplies each feature by the model’s corresponding weight. This yields our <strong>weighted features</strong>.</li>
+  <li>Having initialized our parameters, we now feed <strong>training data</strong> to our (currently random, and thus highly inaccurate) model one sample at a time. The model takes the features of a sample as input, and multiplies each feature by the model’s corresponding weight. This yields our <strong>weighted features</strong>.</li>
   <li>Next, we calculate the sum of the weighted features and add the bias. At this point, all we are left with is a number. If this number is less than zero, we classify the sample as belonging to the setosa family; if the number is greater than zero, we classify the sample as being of type versicolor.</li>
   <li>Last but not least, if our prediction is wrong, we update our parameters. If our prediction is right, we do nothing, and move on to the next sample.</li>
 </ol>
@@ -130,8 +130,6 @@ x \cdot \theta
 €€</p>
 
 <p>All of this may seem like mere mathematical housekeeping, but as we will see, it will keep our code neat and tidy, and — much more importantly — it will allow us to vectorize our computations. Vectorization is important, since it enables significant computational speedups, as soon as we begin to handle more complex models with larger amounts of data. (For a small dataset like ours, it won’t really make a difference, but it is good practice to keep it in mind.)</p>
-
-<!-- You may remember from high school that a linear function has the form €ax + b€, where €a€ is the coefficient or 'slope' of the line, and €b€ is a constant that determines its y-intercept by moving the line up or down. This expression too is a linear function, but here we have four independent variables (€x_1€ through €x_4€) and four coefficients (€\theta_1€ through €\theta_4€), but still only one constant (€\theta_0€). This means that we are in a higher-dimensional space than the 2D space of €ax + b€. One consequence of this is that we are no longer working with 1D lines in 2D space, but with 3D 'hyperplanes' in 4D space. Sounds fancy, but the idea and the goal is still exactly the same: to find a bias and a configuration of €\theta€s that produces a negative number for setosa features, and a positive number for versicolor feaures. -->
 
 <p>We will now define a function known as the <a href="https://en.wikipedia.org/wiki/Heaviside_step_function">heaviside step function</a> or unit step function:</p>
 
