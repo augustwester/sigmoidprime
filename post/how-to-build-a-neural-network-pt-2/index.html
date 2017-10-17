@@ -242,7 +242,7 @@
 \nabla_\theta C = \frac{1}{m}\sum\limits_{i=1}^{m}(\sigma(\theta \cdot x^{(i)})-y^{(i)})x^{(i)}
 €€</p>
 
-<p>That is more like it. When we perform this calculation, we get a gradient containing the mean — or distillation if you will — of all of the partial derivatives w.r.t. €\theta€ in our training set. One way to think of this is that each derivative gets a vote on how to tune its corresponding parameter. When we use the mean of all the votes, we move in the direction that causes the cost to go down for the majority of our samples.</p>
+<p>That is more like it. When we perform this calculation, we get a gradient containing the mean — or distillation if you will — of all of the partial derivatives w.r.t. €\theta€ in our training set. One way to think of this is that each derivative gets to vote on which way is downhill. When we use the mean of all the votes, we move in the direction that causes a drop in the cost for the majority of our samples.</p>
 
 <p>As mentioned, if the derivative for a particular parameter €\theta_j€ is positive, we want to decrease the value of €\theta_j€. Likewise, if €\theta_j€ has a negative derivative, we want to increase the value of €\theta_j€. For now, the increments by which we change €\theta_j€’s current value will simply be the same as the value of the derivatives. The following update rule describes exactly this procedure.</p>
 
@@ -254,7 +254,7 @@
 
 <h2 id="creating-a-logistic-regression-model-in-python">Creating a logistic regression model in Python</h2>
 
-<p>To create our logistic regression model, we will again be using <a href="http://www.numpy.org/">NumPy</a> to handle all of our matrix and vector operations as well as <a href="http://matplotlib.org/">matplotlib</a> to visualize what is going on. Both of these can be installed by running <code class="highlighter-rouge">pip numpy</code> and <code class="highlighter-rouge">pip matplotlib</code> in the command line. Besides NumPy and matplotlib, make sure that you also download the dataset <a href="/assets/posts/2/exam_scores.zip">here</a>. Place the dataset in a dedicated folder for the project, and create a new Python file called <code class="highlighter-rouge">logistic_regression.py</code> in the same folder.</p>
+<p>To create our logistic regression model, we will again be using <a href="http://www.numpy.org/">NumPy</a> to handle all of our matrix and vector operations as well as <a href="http://matplotlib.org/">matplotlib</a> to visualize what is going on. Both of these can be installed by running <code class="highlighter-rouge">pip install numpy</code> and <code class="highlighter-rouge">pip install matplotlib</code> in the command line. Besides NumPy and matplotlib, make sure that you also download the dataset <a href="/assets/posts/2/exam_scores.zip">here</a>. Place the dataset in a dedicated folder for the project, and create a new Python file called <code class="highlighter-rouge">logistic_regression.py</code> in the same folder.</p>
 
 <p>First, we will set up a <code class="highlighter-rouge">LogisticRegression</code> class. The <code class="highlighter-rouge">init</code> method will initialize an array <code class="highlighter-rouge">self.theta</code> containing our three random parameters.</p>
 

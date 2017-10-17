@@ -5,8 +5,8 @@
     <description>Striving for intuitive explanations of concepts in machine learning.</description>
     <link>http://sigmoidprime.com//</link>
     <atom:link href="http://sigmoidprime.com//feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Tue, 17 Oct 2017 22:41:11 +0200</pubDate>
-    <lastBuildDate>Tue, 17 Oct 2017 22:41:11 +0200</lastBuildDate>
+    <pubDate>Tue, 17 Oct 2017 22:49:41 +0200</pubDate>
+    <lastBuildDate>Tue, 17 Oct 2017 22:49:41 +0200</lastBuildDate>
     <generator>Jekyll v3.3.0</generator>
     
       <item>
@@ -483,7 +483,7 @@ x \cdot y = 0
 \nabla_\theta C = \frac{1}{m}\sum\limits_{i=1}^{m}(\sigma(\theta \cdot x^{(i)})-y^{(i)})x^{(i)}
 €€&lt;/p&gt;
 
-&lt;p&gt;That is more like it. When we perform this calculation, we get a gradient containing the mean — or distillation if you will — of all of the partial derivatives w.r.t. €\theta€ in our training set. One way to think of this is that each derivative gets a vote on how to tune its corresponding parameter. When we use the mean of all the votes, we move in the direction that causes the cost to go down for the majority of our samples.&lt;/p&gt;
+&lt;p&gt;That is more like it. When we perform this calculation, we get a gradient containing the mean — or distillation if you will — of all of the partial derivatives w.r.t. €\theta€ in our training set. One way to think of this is that each derivative gets to vote on which way is downhill. When we use the mean of all the votes, we move in the direction that causes a drop in the cost for the majority of our samples.&lt;/p&gt;
 
 &lt;p&gt;As mentioned, if the derivative for a particular parameter €\theta_j€ is positive, we want to decrease the value of €\theta_j€. Likewise, if €\theta_j€ has a negative derivative, we want to increase the value of €\theta_j€. For now, the increments by which we change €\theta_j€’s current value will simply be the same as the value of the derivatives. The following update rule describes exactly this procedure.&lt;/p&gt;
 
@@ -495,7 +495,7 @@ x \cdot y = 0
 
 &lt;h2 id=&quot;creating-a-logistic-regression-model-in-python&quot;&gt;Creating a logistic regression model in Python&lt;/h2&gt;
 
-&lt;p&gt;To create our logistic regression model, we will again be using &lt;a href=&quot;http://www.numpy.org/&quot;&gt;NumPy&lt;/a&gt; to handle all of our matrix and vector operations as well as &lt;a href=&quot;http://matplotlib.org/&quot;&gt;matplotlib&lt;/a&gt; to visualize what is going on. Both of these can be installed by running &lt;code class=&quot;highlighter-rouge&quot;&gt;pip numpy&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;pip matplotlib&lt;/code&gt; in the command line. Besides NumPy and matplotlib, make sure that you also download the dataset &lt;a href=&quot;/assets/posts/2/exam_scores.zip&quot;&gt;here&lt;/a&gt;. Place the dataset in a dedicated folder for the project, and create a new Python file called &lt;code class=&quot;highlighter-rouge&quot;&gt;logistic_regression.py&lt;/code&gt; in the same folder.&lt;/p&gt;
+&lt;p&gt;To create our logistic regression model, we will again be using &lt;a href=&quot;http://www.numpy.org/&quot;&gt;NumPy&lt;/a&gt; to handle all of our matrix and vector operations as well as &lt;a href=&quot;http://matplotlib.org/&quot;&gt;matplotlib&lt;/a&gt; to visualize what is going on. Both of these can be installed by running &lt;code class=&quot;highlighter-rouge&quot;&gt;pip install numpy&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;pip install matplotlib&lt;/code&gt; in the command line. Besides NumPy and matplotlib, make sure that you also download the dataset &lt;a href=&quot;/assets/posts/2/exam_scores.zip&quot;&gt;here&lt;/a&gt;. Place the dataset in a dedicated folder for the project, and create a new Python file called &lt;code class=&quot;highlighter-rouge&quot;&gt;logistic_regression.py&lt;/code&gt; in the same folder.&lt;/p&gt;
 
 &lt;p&gt;First, we will set up a &lt;code class=&quot;highlighter-rouge&quot;&gt;LogisticRegression&lt;/code&gt; class. The &lt;code class=&quot;highlighter-rouge&quot;&gt;init&lt;/code&gt; method will initialize an array &lt;code class=&quot;highlighter-rouge&quot;&gt;self.theta&lt;/code&gt; containing our three random parameters.&lt;/p&gt;
 
