@@ -5,8 +5,8 @@
     <description>Striving for intuitive explanations of concepts in machine learning.</description>
     <link>http://sigmoidprime.com//</link>
     <atom:link href="http://sigmoidprime.com//feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Sun, 01 Oct 2017 22:45:52 +0200</pubDate>
-    <lastBuildDate>Sun, 01 Oct 2017 22:45:52 +0200</lastBuildDate>
+    <pubDate>Tue, 17 Oct 2017 22:41:11 +0200</pubDate>
+    <lastBuildDate>Tue, 17 Oct 2017 22:41:11 +0200</lastBuildDate>
     <generator>Jekyll v3.3.0</generator>
     
       <item>
@@ -475,7 +475,7 @@ x \cdot y = 0
 
 &lt;p&gt;&lt;img src=&quot;/assets/posts/2/gradient-descent.png&quot; width=&quot;480&quot; /&gt;&lt;/p&gt;
 
-&lt;p class=&quot;subtext&quot;&gt;A contrived example showing how we want €\theta€ to move in the direction that minimizes the cost. Here, €\theta€ would be a three-dimensional vector with each element representing a coordinate.&lt;/p&gt;
+&lt;p class=&quot;subtext&quot;&gt;A contrived example showing how we want €\theta€ to move in the direction that minimizes the cost. Here, €\theta€ would be a two-dimensional vector with each element representing a coordinate.&lt;/p&gt;
 
 &lt;p&gt;But hold on. The above definition of our gradient only deals with a single sample! We &lt;em&gt;could&lt;/em&gt; choose to “walk downhill” with the help of this gradient alone, but by doing that, we would only be walking down the cost function &lt;em&gt;for this particular sample&lt;/em&gt;. To get a gradient that will improve our parameters with respect to &lt;em&gt;all&lt;/em&gt; €n€ samples, we have to find the mean gradient like so:&lt;/p&gt;
 
