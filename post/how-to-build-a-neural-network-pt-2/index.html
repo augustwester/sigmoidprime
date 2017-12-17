@@ -252,7 +252,7 @@
 
 <h2 id="creating-a-logistic-regression-model-in-python">Creating a logistic regression model in Python</h2>
 
-<p>To create our logistic regression model, we will again be using <a href="http://www.numpy.org/">NumPy</a> to handle all of our matrix and vector operations as well as <a href="http://matplotlib.org/">matplotlib</a> to visualize what is going on. Both of these can be installed by running <code class="highlighter-rouge">pip install numpy</code> and <code class="highlighter-rouge">pip install matplotlib</code> on the command line. Besides NumPy and matplotlib, make sure that you also download the dataset <a href="/assets/posts/2/exam_scores.zip">here</a>. Place the dataset in a dedicated folder for the project, and create a new Python file called <code class="highlighter-rouge">logistic_regression.py</code> in the same folder.</p>
+<p>To create our logistic regression model, we will again be using <a href="http://www.numpy.org/">NumPy</a> to handle all of our matrix and vector operations as well as <a href="http://matplotlib.org/">matplotlib</a> to visualize what is going on. Both of these can be installed by running <code class="highlighter-rouge">pip3 install numpy</code> and <code class="highlighter-rouge">pip3 install matplotlib</code> (or simply <code class="highlighter-rouge">pip</code> if you prefer to use Python 2) on the command line. Besides NumPy and matplotlib, make sure that you also download the dataset <a href="/assets/posts/2/exam_scores.zip">here</a>. Place the dataset in a dedicated folder for the project, and create a new Python file called <code class="highlighter-rouge">logistic_regression.py</code> in the same folder.</p>
 
 <p>First, we will set up a <code class="highlighter-rouge">LogisticRegression</code> class. The <code class="highlighter-rouge">init</code> method will initialize an array <code class="highlighter-rouge">self.theta</code> containing our three random parameters.</p>
 
@@ -275,7 +275,7 @@
             <span class="n">weighted_input</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="p">)</span>
             <span class="n">probs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">weighted_input</span><span class="p">)</span>
 
-        <span class="k">print</span> <span class="s">"Training finished"</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">"Training finished"</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">standardize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
         <span class="n">X_std</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">X</span><span class="p">))</span>
