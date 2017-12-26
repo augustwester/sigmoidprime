@@ -5,8 +5,8 @@
     <description>Striving for intuitive explanations of concepts in machine learning.</description>
     <link>http://sigmoidprime.com//</link>
     <atom:link href="http://sigmoidprime.com//feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Tue, 26 Dec 2017 21:07:03 +0100</pubDate>
-    <lastBuildDate>Tue, 26 Dec 2017 21:07:03 +0100</lastBuildDate>
+    <pubDate>Tue, 26 Dec 2017 21:10:39 +0100</pubDate>
+    <lastBuildDate>Tue, 26 Dec 2017 21:10:39 +0100</lastBuildDate>
     <generator>Jekyll v3.3.0</generator>
     
       <item>
@@ -572,7 +572,7 @@ x \cdot y = 0
 
 &lt;p&gt;A thing that surprised me when I set up my first neural network was the brevity of the actual program. While the underlying concepts can sometimes be a challenge to fully grasp, the number of lines of code required to build one is actually very modest.&lt;/p&gt;
 
-&lt;p&gt;Let’s begin by setting up a &lt;code class=&quot;highlighter-rouge&quot;&gt;NeuralNetwork&lt;/code&gt; class. We will use the &lt;code class=&quot;highlighter-rouge&quot;&gt;__init__&lt;/code&gt; method to instantiate our hyperparameters:&lt;/p&gt;
+&lt;p&gt;Let’s begin by setting up a &lt;code class=&quot;highlighter-rouge&quot;&gt;NeuralNetwork&lt;/code&gt; class in a file called &lt;code class=&quot;highlighter-rouge&quot;&gt;neural_network.py&lt;/code&gt;. We will use the &lt;code class=&quot;highlighter-rouge&quot;&gt;__init__&lt;/code&gt; method to instantiate our hyperparameters:&lt;/p&gt;
 
 &lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;numpy&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;np&lt;/span&gt;
 
@@ -627,7 +627,6 @@ x \cdot y = 0
 &lt;/ul&gt;
 
 &lt;p&gt;This concludes our implementation of the forward pass for our neural network. In the next (and final) post of the series, we will explore how our network can automatically find the right values for our weights and biases using &lt;strong&gt;backpropagation&lt;/strong&gt;.&lt;/p&gt;
-
 </description>
         <pubDate>Fri, 07 Apr 2017 00:00:00 +0200</pubDate>
         <link>http://sigmoidprime.com//post/how-to-build-a-neural-network-pt-3/</link>
