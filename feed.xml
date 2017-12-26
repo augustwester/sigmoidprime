@@ -5,14 +5,350 @@
     <description>Striving for intuitive explanations of concepts in machine learning.</description>
     <link>http://sigmoidprime.com//</link>
     <atom:link href="http://sigmoidprime.com//feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Sun, 17 Dec 2017 22:00:12 +0100</pubDate>
-    <lastBuildDate>Sun, 17 Dec 2017 22:00:12 +0100</lastBuildDate>
+    <pubDate>Tue, 26 Dec 2017 21:03:38 +0100</pubDate>
+    <lastBuildDate>Tue, 26 Dec 2017 21:03:38 +0100</lastBuildDate>
     <generator>Jekyll v3.3.0</generator>
+    
+      <item>
+        <title>How to Build (and Understand) a Neural Network Pt. 4: Backpropagation</title>
+        <description>
+&lt;p&gt;In this final post of the series, we will see how to apply &lt;strong&gt;backpropagation&lt;/strong&gt; to the neural net we built in the last chapter. Backpropagation will allow our network to incrementally improve itself as it gets exposed to new data. This will ultimately enable it to classify the MNIST test set with close to 95% accuracy.&lt;/p&gt;
+
+&lt;p&gt;Recall how we optimized our logistic regression model in &lt;a href=&quot;http://sigmoidprime.com/how-to-build-a-neural-network-pt2&quot;&gt;Pt. 2&lt;/a&gt; by minimizing a loss function using gradient descent? Since backpropagation relies heavily on gradient descent, the intuition behind it bears repeating.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/posts/4/animated.gif&quot; width=&quot;850&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;As we saw in &lt;a href=&quot;http://sigmoidprime.com/how-to-build-a-neural-network-pt2&quot;&gt;Pt. 2&lt;/a&gt;, a loss function produces a quantitative measure of the classification accuracy of our model. Given that our model only consists of our weights and biases, it is helpful to imagine a landscape with peaks and valleys (like the one above), where navigating along the €x€ and €y€ axes corresponds to changing our parameters, and where the change in elevation along the €z€ axis corresponds to the resulting change in our loss function. As our model becomes increasingly accurate, the average output of the loss function decreases. When navigating the landscape, this is why we try our best to &lt;em&gt;descend&lt;/em&gt; toward the deepest valleys.&lt;/p&gt;
+
+&lt;p&gt;Keep in mind that this only serves as a helpful mental image, and not an accurate representation of what is actually going on. In reality, our model will have thousands of parameters, and the peaks and valleys will thus be embedded in very high-dimensional spaces that are impossible to visualize.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-chain-rule&quot;&gt;The chain rule&lt;/h2&gt;
+
+&lt;p&gt;As we explored in the previous post, the objective of a learning algorithm for a neural network is to find a configuration of weights and biases that transform the input data into a probability distribution over all of the classes the input sample can belong to.&lt;/p&gt;
+
+&lt;p&gt;If we zoom in on what happens to a single sample €a^{(1)}€ as it passes through a network with €l€ layers, we can represent its journey like this:&lt;/p&gt;
+
+&lt;p&gt;€€
+a^{(2)} = \sigma(a^{(1)}\Theta^{(1)}+b^{(1)})
+€€&lt;/p&gt;
+
+&lt;p&gt;€€
+a^{(3)} = \sigma(a^{(2)}\Theta^{(2)}+b^{(2)})
+€€&lt;/p&gt;
+
+&lt;p&gt;€€
+\vdots
+€€&lt;/p&gt;
+
+&lt;p&gt;€€
+\hat{y} = \text{softmax}(a^{(l-1)}\Theta^{(l-1)}+b^{(l-1)})
+€€&lt;/p&gt;
+
+&lt;p&gt;In order to see exactly how our weights are affecting the loss (and thus how changing them can move us closer to the valleys), we need to brush up on the &lt;strong&gt;chain rule&lt;/strong&gt;. The chain rule tells us how to derive a function with respect to variables inside nested functions. For instance, take the following expression:&lt;/p&gt;
+
+&lt;p&gt;€€
+f(g(2x))
+€€&lt;/p&gt;
+
+&lt;p&gt;If we want to know how the value of €x€ influences the value of €f€, the chain rule tells us that we have to derive the outside function and then incrementally multiply by the derivatives of the nested functions like so:&lt;/p&gt;
+
+&lt;p&gt;€€
+\frac{\partial f}{\partial x} = \frac{\partial f}{\partial g} \cdot \frac{\partial g}{\partial 2x} \cdot \frac{\partial 2x}{\partial x}
+€€&lt;/p&gt;
+
+&lt;p&gt;What this expression signifies is actually quite remarkable. It tells us &lt;em&gt;exactly&lt;/em&gt; how changing the value of €x€ affects the value of €f€, even though €x€ is buried inside multiple nested functions. This is crucial knowledge when the time comes to navigate the landscape of the loss function.&lt;/p&gt;
+
+&lt;h2 id=&quot;a-small-update-to-the-cross-entropy-loss-function&quot;&gt;A small update to the cross-entropy loss function&lt;/h2&gt;
+
+&lt;p&gt;This is the cross-entropy loss function. It looks a little different from the one we saw in &lt;a href=&quot;http://sigmoidprime.com/how-to-build-a-neural-network-pt2&quot;&gt;Pt. 2&lt;/a&gt;, but the idea behind it is exactly the same.&lt;/p&gt;
+
+&lt;p&gt;€€
+\frac{1}{m} \sum\limits_{i=1}^{m} \sum\limits_{j=1}^{n} - y_{i,j} \log(\hat{y}_{i,j}) - (1 - y_{i,j}) \log(1 - \hat{y}_{i,j})
+€€&lt;/p&gt;
+
+&lt;p&gt;Where in &lt;a href=&quot;http://sigmoidprime.com/how-to-build-a-neural-network-pt2&quot;&gt;Pt. 2&lt;/a&gt;, we only had a single output for each sample, now we have 10 (each output represents the probability of the input image being a digit from 0-9), so instead of merely summing over €m€ samples, we also sum over the €n€ outputs for each sample.&lt;/p&gt;
+
+&lt;h2 id=&quot;backpropagating-our-way-through-a-three-layered-network&quot;&gt;Backpropagating our way through a three-layered network&lt;/h2&gt;
+
+&lt;p&gt;In the following, we will explore the mechanics of backpropagation through a three-layered neural network (a network with one input layer, one hidden layer, and one output layer) and for a mini-batch €A^{(1)}€ of 75 samples. The entire forward pass of such a network (including evaluation of the cross-entropy loss function €C€) can be expressed like this:&lt;/p&gt;
+
+&lt;p&gt;€€
+C(\hat{Y}, Y) = C(\text{softmax}(\sigma(A^{(1)}\Theta^{(1)}+b^{(1)})\Theta^{(2)} + b^{(2)}), Y)
+€€&lt;/p&gt;
+
+&lt;p&gt;With our neural net represented as functions nested inside other functions, we’re now poised to figure out how changing the parameters €\Theta^{(1)}€, €\Theta^{(2)}€, €b^{(1)}€, and €b^{(2)}€ influences the loss €C€. To do this, we first need to find €\frac{\partial C}{\partial b^{(2)}}€ and €\frac{\partial C}{\partial \Theta^{(2)}}€, and this is where the chain rule comes into the picture.&lt;/p&gt;
+
+&lt;p&gt;Notice that since our parameters are not represented as scalars but as vectors and matrices, we will be using the gradient notation €\nabla_{\hat{Y}}C€ instead of €\frac{\partial C}{\partial \hat{Y}}€.&lt;/p&gt;
+
+&lt;p&gt;When we apply the chain rule to find the gradient of €C€ w.r.t. €b^{(2)}€ and €\Theta^{(2)}€, we get the following:&lt;/p&gt;
+
+&lt;p&gt;€€
+{\nabla_{b^{(2)}}}C = \nabla_{Z^{(2)}} \hat{Y} \odot \nabla_{\hat{Y}}C
+€€
+€€
+{\nabla_{\Theta^{(2)}}}C = (\nabla_{\Theta^{(2)}}Z^{(2)})^{\text{T}} \times {\nabla_{b^{(2)}}}C
+€€&lt;/p&gt;
+
+&lt;p&gt;This expression demands a bit of explanation:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;€\odot€ signifies “element-wise multiplication”. That is, if you have two matrices of equal dimensions, you multiply their corresponding elements, resulting in a new, identically shaped matrix.&lt;/li&gt;
+  &lt;li&gt;€Z^{(2)}€ is our shorthand expression for the weighted input to the output layer. This would be a €1 \times 10€ matrix given a single sample as input to the network, and a €75 \times 10€ matrix given a mini-batch of 75 samples.&lt;/li&gt;
+  &lt;li&gt;As we covered in &lt;a href=&quot;http://sigmoidprime.com/how-to-build-a-neural-network-pt3&quot;&gt;Pt. 3&lt;/a&gt;, superscript €\text{T}€ means &lt;strong&gt;transposition&lt;/strong&gt;. When you transpose a matrix, you turn its row vectors into column vectors and vice-versa. Thus, a transposed €5 \times 10€ matrix is a €10 \times 5€ matrix.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;With that out of the way, let us walk through the expression one step at a time: First we do element-wise multiplication between €\nabla_{\hat{Y}}C€ and €\nabla_{Z^{(2)}} \hat{Y}€. Since the shape of both of these matrices is €75 \times 10€, the result is a new €75 \times 10€ matrix containing the products of their corresponding elements. To get €{\nabla_{b^{(2)}}}C€, we have to collapse this into a €1 \times 10€ vector by taking the sum along all 10 columns. The resulting €1 \times 10€ vector is then divided by 75 in order to give us the average gradient across all 75 samples in the mini-batch.&lt;/p&gt;
+
+&lt;p&gt;Given that €\nabla_{\Theta^{(2)}}Z^{(2)}€ contains the partial derivatives w.r.t. each weight in €\Theta^{(2)}€, €\nabla_{\Theta^{(2)}}Z^{(2)}€ must be equal to the activations of the hidden layer €A^{(2)}€. If we assume that the hidden layer has three neurons, €\nabla_{\Theta^{(2)}}Z^{(2)}€ must therefore be of shape €75 \times 3€, and €(\nabla_{\Theta^{(2)}}Z^{(2)})^{\text{T}}€ of shape €3 \times 75€. Multiplying this by our previous €75 \times 10€ matrix €{\nabla_{b^{(2)}}}C€ yields a €3 \times 10€ matrix that matches the shape of €\Theta^{(2)}€. Note that had we not transposed €\nabla_{\Theta^{(2)}}Z^{(2)}€, we wouldn’t have been able to multiply the two matrices, since their original shapes don’t match up.&lt;/p&gt;
+
+&lt;p&gt;Matrix multiplication can be quite tricky to wrap one’s head around, so don’t sweat it if you are a bit perplexed. Just know that, had we been dealing with scalars, the equivalent expressions would look like this:&lt;/p&gt;
+
+&lt;p&gt;€€
+\frac{\partial C}{\partial b^{(2)}} = \frac{\partial C}{\partial \hat{y}} \cdot \frac{\partial \hat{y}}{\partial z^{(2)}}
+€€
+€€
+\frac{\partial C}{\partial \Theta^{(2)}} = \frac{\partial C}{\partial \hat{y}} \cdot \frac{\partial \hat{y}}{\partial z^{(2)}} \cdot \frac{\partial z^{(2)}}{\partial \Theta^{(2)}}
+€€&lt;/p&gt;
+
+&lt;p&gt;We now have the derivatives of €C€ w.r.t. each individual weight in €\Theta^{(2)}€. However, these are the &lt;em&gt;combined&lt;/em&gt; gradients of all 75 samples in our mini-batch. To get some truly useful values, we simply have to divide by 75. This way, we again get the &lt;em&gt;average&lt;/em&gt; of our 75 individual gradients, and we will thus minimize the loss function in a way that satisfies the greatest possible number of samples. Neat!&lt;/p&gt;
+
+&lt;p&gt;One more thing regarding the above expression: When you do element-wise multiplication between €\nabla_{\hat{Y}}C€ and €\nabla_{Z^{(2)}} \hat{Y}€, you discover something wonderful: It turns out that it simplifies to €\hat{Y}-Y€!&lt;/p&gt;
+
+&lt;p&gt;Knowing all of this, the final expression for €\nabla_{\Theta^{(2)}}C€ for a mini-batch of €m€ samples can now be expressed as:&lt;/p&gt;
+
+&lt;p&gt;€€
+\nabla_{\Theta^{(2)}}C =  \frac{1}{m}((A^{(1)})^{\text{T}} \times (\hat{Y}-Y))
+€€&lt;/p&gt;
+
+&lt;p&gt;Our hypothetical network has one hidden layer, which means it has two sets of weights and biases. We will therefore need to find €\nabla_{\Theta^{(1)}}C€ and €\nabla_{b^{(1)}}C€ as well. Since derivations like these can become quite tedious, I will skip most of them going forward. If you want, you can try and do them yourself — it’s a good exercise!&lt;/p&gt;
+
+&lt;p&gt;Once you have found the gradients for all weights and biases, it is time to update their values. In &lt;a href=&quot;http://sigmoidprime.com/how-to-build-a-neural-network-pt2&quot;&gt;Pt. 2&lt;/a&gt;, we updated our parameters using the following update rule:&lt;/p&gt;
+
+&lt;p&gt;€€
+\Theta^{(i)}:=\Theta^{(i)}-\nabla_{\Theta^{(i)}}C
+€€&lt;/p&gt;
+
+&lt;p&gt;This time, we are going to do &lt;em&gt;almost&lt;/em&gt; the same; the slight twist being that I am going to introduce a &lt;strong&gt;learning rate&lt;/strong&gt;. As the name implies, a learning rate (denoted €\alpha€) determines the rate with which our model learns, and is simply a coefficient on the gradient. While a learning rate sounds like something you would want to turn all the way up, this immediately creates a problem.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/posts/4/learning_rates.gif&quot; width=&quot;800&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;As shown above, a learning rate which is too large (illustrated on the right) can cause an algorithm to overshoot the minimum of its loss function. This happens because increasing the learning rate tells our parameters to take bigger and bigger steps when moving across the landscape. Since the steps are proportional to the slope of the function at any given point, a large learning rate can cause a runaway effect (as shown above). At the same time however, you want the learning rate to be large enough to approach the minimum at as rapid a pace as possible. Finding a good balance can be difficult, which is why techniques such as learning rate decay (that are outside the scope of this post) have been invented. In this example, we will simply be using a constant learning rate of 0.002. Our update rules will thus look like this:&lt;/p&gt;
+
+&lt;p&gt;€€
+\Theta^{(i)}:=\Theta^{(i)}-0.002 \cdot \nabla_{\Theta^{(i)}}C
+€€&lt;/p&gt;
+
+&lt;p&gt;€€
+b^{(i)} := b^{(i)} - 0.002 \cdot \nabla_{b^{(i)}}C
+€€&lt;/p&gt;
+
+&lt;p&gt;Each time we have sent a mini-batch through the network, we calculate the gradient with respect to all of our parameters and  use these to update their values. This results in the network being slightly better equipped to classify samples during the next forward pass, since we have inched a little closer to the bottom of a valley.&lt;/p&gt;
+
+&lt;h2 id=&quot;backpropagation-in-code&quot;&gt;Backpropagation in code&lt;/h2&gt;
+
+&lt;p&gt;To apply what we have learned, we will extend our &lt;code class=&quot;highlighter-rouge&quot;&gt;NeuralNetWork&lt;/code&gt; class to support backpropagation. To brush up your memory, here is the code we wrote in &lt;a href=&quot;http://sigmoidprime.com/how-to-build-a-neural-network-pt3&quot;&gt;Pt. 3&lt;/a&gt;:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;numpy&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;np&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;NeuralNetwork&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;object&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;layer_sizes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alpha&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;1.0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;nb&quot;&gt;super&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NeuralNetwork&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+
+        &lt;span class=&quot;n&quot;&gt;n_layers&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;layer_sizes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;n_layers&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+            &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;weights&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;
+            &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;biases&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;
+
+            &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;n_layers&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;# a network with n layers has n-1 set of weights and biases&lt;/span&gt;
+                &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;weights&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;random&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;randn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;layer_sizes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;layer_sizes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]))&lt;/span&gt;
+                &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;biases&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;random&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;randn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;layer_sizes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]))&lt;/span&gt;
+
+            &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;weights&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;weights&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;biases&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;biases&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;alpha&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alpha&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;raise&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;ValueError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;The minimum number of layers is 3 (&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;i provided)&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;n_layers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;forward_pass&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;A&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;Zs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;As&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;A&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;weights&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)):&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dot&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;weights&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;A&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;biases&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;Zs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+            &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;weights&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;A&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sigmoid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;As&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;A&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;Y_hat&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;softmax&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+                &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Zs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;As&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y_hat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;sigmoid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;1.0&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;1.0&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;exp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;softmax&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;exp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;exp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;axis&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)[:,&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;First, we will add a method &lt;code class=&quot;highlighter-rouge&quot;&gt;sigmoid_prime&lt;/code&gt; to &lt;code class=&quot;highlighter-rouge&quot;&gt;NeuralNetwork&lt;/code&gt;. This will be the derivative of the sigmoid activation function €\frac{\partial \sigma}{\partial z}€.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;sigmoid_prime&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sigmoid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sigmoid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Next, we will add a &lt;code class=&quot;highlighter-rouge&quot;&gt;backprop&lt;/code&gt; method to handle gradient derivation:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;backprop&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Zs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;As&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y_hat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;weight_gradients&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bias_gradients&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[],&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;bias_gradient&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y_hat&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;reversed&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;weights&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))):&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;weight_gradients&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dot&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;As&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bias_gradient&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;bias_gradients&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bias_gradient&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;axis&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bias_gradient&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dot&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bias_gradient&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;weights&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sigmoid_prime&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Zs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;list&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;reversed&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;weight_gradients&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;list&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;reversed&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bias_gradients&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Let’s run through this method one step at a time.&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;We initialize two lists – &lt;code class=&quot;highlighter-rouge&quot;&gt;weight_gradients&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;bias_gradients&lt;/code&gt; — which we will use to hold the gradient matrices for our weights and biases.&lt;/li&gt;
+  &lt;li&gt;We calculate &lt;code class=&quot;highlighter-rouge&quot;&gt;bias_gradient&lt;/code&gt;, which initially holds a €75 \times 10€ matrix containing the gradients w.r.t. the output layer’s biases for all 75 samples in our mini-batch.&lt;/li&gt;
+  &lt;li&gt;We iterate from the output layer towards the input layer (hence &lt;code class=&quot;highlighter-rouge&quot;&gt;reversed()&lt;/code&gt;), deriving the weight gradients at each step of the way (note that &lt;code class=&quot;highlighter-rouge&quot;&gt;.T&lt;/code&gt; transposes a numpy matrix). We also update the value of &lt;code class=&quot;highlighter-rouge&quot;&gt;bias_gradient&lt;/code&gt; to the gradient w.r.t. the biases in the preceding layer, so we can use this value in the next iteration.&lt;/li&gt;
+  &lt;li&gt;Since the gradients have been added in reverse order, we return the numpy representation of the reversed &lt;code class=&quot;highlighter-rouge&quot;&gt;weight_gradients&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;bias_gradients&lt;/code&gt; lists.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;From here on out, it’s smooth sailing. We’ll first add an &lt;code class=&quot;highlighter-rouge&quot;&gt;update_params&lt;/code&gt; method and a &lt;code class=&quot;highlighter-rouge&quot;&gt;cross_entropy&lt;/code&gt; method to calculate the loss:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;update_params&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;weight_gradients&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bias_gradients&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;weights&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;alpha&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;weight_gradients&lt;/span&gt;
+    &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;biases&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;alpha&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bias_gradients&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;cross_entropy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y_hat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y_hat&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Y_hat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y_hat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;We will also add a &lt;code class=&quot;highlighter-rouge&quot;&gt;train&lt;/code&gt; and a &lt;code class=&quot;highlighter-rouge&quot;&gt;test&lt;/code&gt; method that utilize the methods we have already implemented.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;train&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;epochs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;batch_size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;batch_size&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;is&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;batch_size&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;num_iter&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;batch_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;epochs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;j&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;num_iter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;Zs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;As&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y_hat&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;forward_pass&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;batch_size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;j&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;batch_size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;j&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;batch_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;weight_gradients&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bias_gradients&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;backprop&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Zs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;As&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y_hat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;batch_size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;j&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;batch_size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;j&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;batch_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+            &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;update_params&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;weight_gradients&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bias_gradients&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;loss after Epoch #&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;: &quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cross_entropy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;batch_size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;j&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;batch_size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;j&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;batch_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y_hat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)))&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;Zs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;As&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y_hat&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;forward_pass&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;num_wrong&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count_nonzero&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;argmax&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Y_hat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;argmax&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;num_right&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;num_wrong&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;accuracy&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;num_right&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Number of correctly classified images: &quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;num_right&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot; (&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;accuracy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;)&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h2 id=&quot;downloading-mnist&quot;&gt;Downloading MNIST&lt;/h2&gt;
+
+&lt;p&gt;To download the MNIST dataset, we will use a Python script called &lt;a href=&quot;https://github.com/sorki/python-mnist&quot;&gt;python-mnist&lt;/a&gt; that will make it easy for us to fetch and parse the images in a few lines of code.&lt;/p&gt;
+
+&lt;p&gt;First, clone the repo to a fitting directory by running the following command:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;git clone https://github.com/sorki/python-mnist&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;To download MNIST, run&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;&lt;span class=&quot;nb&quot;&gt;cd &lt;/span&gt;python-mnist
+./get_data.sh&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;and the dataset should appear as binary files in a new &lt;code class=&quot;highlighter-rouge&quot;&gt;data&lt;/code&gt; directory. We will also be using python-mnist to process the data, so for this, you can either reference the files you just cloned, or you can install python-mnist globally using pip:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;pip3 install python-mnist&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h2 id=&quot;preprocessing-the-data&quot;&gt;Preprocessing the data&lt;/h2&gt;
+
+&lt;p&gt;In order to use the dataset, it needs to be in a format that matches the architecture of the network we have built.&lt;/p&gt;
+
+&lt;p&gt;To do this, create a new Python file called &lt;code class=&quot;highlighter-rouge&quot;&gt;main.py&lt;/code&gt; in the same directory as &lt;code class=&quot;highlighter-rouge&quot;&gt;neural_network.py&lt;/code&gt;. In it, import the MNIST class from python-mnist as well as NumPy, pickle and our &lt;code class=&quot;highlighter-rouge&quot;&gt;NeuralNetwork&lt;/code&gt; class.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;pickle&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;# for saving the neural net to disk after training&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;numpy&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;np&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;mnist&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;MNIST&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;neural_network&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;NeuralNetwork&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Next, let’s load the actual MNIST data into memory. The &lt;code class=&quot;highlighter-rouge&quot;&gt;load_training&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;load_testing&lt;/code&gt; methods in python-mnist will convert the binary files we downloaded before into regular Python lists.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;n&quot;&gt;mndata&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;MNIST&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'python-mnist/data'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;train_images&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;train_labels&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mndata&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;load_training&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;test_images&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;test_labels&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mndata&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;load_testing&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Since we’ll need the functionality provided by numpy arrays inside of our neural net, we convert the lists &lt;code class=&quot;highlighter-rouge&quot;&gt;train_images&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;test_images&lt;/code&gt; by wrapping them in a call to &lt;code class=&quot;highlighter-rouge&quot;&gt;np.array()&lt;/code&gt;. We also need to convert the labels into a proper format.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;train_labels&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;As you can see, the labels are represented as a single number between 0-9. You may remember that in order to compute the loss, we need not just the network’s outputted probability distribution, but the ground truth for each of the 10 possible classes as well. Concretely, we want something like this instead:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;train_labels&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;The code below ensures that the variables &lt;code class=&quot;highlighter-rouge&quot;&gt;X_train&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;Y_train&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;X_test&lt;/code&gt;, and &lt;code class=&quot;highlighter-rouge&quot;&gt;Y_test&lt;/code&gt; contains the samples and labels in a format suited to our network.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;n&quot;&gt;X_train&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;train_images&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;Y_train&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;zeros&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;train_labels&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;X_test&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;test_images&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;Y_test&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;zeros&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;test_labels&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;train_labels&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)):&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;Y_train&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;][&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;train_labels&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;test_labels&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)):&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;Y_test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;][&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;test_labels&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h2 id=&quot;training-and-testing-our-network&quot;&gt;Training and testing our network&lt;/h2&gt;
+
+&lt;p&gt;The time has now finally come to initialize our neural network. I have chosen an architecture of six hidden layers each containing 50 neurons, and a learning rate of 0.002:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;n&quot;&gt;nn&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;NeuralNetwork&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;layer_sizes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;784&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;50&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;50&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;50&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;50&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;50&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;50&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alpha&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;0.002&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;As you can see, we have made it easy to tweak and tune the hyperparameters of the network, so feel free to experiment as much as you’d like.&lt;/p&gt;
+
+&lt;p&gt;We can now train the network by calling the &lt;code class=&quot;highlighter-rouge&quot;&gt;train&lt;/code&gt; method, then test its accuracy by calling &lt;code class=&quot;highlighter-rouge&quot;&gt;test&lt;/code&gt; immediately afterwards. We will also make sure to save it to disk using pickle in case you want to mess around with it afterwards:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;n&quot;&gt;nn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;train&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X_train&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y_train&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;epochs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;batch_size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;nn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X_test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y_test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;pickle&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dump&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;open&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;neural_net.p&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;wb&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;With these settings, we are going to feed all the images to the network in batches of 10, and we will do that a thousand times. Since there are 60,000 images in the training set, this means that our network has to crunch through 60,000,000 images and update its 52,510 parameters 6,000,000 times. It goes without saying that this is quite an intensive and time-consuming operation, so expect a training time of a couple of hours.&lt;/p&gt;
+
+&lt;p&gt;Once you run the script, you should see something similar to the output below. Note that the values aren’t going to be identical, since the parameters of the network have been randomly initialized. The important thing is that the loss is decreasing.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;loss after Epoch &lt;span class=&quot;c&quot;&gt;#1: 0.323842013643&lt;/span&gt;
+loss after Epoch &lt;span class=&quot;c&quot;&gt;#2: 0.287431827718&lt;/span&gt;
+loss after Epoch &lt;span class=&quot;c&quot;&gt;#3: 0.273531054997&lt;/span&gt;
+loss after Epoch &lt;span class=&quot;c&quot;&gt;#4: 0.268344457733&lt;/span&gt;
+loss after Epoch &lt;span class=&quot;c&quot;&gt;#5: 0.243978653084&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;By the end of the 1000 epochs, the network’s accuracy on the test set will be printed out:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;Number of correctly classified images: 9364 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;0.9364%&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;Congratulations! If you have made it all the way through these four parts, I hope you now have a much better understanding of neural nets and how they work. It goes without saying that there is still tons more to learn; even about vanilla neural nets like the ones we have been working with. These include learning rate decay, regularization, alternative activation functions, and much more!&lt;/p&gt;
+
+&lt;p&gt;In future posts, I intend to build upon the basic knowledge we have acquired in this series to explore other exciting machine learning methods, such as GANs, capsule networks, and various NLP techniques. Stay tuned, and thanks a lot for reading!&lt;/p&gt;
+</description>
+        <pubDate>Fri, 07 Apr 2017 00:00:00 +0200</pubDate>
+        <link>http://sigmoidprime.com//post/how-to-build-a-neural-network-pt-4/</link>
+        <guid isPermaLink="true">http://sigmoidprime.com//post/how-to-build-a-neural-network-pt-4/</guid>
+        
+        
+      </item>
     
       <item>
         <title>How to Build (and Understand) a Neural Network Pt. 3: The Forward Pass</title>
         <description>
-&lt;p&gt;By now, we have covered a whole lot of material. We have talked about decision boundaries, cost functions, and gradient descent, and we have built our own linear models using the perceptron and logistic regression algorithms. In this penultimate post of the series, we will analyze the first half of a neural network — the &lt;strong&gt;forward pass&lt;/strong&gt; — and we will use linear algebra to explore a visual interpretation of what happens to our data as it flows through a neural net.&lt;/p&gt;
+&lt;p&gt;By now, we have covered a whole lot of material. We have talked about decision boundaries, loss functions, and gradient descent, and we have built our own linear models using the perceptron and logistic regression algorithms. In this penultimate post of the series, we will analyze the first half of a neural network — the &lt;strong&gt;forward pass&lt;/strong&gt; — and we will use linear algebra to explore a visual interpretation of what happens to our data as it flows through a neural net.&lt;/p&gt;
 
 &lt;h2 id=&quot;a-birds-eye-view&quot;&gt;A bird’s-eye view&lt;/h2&gt;
 &lt;p&gt;This diagram shows a three-layered neural network composed of an &lt;strong&gt;input layer&lt;/strong&gt; (green), two &lt;strong&gt;hidden layers&lt;/strong&gt; (purple), and an &lt;strong&gt;output layer&lt;/strong&gt; (red).&lt;/p&gt;
@@ -59,51 +395,55 @@
 
 &lt;p&gt;Since we are looking to classify each sample as being a digit between 0-9, we will have 10 output neurons at the end of the network.&lt;/p&gt;
 
-&lt;p&gt;With 75 samples each containing 784 features, we can represent our mini-batch as a 784x75 matrix. Each column will thus contain the pixel values for a single image, while the rows contain the grayscale value for the same particular pixel across our 75 different images. Since all 784 features are connected through their own “synapse” to all three hidden neurons, the weights between the input layer and the hidden layer can be represented as a 3x784 matrix.&lt;/p&gt;
+&lt;p&gt;With 75 samples each containing 784 features, we can represent our mini-batch as a €75 \times 784€ matrix. Each row will thus contain the pixel values for a single image, while the columns will contain the grayscale value for the same particular pixel across our 75 different images. Since all 784 features are connected through their own “synapse” to all three hidden neurons, the weights between the input layer and the hidden layer can be represented as a €784 \times 3€ matrix.&lt;/p&gt;
 
 &lt;p&gt;&lt;em&gt;To follow along from here, make sure that you are familiar with &lt;a href=&quot;https://www.youtube.com/embed/kT4Mp9EdVqs&quot;&gt;matrix multiplication&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;
 
-&lt;p&gt;Using a single matrix multiplication, we can represent the multiplication of all 784x75 features with their corresponding weight &lt;em&gt;as well as&lt;/em&gt; each hidden neuron’s summation of its weighted input. With the columns representing a single sample, our input matrix €X€ looks like this:&lt;/p&gt;
+&lt;p&gt;Using a single matrix multiplication, we can represent the multiplication of all €75 \times 784€ features with their corresponding weight &lt;em&gt;as well as&lt;/em&gt; each hidden neuron’s summation of its weighted input. With the rows representing samples, our input matrix €X€ looks like this:&lt;/p&gt;
 
 &lt;p&gt;€€
 \begin{bmatrix}
-x_{1,1} &amp;amp; x_{1,2} &amp;amp; \cdots &amp;amp; x_{1,75}
+x_{1,1} &amp;amp; x_{1,2} &amp;amp; \cdots &amp;amp; x_{1,784}
 \cr\cr
 \vdots &amp;amp; \vdots &amp;amp; \vdots &amp;amp; \vdots
 \cr\cr
-x_{784,1} &amp;amp; x_{784,2} &amp;amp; \cdots &amp;amp; x_{784,75}
+x_{75,1} &amp;amp; x_{75,2} &amp;amp; \cdots &amp;amp; x_{75,784}
 \end{bmatrix}
 €€&lt;/p&gt;
 
-&lt;p&gt;In our first weight matrix €\Theta^{(1)}€, the rows represent the weights that lead to each particular hidden neuron. With three hidden neurons, this gives us a 3x784 matrix:&lt;/p&gt;
+&lt;p&gt;In our first weight matrix €\Theta^{(1)}€, the columns represent the weights that lead to each particular hidden neuron. With three hidden neurons, this gives us a €784 \times 3€ matrix:&lt;/p&gt;
 
 &lt;p&gt;€€
 \begin{bmatrix}
-\theta_{1,1} &amp;amp; \theta_{1,2} &amp;amp; \cdots &amp;amp; \theta_{1,784}
+\theta_{1,1} &amp;amp; \theta_{1,2} &amp;amp; \theta_{1,3}
 \cr\cr
-\theta_{2,1} &amp;amp; \theta_{2,2} &amp;amp; \cdots &amp;amp; \theta_{2,784}
+\theta_{2,1} &amp;amp; \theta_{2,2} &amp;amp; \theta_{2,3}
 \cr\cr
-\theta_{3,1} &amp;amp; \theta_{3,2} &amp;amp; \cdots &amp;amp; \theta_{3,784}
+\vdots &amp;amp; \vdots &amp;amp; \vdots
+\cr\cr
+\theta_{784,1} &amp;amp; \theta_{784,2} &amp;amp; \theta_{784,3}
 \end{bmatrix}
 €€&lt;/p&gt;
 
-&lt;p&gt;When we multiply €X€ and €\Theta^{(1)}€, we get the matrix below. (Note that subscript €*€ either signifies entire rows or entire columns, so that €\theta_{i *}€ means “the entire €i€th row of €\Theta€”, and €\theta_{* j}€ means “the entire €j€th column of €\Theta€”.)&lt;/p&gt;
+&lt;p&gt;When we multiply €X€ and €\Theta^{(1)}€, we get the matrix below. (Note that subscript €*€ either signifies entire rows or entire columns, such that €\theta_{i *}€ means “the entire €i€th row of €\Theta€”, and €\theta_{* j}€ means “the entire €j€th column of €\Theta€”.)&lt;/p&gt;
 
 &lt;p&gt;€€
-\Theta^{(1)}X=\begin{bmatrix}
-\theta_{1 *}x_{* 1} &amp;amp; \theta_{1 *}x_{* 2} &amp;amp; \cdots &amp;amp; \theta_{1 *}x_{* 75}
+X \times \Theta^{(1)}=\begin{bmatrix}
+x_{1 *}\theta_{* 1} &amp;amp; x_{1 *}\theta_{* 2} &amp;amp; x_{1 *}\theta_{* 3}
 \cr\cr
-\theta_{2 *}x_{* 1} &amp;amp; \theta_{2 *}x_{* 2} &amp;amp; \cdots &amp;amp; \theta_{2 *}x_{* 75}
+x_{2 *}\theta_{* 1} &amp;amp; x_{2 *}\theta_{* 2} &amp;amp; x_{2 *}\theta_{* 3}
 \cr\cr
-\theta_{3 *}x_{* 1} &amp;amp; \theta_{3 *}x_{* 2} &amp;amp; \cdots &amp;amp; \theta_{3 *}x_{* 75}
+\vdots &amp;amp; \vdots &amp;amp; \vdots
+\cr\cr
+x_{75 *}\theta_{* 1} &amp;amp; x_{75 *}\theta_{* 2} &amp;amp; x_{75 *}\theta_{* 3}
 \end{bmatrix}
 €€&lt;/p&gt;
 
-&lt;p&gt;Our matrix of samples €X€ contains 75 column vectors €x_{*j}€, while our matrix of weights €\Theta^{(1)}€ contains 3 row vectors €\theta_{i*}€. When we multiply these, every column vector (sample) in €X€ is &lt;a href=&quot;https://www.youtube.com/watch?v=WNuIhXo39_k&amp;amp;t=20s&quot;&gt;dotted&lt;/a&gt; with every row vector in €\Theta^{(1)}€. This yields a new 3x75 matrix that contains the sum of the weighted inputs for all three hidden neurons and &lt;em&gt;for all 75 samples&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;Our matrix of samples €X€ contains 75 row vectors €x_{i *}€, while our matrix of weights €\Theta^{(1)}€ contains 3 column vectors €\theta_{* j}€. When we multiply these, every row vector (sample) in €X€ is &lt;a href=&quot;https://www.youtube.com/watch?v=WNuIhXo39_k&amp;amp;t=20s&quot;&gt;dotted&lt;/a&gt; with every column vector in €\Theta^{(1)}€. This yields a new €75 \times 3€ matrix that contains the sum of the weighted inputs for all three hidden neurons and for all 75 samples.&lt;/p&gt;
 
-&lt;p&gt;An easy way to remember the dynamics of matrix multiplication is that a matrix of dimensions &lt;strong&gt;AxB&lt;/strong&gt; multiplied with a matrix of dimensions &lt;strong&gt;BxD&lt;/strong&gt; results in a matrix of dimensions &lt;strong&gt;AxD&lt;/strong&gt;. Thus, when we multiply a 3x784 matrix with a 784x75 matrix, we get a 3x75 matrix.&lt;/p&gt;
+&lt;p&gt;An easy way to remember the dynamics of matrix multiplication is that a matrix of dimensions €A \times B€ multiplied with a matrix of dimensions €B \times D€ results in a matrix of dimensions €A \times D€. Thus, when we multiply a €3 \times 784€ matrix with a €784 \times 75€ matrix, we get a €3 \times 75€ matrix.&lt;/p&gt;
 
-&lt;p&gt;For practical reasons that we will see later, our biases are kept in their own self-contained vector. Since each hidden neuron has its own bias, the bias vector for the hidden layer €b^{(1)}€ is three-dimensional. To proceed with the forward pass, we add each bias to the sum of the weighted input for its corresponding hidden neuron. This yields a new matrix €Z^{(1)}€.&lt;/p&gt;
+&lt;p&gt;For practical reasons that we will see later, our biases are kept in their own self-contained vector. Since each hidden neuron has its own bias, the bias vector for the hidden layer €b^{(1)}€ has dimensions €3 \times 1€. To proceed with the forward pass, we add €b^{(1)}€ to each column vector in our €3 \times 75€ matrix. This yields a new matrix €Z^{(1)}€.&lt;/p&gt;
 
 &lt;p&gt;Now that we have a matrix containing the sum of the weighted inputs for all three hidden neurons and for all 75 samples, we need to pass it through a nonlinear activation function (we will see why this is later). Just as in &lt;a href=&quot;http://sigmoidprime.com/post/how-to-build-a-neural-network-pt-2/&quot;&gt;Pt. 2&lt;/a&gt;, we will be using the logistic sigmoid function:&lt;/p&gt;
 
@@ -111,13 +451,15 @@ x_{784,1} &amp;amp; x_{784,2} &amp;amp; \cdots &amp;amp; x_{784,75}
 \sigma(z) = \frac{1}{1+\exp(-z)}
 €€&lt;/p&gt;
 
-&lt;p&gt;Once we apply the sigmoid function element-wise to the sums of the weighted inputs, we have the full set of activations from the hidden layer in the form of a matrix €A€. Like €Z^{(1)}€, €A€ has dimensions 3x75. In order to send the activations on through the network, they need to be multiplied with the second set of weights €\Theta^{(2)}€ (this is the one between the hidden layer and the output layer). Because we have three hidden neurons and 10 output neurons, the dimensions of the second weight matrix will be 10x3.&lt;/p&gt;
+&lt;p&gt;Once we apply the sigmoid function element-wise to the sums of the weighted inputs, we have the full set of activations from the hidden layer in the form of a matrix €A€. Like €Z^{(1)}€, €A€ has dimensions €3 \times 75€. In order to send the activations on through the network, they need to be multiplied with the second set of weights €\Theta^{(2)}€ (this is the one between the hidden layer and the output layer). Because we have three hidden neurons and 10 output neurons, the dimensions of the second weight matrix will be €3 \times 10€.&lt;/p&gt;
 
-&lt;p&gt;Can you guess what happens next? We simply take our 3x75 matrix of activations from the hidden layer and multiply it by the second weight matrix €\Theta^{(2)}€. This gives us a new 10x75 matrix. Adding the 10-dimensional bias vector €b^{(2)}€ to each of the 75 columns yields a matrix containing the sums of the weighted inputs €Z^{(2)}€ for the output layer.&lt;/p&gt;
+&lt;p&gt;We have run into a problem. We need to multiply our matrix of activations €A€ with our second weight matrix €\Theta^{(2)}€, but their shapes (€3 \times 75€ and €3 \times 10€) don’t match up. Fortunately, we can simply &lt;strong&gt;transpose&lt;/strong&gt; our activation matrix, turning its row vectors into column vectors and vice versa. €A^{\text{T}}€ thus has dimensions €75 \times 3€.&lt;/p&gt;
+
+&lt;p&gt;Now we can multiply our €75 \times 3€ activations with the €3 \times 10€ weight matrix. This gives us a new €75 \times 10€ matrix. Adding the 10-dimensional bias vector €b^{(2)}€ to each of the 75 row vectors yields a matrix containing the sums of the weighted inputs €Z^{(2)}€ for the output layer.&lt;/p&gt;
 
 &lt;p&gt;At this point, we are almost finished. Now we just need to convert the sums of the weighted inputs to the output layer €Z^{(2)}€ into the actual output of the network €\hat{Y}€. It might be tempting to apply the sigmoid function again, but doing so would end up posing a problem.&lt;/p&gt;
 
-&lt;p&gt;You may remember from previously that we interpreted the output of the sigmoid function as the probability of a sample belonging to one of two classes. In a neural network with multiple output neurons however, if we apply the sigmoid function at the output layer, the output of each neuron will be independent from all the others. This would have the undesirable consequence that we would be unable to interpret the output of the network as a probability distribution.&lt;/p&gt;
+&lt;p&gt;You may remember from previously that we interpreted the output of the sigmoid function as the probability of a sample belonging to one of two classes. In a neural network with multiple output neurons however, if we apply the sigmoid function at the output layer, the output of each neuron will be independent from all the others. This would produce an undesirable consequence; namely that we would be unable to interpret the output of the network as a probability distribution.&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;/assets/posts/3/wrong_output_2.png&quot; width=&quot;250&quot; /&gt;&lt;/p&gt;
 
@@ -129,7 +471,7 @@ x_{784,1} &amp;amp; x_{784,2} &amp;amp; \cdots &amp;amp; x_{784,75}
 \frac{\exp({z_{i,j})}}{\sum\limits_{k=1}^{n}\exp(z_{k,j})}
 €€&lt;/p&gt;
 
-&lt;p&gt;Here, €z_{i, j}€ is the summed input to output neuron €i€ for sample €j€. With 10 output neurons and 75 samples, €i€ would thus range from 1 to 10, and €j€ from 1 to 75. €n€ is the number of outputs for each sample, and is therefore equal to the number of output neurons.&lt;/p&gt;
+&lt;p&gt;Here, €z_{i, j}€ is the summed input to output neuron €j€ for sample €i€. With 10 output neurons and 75 samples, €j€ would thus range from 1 to 10, and €i€ from 1 to 75. €n€ is the number of outputs for each sample, and is therefore equal to the number of output neurons.&lt;/p&gt;
 
 &lt;p&gt;Can you tell what the function does by looking at the expression?&lt;/p&gt;
 
@@ -143,34 +485,34 @@ x_{784,1} &amp;amp; x_{784,2} &amp;amp; \cdots &amp;amp; x_{784,75}
 
 &lt;p&gt;Now that we have seen &lt;em&gt;what&lt;/em&gt; a neural network does, it is time to answer the question of &lt;em&gt;why&lt;/em&gt; it works. &lt;a href=&quot;http://colah.github.io/posts/2014-03-NN-Manifolds-Topology/&quot;&gt;As explained by Chris Olah&lt;/a&gt;, the process can be separated into three distinct steps: &lt;strong&gt;linear transformations&lt;/strong&gt;, &lt;strong&gt;translations&lt;/strong&gt;, and applications of a &lt;strong&gt;nonlinearity&lt;/strong&gt;.&lt;/p&gt;
 
-&lt;p&gt;&lt;strong&gt;Linear transformations and translations&lt;/strong&gt;: A linear transformation scales, skews, or rotates a coordinate space by redefining the directions and amplitudes of its &lt;strong&gt;basis vectors&lt;/strong&gt;. In the case of a 2D coordinate space, the only two basis vectors  — €\bar{x}€ and €\bar{y}€ — are defined as €\begin{bmatrix}1 \cr 0 \end{bmatrix}€ and €\begin{bmatrix}0 \cr 1 \end{bmatrix}€ respectively. While they may not look like much, €\bar{x}€ and €\bar{y}€ fully define their own coordinate space. To see why, let us first join them into a matrix:&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Linear transformations and translations&lt;/strong&gt;: A linear transformation scales, skews, or rotates a coordinate space by redefining the directions and amplitudes of its &lt;strong&gt;basis vectors&lt;/strong&gt;. In the case of a 2D coordinate space, the only two basis vectors  — €\bar{x}€ and €\bar{y}€ — are defined as €\begin{bmatrix}1 &amp;amp; 0 \end{bmatrix}€ and €\begin{bmatrix}0 &amp;amp; 1 \end{bmatrix}€ respectively. While they may not look like much, €\bar{x}€ and €\bar{y}€ fully define their own coordinate space. To see why, let us first join them into a matrix:&lt;/p&gt;
 
 &lt;p&gt;€€
 \begin{bmatrix}1 &amp;amp; 0 \cr 0 &amp;amp; 1 \end{bmatrix}
 €€&lt;/p&gt;
 
-&lt;p&gt;Then, let us take an arbitrary point €\begin{bmatrix}x \cr y \end{bmatrix}€ and multiply it by our matrix:&lt;/p&gt;
+&lt;p&gt;Then, let us take an arbitrary point €\begin{bmatrix}x &amp;amp; y \end{bmatrix}€ and multiply it by our matrix:&lt;/p&gt;
 
 &lt;p&gt;€€
-\begin{bmatrix}1 &amp;amp; 0 \cr 0 &amp;amp; 1 \end{bmatrix} \begin{bmatrix}x \cr y \end{bmatrix} = \begin{bmatrix}1x+0y \cr 0x+1y \end{bmatrix} = \begin{bmatrix}x \cr y \end{bmatrix}
+\begin{bmatrix}x &amp;amp; y \end{bmatrix} \times \begin{bmatrix}1 &amp;amp; 0 \cr 0 &amp;amp; 1 \end{bmatrix} = \begin{bmatrix}1x+0y &amp;amp; 0x+1y \end{bmatrix} = \begin{bmatrix}x &amp;amp; y \end{bmatrix}
 €€&lt;/p&gt;
 
-&lt;p&gt;Using matrix-vector multiplication, we just showed that in a coordinate space with these basis vectors, the point €\begin{bmatrix}x \cr y \end{bmatrix}€ remains unchanged.&lt;/p&gt;
+&lt;p&gt;Using matrix-vector multiplication, we just showed that in a coordinate space with these basis vectors, the point €\begin{bmatrix}x &amp;amp; y \end{bmatrix}€ remains unchanged.&lt;/p&gt;
 
 &lt;p&gt;Now let’s see what happens when we double €\bar{x}€:&lt;/p&gt;
 
 &lt;p&gt;€€
-\begin{bmatrix}2 &amp;amp; 0 \cr 0 &amp;amp; 1 \end{bmatrix} \begin{bmatrix}x \cr y \end{bmatrix} = \begin{bmatrix}2x+0y \cr 0x+1y \end{bmatrix} = \begin{bmatrix}2x \cr y \end{bmatrix}
+\begin{bmatrix}x &amp;amp; y \end{bmatrix} \times \begin{bmatrix}2 &amp;amp; 0 \cr 0 &amp;amp; 1 \end{bmatrix} = \begin{bmatrix}2x+0y &amp;amp; 0x+1y \end{bmatrix} = \begin{bmatrix}2x &amp;amp; y \end{bmatrix}
 €€&lt;/p&gt;
 
-&lt;p&gt;Here, the original point €\begin{bmatrix}x \cr y \end{bmatrix}€ gets moved to €\begin{bmatrix}2x \cr y \end{bmatrix}€ when we apply the transformation. Since this is true of any and all points, we can visualize this as a transformation of the space itself:&lt;/p&gt;
+&lt;p&gt;Here, the original point €\begin{bmatrix}x &amp;amp; y \end{bmatrix}€ gets moved to €\begin{bmatrix}2x &amp;amp; y \end{bmatrix}€ when we apply the transformation. Since this is true of any and all points, we can visualize this as a transformation of the space itself:&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;/assets/posts/3/animated.gif&quot; width=&quot;800&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;Pretty straightforward, right? Now, let’s do something a little more interesting. Instead of merely shrinking or stretching the axes, let’s try to make them codependent. For instance, we could define a transformation like this:&lt;/p&gt;
 
 &lt;p&gt;€€
-\begin{bmatrix}2 &amp;amp; 0 \cr 1 &amp;amp; 1 \end{bmatrix} \begin{bmatrix}x \cr y \end{bmatrix} = \begin{bmatrix}2x+0y \cr 1x+1y \end{bmatrix} = \begin{bmatrix}2x \cr x+y \end{bmatrix}
+\begin{bmatrix}x &amp;amp; y \end{bmatrix} \begin{bmatrix}2 &amp;amp; 1 \cr 0 &amp;amp; 1 \end{bmatrix} = \begin{bmatrix}2x+0y &amp;amp; 1x+1y \end{bmatrix} = \begin{bmatrix}2x &amp;amp; x+y \end{bmatrix}
 €€&lt;/p&gt;
 
 &lt;p&gt;This transformation — known as a &lt;a href=&quot;https://en.wikipedia.org/wiki/Shear_mapping&quot;&gt;shear&lt;/a&gt; — has the effect that every time we increase €x€ by 1, we also increase €y€ by 1. Let’s visualize this to gain some intuition:&lt;/p&gt;
@@ -185,7 +527,7 @@ x_{784,1} &amp;amp; x_{784,2} &amp;amp; \cdots &amp;amp; x_{784,75}
 
 &lt;p&gt;&lt;img src=&quot;/assets/posts/3/translation.gif&quot; width=&quot;500&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;Here, we first transform the space, and then translate it by €\begin{bmatrix}3 \cr 2 \end{bmatrix}€. Note that unless we keep the original space in the background, translations can be hard to visualize while properly keeping the space in view. I will therefore ignore them in future visualizations.&lt;/p&gt;
+&lt;p&gt;Here, we first transform the space, and then translate it by €\begin{bmatrix}3 &amp;amp; 2 \end{bmatrix}€. Note that unless we keep the original space in the background, translations can be hard to visualize while properly keeping the space in view. I will therefore ignore them in future visualizations.&lt;/p&gt;
 
 &lt;p&gt;Finally — and perhaps most significantly — is the effect of applying a nonlinear activation function (like the logistic sigmoid function). This takes all the points of the space and applies the function to each of the point’s components individually.&lt;/p&gt;
 
@@ -241,14 +583,14 @@ x \cdot y = 0
         &lt;span class=&quot;n&quot;&gt;n_layers&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;layer_sizes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 
         &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;n_layers&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
-            &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;thetas&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;
+            &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;weights&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;
             &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;biases&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;
 
             &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;n_layers&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;# a network with n layers has n-1 set of weights and biases&lt;/span&gt;
-                &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;thetas&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;random&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;randn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;layer_sizes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;layer_sizes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]))&lt;/span&gt;
+                &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;weights&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;random&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;randn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;layer_sizes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;layer_sizes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]))&lt;/span&gt;
                 &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;biases&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;random&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;randn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;layer_sizes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]))&lt;/span&gt;
 
-            &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;thetas&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;thetas&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;weights&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;weights&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
             &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;biases&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;biases&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
             &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;alpha&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alpha&lt;/span&gt;
         &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
@@ -260,18 +602,18 @@ x \cdot y = 0
 
 &lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;forward_pass&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;A&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
     &lt;span class=&quot;n&quot;&gt;Zs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;As&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;As&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;A&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
 
-    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;thetas&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)):&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dot&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;As&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;thetas&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;biases&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;weights&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)):&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dot&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;weights&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;A&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;biases&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
         &lt;span class=&quot;n&quot;&gt;Zs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 
-        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;thetas&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;As&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sigmoid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;weights&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;A&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sigmoid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;As&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;A&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
         &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
             &lt;span class=&quot;n&quot;&gt;Y_hat&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;softmax&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-            
-    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Zs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;As&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y_hat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Zs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;As&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y_hat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 
 &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;sigmoid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;1.0&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;1.0&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;exp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
 &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;softmax&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;exp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;exp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;axis&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)[:,&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
@@ -363,19 +705,19 @@ x \cdot y = 0
 
 &lt;p&gt;When we first initialize our logistic regression model, our parameters €\theta€ will again have random values between 0 and 1. As a result, the probabilities outputted by €\sigma€ will be way off the intended values in the beginning. To improve our parameters, we need a learning algorithm.&lt;/p&gt;
 
-&lt;h2 id=&quot;quantifying-errors-using-cost-functions&quot;&gt;Quantifying errors using cost functions&lt;/h2&gt;
+&lt;h2 id=&quot;quantifying-errors-using-loss-functions&quot;&gt;Quantifying errors using loss functions&lt;/h2&gt;
 
-&lt;p&gt;The learning algorithm for logistic regression is slightly more advanced than what we saw with the perceptron in the previous post. To understand how it works, we need to familiarize ourselves with the idea of a &lt;strong&gt;cost function&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;The learning algorithm for logistic regression is slightly more advanced than what we saw with the perceptron in the previous post. To understand how it works, we need to familiarize ourselves with the idea of a &lt;strong&gt;loss function&lt;/strong&gt;.&lt;/p&gt;
 
-&lt;p&gt;A cost function is a mathematical function that calculates the deviation of a prediction from the target value. Let’s see what this means by looking at the cost function for logistic regression:&lt;/p&gt;
+&lt;p&gt;A loss function is a mathematical function that calculates the deviation of a prediction from the target value. Let’s see what this means by looking at the loss function for logistic regression:&lt;/p&gt;
 
 &lt;p&gt;€€
 \frac{1}{m}\sum\limits_{i=1}^{m}-y^{(i)} \log(\hat{y}^{(i)}) - (1-y^{(i)}) \log(1-\hat{y}^{(i)})
 €€&lt;/p&gt;
 
-&lt;p class=&quot;subtext&quot;&gt;€(i)€ is the index of sample €i€, €y^{(i)}€ is the corresponding target value, and €\hat{y}^{(i)}€ is our probability estimate. €m€ is the total number of samples. Multiplying by €\frac{1}{m}€ gives us the mean cost.&lt;/p&gt;
+&lt;p class=&quot;subtext&quot;&gt;€(i)€ is the index of sample €i€, €y^{(i)}€ is the corresponding target value, and €\hat{y}^{(i)}€ is our probability estimate. €m€ is the total number of samples. Multiplying by €\frac{1}{m}€ gives us the mean loss.&lt;/p&gt;
 
-&lt;p&gt;Suppose we take a sample €x^{(i)}€ from our dataset with a target value €y^{(i)}€ of 1 (Admitted). When we begin training our model, it estimates the probability of €x^{(i)}€ being admitted at, say, 0.36 (a pretty bad estimate). Plugging these values into the cost function, we get:&lt;/p&gt;
+&lt;p&gt;Suppose we take a sample €x^{(i)}€ from our dataset with a target value €y^{(i)}€ of 1 (Admitted). When we begin training our model, it estimates the probability of €x^{(i)}€ being admitted at, say, 0.36 (a pretty bad estimate). Plugging these values into the loss function, we get:&lt;/p&gt;
 
 &lt;p&gt;€€
 -1 \cdot \log(0.36) - 0 \cdot \log(1-0.36)
@@ -401,9 +743,9 @@ x \cdot y = 0
 -1 \cdot \log(1-0.36) \approx 0.19
 €€&lt;/p&gt;
 
-&lt;p&gt;Notice how the cost was higher when €y^{(i)}=1€. This is exactly what we want, since our estimate of 0.36 is farther from 1 than from 0.&lt;/p&gt;
+&lt;p&gt;Notice how the loss was higher when €y^{(i)}=1€. This is exactly what we want, since our estimate of 0.36 is farther from 1 than from 0.&lt;/p&gt;
 
-&lt;p&gt;We know for a fact that each of our samples €x^{(i)}€ has a target value €y^{(i)}€ of either 0 or 1. It is never in between. This is nice, because it tells us that the cost for each sample can only be expressed as either €-1 \cdot \log(\hat{y}^{(i)})€ or €-1 \cdot \log(1-\hat{y}^{(i)})€. Let’s plot the two functions:&lt;/p&gt;
+&lt;p&gt;We know for a fact that each of our samples €x^{(i)}€ has a target value €y^{(i)}€ of either 0 or 1. It is never in between. This is nice, because it tells us that the loss for each sample can only be expressed as either €-1 \cdot \log(\hat{y}^{(i)})€ or €-1 \cdot \log(1-\hat{y}^{(i)})€. Let’s plot the two functions:&lt;/p&gt;
 
 &lt;div id=&quot;log1&quot; class=&quot;plot&quot;&gt;&lt;/div&gt;
 &lt;script type=&quot;text/javascript&quot;&gt;functionPlot({target:&quot;#log1&quot;,xAxis:{domain:[0,1]},yAxis:{domain:[0,5]},grid:true,disableZoom:true,width:500,height:300,data:[{fn:&quot;-1*log(x)&quot;,derivative:{fn:&quot;-1/x&quot;, updateOnMouseMove:true}}]})&lt;/script&gt;
@@ -426,7 +768,7 @@ x \cdot y = 0
 
 &lt;h2 id=&quot;minimizing-error-with-gradient-descent&quot;&gt;Minimizing error with gradient descent&lt;/h2&gt;
 
-&lt;p&gt;We just saw how we could quantify the error of our model’s probability estimates by using a cost function. The beauty of a cost function is that it can be effectively minimized with the help of some relatively straightforward calculus. (If your calculus is shaky, I suggest you take a &lt;a href=&quot;https://www.youtube.com/watch?v=EKvHQc3QEow&amp;amp;list=PL19E79A0638C8D449&quot;&gt;crash course with Sal&lt;/a&gt; until you are comfortable with derivates — it is really not that bad.)&lt;/p&gt;
+&lt;p&gt;We just saw how we could quantify the error of our model’s probability estimates by using a loss function. The beauty of a loss function is that it can be effectively minimized with the help of some relatively straightforward calculus. (If your calculus is shaky, I suggest you take a &lt;a href=&quot;https://www.youtube.com/watch?v=EKvHQc3QEow&amp;amp;list=PL19E79A0638C8D449&quot;&gt;crash course with Sal&lt;/a&gt; until you are comfortable with derivates — it is really not that bad.)&lt;/p&gt;
 
 &lt;p&gt;Recall that we calculate the probability of a sample €x^{(i)}€ being admitted as:&lt;/p&gt;
 
@@ -434,7 +776,7 @@ x \cdot y = 0
 \sigma(\theta \cdot x^{(i)}) = \frac{1}{1+\exp(-\theta \cdot x^{(i)})}
 €€&lt;/p&gt;
 
-&lt;p&gt;This means that €\sigma(\theta \cdot x^{(i)})=\hat{y}^{(i)}€. For clarity, let’s try to represent our complicated-looking-but-really-very-simple cost function by referring to our probability estimate this way.&lt;/p&gt;
+&lt;p&gt;This means that €\sigma(\theta \cdot x^{(i)})=\hat{y}^{(i)}€. For clarity, let’s try to represent our complicated-looking-but-really-very-simple loss function by referring to our probability estimate this way.&lt;/p&gt;
 
 &lt;p&gt;€€
 \frac{1}{m}\sum\limits_{i=1}^{m}-y^{(i)} \log(\hat{y}^{(i)}) - (1-y^{(i)}) \log(1-\hat{y}^{(i)})
@@ -446,17 +788,17 @@ x \cdot y = 0
 \frac{1}{m}\sum\limits_{i=1}^{m}-y^{(i)} \log(\sigma(\theta \cdot x^{(i)})) - (1-y^{(i)}) \log(1-\sigma(\theta \cdot x^{(i)}))
 €€&lt;/p&gt;
 
-&lt;p&gt;In the previous section, I mentioned that the cost function above is differentiable. I did not mention that the sigmoid function is as well. This is significant because — and this is where it gets cool — by having all the layers of our algorithm be differentiable, we can calculate the derivates of the cost function with respect to our parameters €\theta€! Let that sink in for a while.&lt;/p&gt;
+&lt;p&gt;In the previous section, I mentioned that the loss function above is differentiable. I did not mention that the sigmoid function is as well. This is significant because — and this is where it gets cool — by having all the layers of our algorithm be differentiable, we can calculate the derivates of the loss function with respect to our parameters €\theta€! Let that sink in for a while.&lt;/p&gt;
 
-&lt;p&gt;What this means is that we can measure &lt;em&gt;exactly&lt;/em&gt; how a change in our parameters €\theta€ affects a change in our cost function. When you think about it, this is unbelievably cool. In theory, you could filter €x^{(i)}€ through thousands of layers of manipulations, and as long as they are all differentiable, you can calculate how each individual one of them is affecting the final cost (and thus how to change them in order to improve your model). In fact, this is &lt;em&gt;exactly&lt;/em&gt; how any neural network improves itself when exposed to new data. We will explore this technique in more detail in Pt 4.&lt;/p&gt;
+&lt;p&gt;What this means is that we can measure &lt;em&gt;exactly&lt;/em&gt; how a change in our parameters €\theta€ affects a change in our loss function. When you think about it, this is unbelievably cool. In theory, you could filter €x^{(i)}€ through thousands of layers of manipulations, and as long as they are all differentiable, you can calculate how each individual one of them is affecting the final loss (and thus how to change them in order to improve your model). In fact, this is &lt;em&gt;exactly&lt;/em&gt; how any neural network improves itself when exposed to new data. We will explore this technique in more detail in Pt 4.&lt;/p&gt;
 
-&lt;p&gt;The partial derivative of our cost function (which I will henceforth refer to as €C€) w.r.t. a single parameter €\theta_j€ looks like this:&lt;/p&gt;
+&lt;p&gt;The partial derivative of our loss function (which I will henceforth refer to as €C€) w.r.t. a single parameter €\theta_j€ looks like this:&lt;/p&gt;
 
 &lt;p&gt;€€
 \frac{\partial C}{\partial \theta_j}=(\sigma(\theta \cdot x^{(i)})-y^{(i)})x_j^{(i)}
 €€&lt;/p&gt;
 
-&lt;p class=&quot;subtext&quot;&gt;€j€ refers to the €j€th feature of sample €i€. If you are curious about the steps behind the derivation, check out the top-rated answer &lt;a href=&quot;http://math.stackexchange.com/questions/477207/derivative-of-cost-function-for-logistic-regression?newreg=193313544a574729babc17a42602a428&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p class=&quot;subtext&quot;&gt;€j€ refers to the €j€th feature of sample €i€. If you are curious about the steps behind the derivation, check out the top-rated answer &lt;a href=&quot;http://math.stackexchange.com/questions/477207/derivative-of-loss-function-for-logistic-regression?newreg=193313544a574729babc17a42602a428&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;A better way of writing this is to use the gradient expression:&lt;/p&gt;
 
@@ -466,21 +808,21 @@ x \cdot y = 0
 
 &lt;p class=&quot;subtext&quot;&gt;Note that €(\sigma(\theta \cdot x^{(i)})-y^{(i)})€ is a scalar, while €x^{(i)}€ is a vector.&lt;/p&gt;
 
-&lt;p&gt;A gradient (denoted by the symbol €\nabla€) is no more than a collection of partial derivatives. In this particular example, we have three parameters: the bias €\theta_0€ and the weights €\theta_1€ and €\theta_2€. Since we have three parameters and want to know how each one of them influences the cost €C€, we end up with three different derivatives. The gradient will therefore be a three-dimensional vector containing the derivatives for our three parameters.&lt;/p&gt;
+&lt;p&gt;A gradient (denoted by the symbol €\nabla€) is no more than a collection of partial derivatives. In this particular example, we have three parameters: the bias €\theta_0€ and the weights €\theta_1€ and €\theta_2€. Since we have three parameters and want to know how each one of them influences the loss €C€, we end up with three different derivatives. The gradient will therefore be a three-dimensional vector containing the derivatives for our three parameters.&lt;/p&gt;
 
-&lt;p&gt;You probably remember from high school that a positive derivative means that we are moving “uphill” while a negative derivative means that we are moving “downhill”. Thus, if we get a positive derivative for one of our parameters, we want the value of that particular parameter to move in the opposite direction (since moving uphill is equivalent to increasing our cost).&lt;/p&gt;
+&lt;p&gt;You probably remember from high school that a positive derivative means that we are moving “uphill” while a negative derivative means that we are moving “downhill”. Thus, if we get a positive derivative for one of our parameters, we want the value of that particular parameter to move in the opposite direction (since moving uphill is equivalent to increasing our loss).&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;/assets/posts/2/gradient-descent.png&quot; width=&quot;480&quot; /&gt;&lt;/p&gt;
 
-&lt;p class=&quot;subtext&quot;&gt;A contrived example showing how we want €\theta€ to move in the direction that minimizes the cost. Here, €\theta€ would be a two-dimensional vector.&lt;/p&gt;
+&lt;p class=&quot;subtext&quot;&gt;A contrived example showing how we want €\theta€ to move in the direction that minimizes the loss. Here, €\theta€ would be a two-dimensional vector.&lt;/p&gt;
 
-&lt;p&gt;But hold on. The above definition of our gradient only deals with a single sample! We &lt;em&gt;could&lt;/em&gt; choose to “walk downhill” with the help of this gradient alone, but by doing that, we would only be walking down the cost function &lt;em&gt;for this particular sample&lt;/em&gt;. To get a gradient that will improve our parameters with respect to &lt;em&gt;all&lt;/em&gt; €n€ samples, we have to find the mean gradient like so:&lt;/p&gt;
+&lt;p&gt;But hold on. The above definition of our gradient only deals with a single sample! We &lt;em&gt;could&lt;/em&gt; choose to “walk downhill” with the help of this gradient alone, but by doing that, we would only be walking down the loss function &lt;em&gt;for this particular sample&lt;/em&gt;. To get a gradient that will improve our parameters with respect to &lt;em&gt;all&lt;/em&gt; €n€ samples, we have to find the mean gradient like so:&lt;/p&gt;
 
 &lt;p&gt;€€
 \nabla_\theta C = \frac{1}{m}\sum\limits_{i=1}^{m}(\sigma(\theta \cdot x^{(i)})-y^{(i)})x^{(i)}
 €€&lt;/p&gt;
 
-&lt;p&gt;That is more like it. When we perform this calculation, we get a gradient containing the mean — or distillation if you will — of all of the partial derivatives w.r.t. €\theta€ in our training set. One way to think of this is that each derivative gets to vote on which way is downhill. When we use the mean of all the votes, we move in the direction that causes a drop in the cost for the majority of our samples.&lt;/p&gt;
+&lt;p&gt;That is more like it. When we perform this calculation, we get a gradient containing the mean — or distillation if you will — of all of the partial derivatives w.r.t. €\theta€ in our training set. One way to think of this is that each derivative gets to vote on which way is downhill. When we use the mean of all the votes, we move in the direction that causes a drop in the loss for the majority of our samples.&lt;/p&gt;
 
 &lt;p&gt;As mentioned, if the derivative for a particular parameter €\theta_j€ is positive, we want to decrease the value of €\theta_j€. Likewise, if €\theta_j€ has a negative derivative, we want to increase the value of €\theta_j€. For now, the increments by which we change €\theta_j€’s current value will simply be the same as the value of the derivatives. The following update rule describes exactly this procedure.&lt;/p&gt;
 
@@ -488,7 +830,7 @@ x \cdot y = 0
 \theta := \theta -\nabla_\theta C
 €€&lt;/p&gt;
 
-&lt;p&gt;Because of the minus sign, negative derivatives will cause the value of €\theta_j€ to increase, and positive values will cause €\theta_j€ to decrease. Exactly what we want! If we do this for enough iterations (aka. &lt;strong&gt;epochs&lt;/strong&gt;), our algorithm should converge on the parameters that cause the total cost to be as small as possible. Let’s see if this works by applying what we have learned in code.&lt;/p&gt;
+&lt;p&gt;Because of the minus sign, negative derivatives will cause the value of €\theta_j€ to increase, and positive values will cause €\theta_j€ to decrease. Exactly what we want! If we do this for enough iterations (aka. &lt;strong&gt;epochs&lt;/strong&gt;), our algorithm should converge on the parameters that cause the total loss to be as small as possible. Let’s see if this works by applying what we have learned in code.&lt;/p&gt;
 
 &lt;h2 id=&quot;creating-a-logistic-regression-model-in-python&quot;&gt;Creating a logistic regression model in Python&lt;/h2&gt;
 
@@ -510,7 +852,7 @@ x \cdot y = 0
         &lt;span class=&quot;n&quot;&gt;probs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sigmoid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;weighted_input&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 
         &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;epochs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;gradients&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cost_prime&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;probs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;gradients&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;loss_prime&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;probs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
             &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;theta&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;gradients&lt;/span&gt;
             &lt;span class=&quot;n&quot;&gt;weighted_input&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dot&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;theta&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
             &lt;span class=&quot;n&quot;&gt;probs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sigmoid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;weighted_input&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
@@ -533,9 +875,9 @@ x \cdot y = 0
 
 &lt;p&gt;Performing this trick on our particular dataset squishes the features of our first sample from around &lt;code class=&quot;highlighter-rouge&quot;&gt;34.62&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;78.02&lt;/code&gt; down to about &lt;code class=&quot;highlighter-rouge&quot;&gt;-1.60&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;0.63&lt;/code&gt; respectively. We need to do this, because the dot product €\theta \cdot x^{(i)}€ has to be pretty small in order to avoid &lt;strong&gt;saturation&lt;/strong&gt;. Saturation happens when we plug large values into the sigmoid function. This returns a number extremely close to 1, and we thus run the risk of numerical overflow and &lt;a href=&quot;https://www.quora.com/What-is-the-vanishing-gradient-problem/answer/Nikhil-Garg?srid=06OE&quot;&gt;vanishing gradients&lt;/a&gt;. To avoid this, we use standardization to scale our features down to have zero-mean while still maintaining the ratios between the features.&lt;/p&gt;
 
-&lt;p&gt;We will now add the partial derivative of the cost function with respect to our parameters:&lt;/p&gt;
+&lt;p&gt;We will now add the partial derivative of the loss function with respect to our parameters:&lt;/p&gt;
 
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;cost_prime&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;probs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;loss_prime&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;probs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
     &lt;span class=&quot;n&quot;&gt;gradients&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;empty&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;theta&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
     &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;theta&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)):&lt;/span&gt;
         &lt;span class=&quot;n&quot;&gt;gradients&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;1.0&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;probs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;probs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[:,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
