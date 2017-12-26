@@ -5,8 +5,8 @@
     <description>Striving for intuitive explanations of concepts in machine learning.</description>
     <link>http://sigmoidprime.com//</link>
     <atom:link href="http://sigmoidprime.com//feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Tue, 26 Dec 2017 21:03:38 +0100</pubDate>
-    <lastBuildDate>Tue, 26 Dec 2017 21:03:38 +0100</lastBuildDate>
+    <pubDate>Tue, 26 Dec 2017 21:07:03 +0100</pubDate>
+    <lastBuildDate>Tue, 26 Dec 2017 21:07:03 +0100</lastBuildDate>
     <generator>Jekyll v3.3.0</generator>
     
       <item>
@@ -338,7 +338,7 @@ loss after Epoch &lt;span class=&quot;c&quot;&gt;#5: 0.243978653084&lt;/span&gt;
 
 &lt;p&gt;In future posts, I intend to build upon the basic knowledge we have acquired in this series to explore other exciting machine learning methods, such as GANs, capsule networks, and various NLP techniques. Stay tuned, and thanks a lot for reading!&lt;/p&gt;
 </description>
-        <pubDate>Fri, 07 Apr 2017 00:00:00 +0200</pubDate>
+        <pubDate>Tue, 26 Dec 2017 00:00:00 +0100</pubDate>
         <link>http://sigmoidprime.com//post/how-to-build-a-neural-network-pt-4/</link>
         <guid isPermaLink="true">http://sigmoidprime.com//post/how-to-build-a-neural-network-pt-4/</guid>
         
