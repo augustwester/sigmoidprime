@@ -5,8 +5,8 @@
     <description>Striving for intuitive explanations of concepts in machine learning.</description>
     <link>http://sigmoidprime.com//</link>
     <atom:link href="http://sigmoidprime.com//feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Tue, 26 Dec 2017 21:10:39 +0100</pubDate>
-    <lastBuildDate>Tue, 26 Dec 2017 21:10:39 +0100</lastBuildDate>
+    <pubDate>Sat, 24 Feb 2018 16:02:03 +0100</pubDate>
+    <lastBuildDate>Sat, 24 Feb 2018 16:02:03 +0100</lastBuildDate>
     <generator>Jekyll v3.3.0</generator>
     
       <item>
@@ -546,7 +546,7 @@ x_{75 *}\theta_{* 1} &amp;amp; x_{75 *}\theta_{* 2} &amp;amp; x_{75 *}\theta_{* 
 
 &lt;p&gt;As you can see, the shape of a space transformed by a sigmoid function is highly dependent on the space to which it is applied. This is why the weights and biases are so important; they do the groundwork that lets the activation function bend the data in the most optimal way.&lt;/p&gt;
 
-&lt;p&gt;But what is “the most optimal way?” To answer this question, we need to turn our eyes to the output layer. As we touched on in &lt;a href=&quot;http://sigmoidprime.com/post/how-to-build-a-neural-network-pt-1/&quot;&gt;Pt. 1&lt;/a&gt;, the equation for a line, a plane, or a hyperplane can be expressed as the variables (€{x_1, \cdots, x_n}€) that, when multiplied by their corresponding coefficient (€{y_1, \cdots, y_n}€), sums to 0:&lt;/p&gt;
+&lt;p&gt;But what is “the most optimal way?” To answer this question, we need to turn our eyes to the output layer. As we touched on in &lt;a href=&quot;http://sigmoidprime.com/post/how-to-build-a-neural-network-pt-1/&quot;&gt;Pt. 1&lt;/a&gt;, the equation for a hyperplane can be expressed as the variables (€{x_1, \cdots, x_n}€) that, when multiplied by their corresponding coefficient (€{y_1, \cdots, y_n}€), sums to 0:&lt;/p&gt;
 
 &lt;p&gt;€€
 x_1y_1 + x_2y_2 + \cdots + x_ny_n=0
@@ -982,9 +982,11 @@ x \cdot y = 0
 \theta_1x_1 + \theta_2x_2 + \theta_3x_3 + \theta_4x_4 + b
 €€&lt;/p&gt;
 
-&lt;p&gt;This expression also defines a plane like the one shown in the animation; the only difference being that this one describes a 3D plane in 4D space, rather than a 2D plane in 3D space. Impossible to visualize, yes, but that doesn’t change a thing. Pretty cool, huh?&lt;/p&gt;
+&lt;p&gt;With four coordinates (€x_1€ to €x_4€), this expression defines a cube in 4D space rather than a plane in 3D space like the one shown in the animation. Impossible to visualize, yes, but that doesn’t change a thing. Pretty cool, right?&lt;/p&gt;
 
-&lt;p&gt;It is worth repeating that when this expression is positive, the point €x€ is located above the plane, and when the expression is negative, €x€ is located beneath the plane. The plane itself is defined by the parameters €\theta€ and €b€, where €\theta€ translates the plane, and €b€ either pushes or pulls the plane up or down in the coordinate space.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;A brief note about terminology: We can refer to a line in 2D space, a plane in 3D space, a cube in 4D space, and so on by the same name: hyperplane. More generally, a hyperplane is simply a space of dimension €n-1€ in an enclosing space of dimension €n€. As we will see, this will be a convenient term as we expand our algorithms to higher dimensions.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;It is worth repeating that – for 3D space – when this expression is positive, the point €x€ is located above the plane, and when the expression is negative, €x€ is located beneath the plane. The plane itself is defined by the parameters €\theta€ and €b€, where €\theta€ is responsible for “tilting” the plane, and €b€ either pushes or pulls the plane up or down in the coordinate space. Note that all of this holds true for higher dimensional hyperplanes as well.&lt;/p&gt;
 
 &lt;p&gt;Keep in mind that our weights and features are represented as vectors. This allows us to rewrite the above expression by taking the &lt;a href=&quot;https://www.youtube.com/watch?v=WNuIhXo39_k&quot;&gt;dot product&lt;/a&gt; of €x€ and €\theta€, and then adding €b€ to the resulting scalar:&lt;/p&gt;
 
