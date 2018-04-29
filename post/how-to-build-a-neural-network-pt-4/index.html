@@ -32,7 +32,7 @@
 
     <script src="/libs/highlight/highlight.pack.js"></script>
     <script src="/libs/katex/katex.min.js"></script>
-    <script src="/libs/katex/auto-render.min.js"></script>
+    <script src="/libs/katex/contrib/auto-render.min.js"></script>
     <script src="/libs/d3/d3.v3.min.js"></script>
     <script src="/libs/c3/c3.min.js"></script>
     <script src="/libs/function-plot/function-plot.js"></script>
@@ -73,11 +73,11 @@
 <p>If we zoom in on what happens to a single sample €a^{(1)}€ as it passes through a network with €l€ layers, we can represent its journey like this:</p>
 
 <p>€€
-a^{(2)} = \sigma(a^{(1)}\Theta^{(1)}+b^{(1)})
+a^{(2)} = \sigma(\Theta^{(1)}a^{(1)}+b^{(1)})
 €€</p>
 
 <p>€€
-a^{(3)} = \sigma(a^{(2)}\Theta^{(2)}+b^{(2)})
+a^{(3)} = \sigma(\Theta^{(2)}a^{(2)}+b^{(2)})
 €€</p>
 
 <p>€€
@@ -85,7 +85,7 @@ a^{(3)} = \sigma(a^{(2)}\Theta^{(2)}+b^{(2)})
 €€</p>
 
 <p>€€
-\hat{y} = \text{softmax}(a^{(l-1)}\Theta^{(l-1)}+b^{(l-1)})
+\hat{y} = \text{softmax}(\Theta^{(l-1)}a^{(l-1)}+b^{(l-1)})
 €€</p>
 
 <p>In order to see exactly how our weights are affecting the loss (and thus how changing them can move us closer to the valleys), we need to brush up on the <strong>chain rule</strong>. The chain rule tells us how to derive a function with respect to variables inside nested functions. For instance, take the following expression:</p>
@@ -107,7 +107,7 @@ f(g(2x))
 <p>This is the cross-entropy loss function. It looks a little different from the one we saw in <a href="http://sigmoidprime.com/how-to-build-a-neural-network-pt2">Pt. 2</a>, but the idea behind it is exactly the same.</p>
 
 <p>€€
-\frac{1}{m} \sum\limits_{i=1}^{m} \sum\limits_{j=1}^{n} - y_{i,j} \log(\hat{y}_{i,j}) - (1 - y_{i,j}) \log(1 - \hat{y}_{i,j})
+\frac{1}{m} \sum\limits_{j=1}^{m} \sum\limits_{i=1}^{n} - y_{i,j} \log(\hat{y}_{i,j}) - (1 - y_{i,j}) \log(1 - \hat{y}_{i,j})
 €€</p>
 
 <p>Where in <a href="http://sigmoidprime.com/how-to-build-a-neural-network-pt2">Pt. 2</a>, we only had a single output for each sample, now we have 10 (each output represents the probability of the input image being a digit from 0-9), so instead of merely summing over €m€ samples, we also sum over the €n€ outputs for each sample.</p>
@@ -117,7 +117,7 @@ f(g(2x))
 <p>In the following, we will explore the mechanics of backpropagation through a three-layered neural network (a network with one input layer, one hidden layer, and one output layer) and for a mini-batch €A^{(1)}€ of 75 samples. The entire forward pass of such a network (including evaluation of the cross-entropy loss function €C€) can be expressed like this:</p>
 
 <p>€€
-C(\hat{Y}, Y) = C(\text{softmax}(\sigma(A^{(1)}\Theta^{(1)}+b^{(1)})\Theta^{(2)} + b^{(2)}), Y)
+C(\hat{Y}, Y) = C(\text{softmax}(\Theta^{(2)}\sigma(\Theta^{(1)}A^{(1)}+b^{(1)}) + b^{(2)}), Y)
 €€</p>
 
 <p>With our neural net represented as functions nested inside other functions, we’re now poised to figure out how changing the parameters €\Theta^{(1)}€, €\Theta^{(2)}€, €b^{(1)}€, and €b^{(2)}€ influences the loss €C€. To do this, we first need to find €\frac{\partial C}{\partial b^{(2)}}€ and €\frac{\partial C}{\partial \Theta^{(2)}}€, and this is where the chain rule comes into the picture.</p>
@@ -127,23 +127,27 @@ C(\hat{Y}, Y) = C(\text{softmax}(\sigma(A^{(1)}\Theta^{(1)}+b^{(1)})\Theta^{(2)}
 <p>When we apply the chain rule to find the gradient of €C€ w.r.t. €b^{(2)}€ and €\Theta^{(2)}€, we get the following:</p>
 
 <p>€€
-{\nabla_{b^{(2)}}}C = \nabla_{Z^{(2)}} \hat{Y} \odot \nabla_{\hat{Y}}C
-€€
-€€
-{\nabla_{\Theta^{(2)}}}C = (\nabla_{\Theta^{(2)}}Z^{(2)})^{\text{T}} \times {\nabla_{b^{(2)}}}C
+\nabla_{b^{(2)}}C =
+\nabla_{Z^{(2)}} \hat{Y}
+\odot
+\nabla_{\hat{Y}}C
+€€</p>
+
+<p>€€
+\nabla_{\Theta^{(2)}}C = \nabla_{b^{(2)}}C \times (\nabla_{\Theta^{(2)}}Z^{(2)})^{\text{T}}
 €€</p>
 
 <p>This expression demands a bit of explanation:</p>
 
 <ul>
   <li>€\odot€ signifies “element-wise multiplication”. That is, if you have two matrices of equal dimensions, you multiply their corresponding elements, resulting in a new, identically shaped matrix.</li>
-  <li>€Z^{(2)}€ is our shorthand expression for the weighted input to the output layer. This would be a €1 \times 10€ matrix given a single sample as input to the network, and a €75 \times 10€ matrix given a mini-batch of 75 samples.</li>
-  <li>As we covered in <a href="http://sigmoidprime.com/how-to-build-a-neural-network-pt3">Pt. 3</a>, superscript €\text{T}€ means <strong>transposition</strong>. When you transpose a matrix, you turn its row vectors into column vectors and vice-versa. Thus, a transposed €5 \times 10€ matrix is a €10 \times 5€ matrix.</li>
+  <li>€Z^{(2)}€ is our shorthand expression for the weighted input to the output layer. This would be a €10 \times 1€ matrix given a single sample as input to the network, and a €10 \times 75€ matrix given a mini-batch of 75 samples.</li>
+  <li>Superscript €\text{T}€ means <strong>transposition</strong>. When you transpose a matrix, you turn its row vectors into column vectors and vice-versa. Thus, a transposed €5 \times 10€ matrix is a €10 \times 5€ matrix.</li>
 </ul>
 
-<p>With that out of the way, let us walk through the expression one step at a time: First we do element-wise multiplication between €\nabla_{\hat{Y}}C€ and €\nabla_{Z^{(2)}} \hat{Y}€. Since the shape of both of these matrices is €75 \times 10€, the result is a new €75 \times 10€ matrix containing the products of their corresponding elements. To get €{\nabla_{b^{(2)}}}C€, we have to collapse this into a €1 \times 10€ vector by taking the sum along all 10 columns. The resulting €1 \times 10€ vector is then divided by 75 in order to give us the average gradient across all 75 samples in the mini-batch.</p>
+<p>With that out of the way, let us walk through the expression one step at a time: First we do element-wise multiplication between €\nabla_{\hat{Y}}C€ and €\nabla_{Z^{(2)}} \hat{Y}€. Since the shape of both of these matrices is €10 \times 75€, the result is a new €10 \times 75€ matrix containing the products of their corresponding elements. To get the average of €{\nabla_{b^{(2)}}}C€, we collapse it into a €10 \times 1€ vector by summing along all 10 rows. The resulting €10 \times 1€ vector is then divided by 75 in order to give us the average gradient across all 75 samples in the mini-batch.</p>
 
-<p>Given that €\nabla_{\Theta^{(2)}}Z^{(2)}€ contains the partial derivatives w.r.t. each weight in €\Theta^{(2)}€, €\nabla_{\Theta^{(2)}}Z^{(2)}€ must be equal to the activations of the hidden layer €A^{(2)}€. If we assume that the hidden layer has three neurons, €\nabla_{\Theta^{(2)}}Z^{(2)}€ must therefore be of shape €75 \times 3€, and €(\nabla_{\Theta^{(2)}}Z^{(2)})^{\text{T}}€ of shape €3 \times 75€. Multiplying this by our previous €75 \times 10€ matrix €{\nabla_{b^{(2)}}}C€ yields a €3 \times 10€ matrix that matches the shape of €\Theta^{(2)}€. Note that had we not transposed €\nabla_{\Theta^{(2)}}Z^{(2)}€, we wouldn’t have been able to multiply the two matrices, since their original shapes don’t match up.</p>
+<p>Given that €\nabla_{\Theta^{(2)}}Z^{(2)}€ contains the partial derivatives w.r.t. each weight in €\Theta^{(2)}€, €\nabla_{\Theta^{(2)}}Z^{(2)}€ must be equal to the activations of the hidden layer €A^{(2)}€. If we assume that the hidden layer has three neurons, €\nabla_{\Theta^{(2)}}Z^{(2)}€ must therefore be of shape €3 \times 75€. Multiplying €{\nabla_{b^{(2)}}}C€ by the transpose of €\nabla_{\Theta^{(2)}}Z^{(2)}€ yields a €10 \times 3€ matrix that matches the shape of €\Theta^{(2)}€. Note that had we not transposed €\nabla_{\Theta^{(2)}}Z^{(2)}€, we wouldn’t have been able to multiply the two matrices, since their original shapes don’t match up.</p>
 
 <p>Matrix multiplication can be quite tricky to wrap one’s head around, so don’t sweat it if you are a bit perplexed. Just know that, had we been dealing with scalars, the equivalent expressions would look like this:</p>
 
@@ -156,12 +160,12 @@ C(\hat{Y}, Y) = C(\text{softmax}(\sigma(A^{(1)}\Theta^{(1)}+b^{(1)})\Theta^{(2)}
 
 <p>We now have the derivatives of €C€ w.r.t. each individual weight in €\Theta^{(2)}€. However, these are the <em>combined</em> gradients of all 75 samples in our mini-batch. To get some truly useful values, we simply have to divide by 75. This way, we again get the <em>average</em> of our 75 individual gradients, and we will thus minimize the loss function in a way that satisfies the greatest possible number of samples. Neat!</p>
 
-<p>One more thing regarding the above expression: When you do element-wise multiplication between €\nabla_{\hat{Y}}C€ and €\nabla_{Z^{(2)}} \hat{Y}€, you discover something wonderful: It turns out that it simplifies to €\hat{Y}-Y€!</p>
+<p>One more thing regarding the above expression: When you do element-wise multiplication between €\nabla_{\hat{Y}}C€ and €\nabla_{Z^{(2)}} \hat{Y}€, you discover something wonderful: It turns out that it simplifies to €\hat{Y}-Y€.</p>
 
 <p>Knowing all of this, the final expression for €\nabla_{\Theta^{(2)}}C€ for a mini-batch of €m€ samples can now be expressed as:</p>
 
 <p>€€
-\nabla_{\Theta^{(2)}}C =  \frac{1}{m}((A^{(1)})^{\text{T}} \times (\hat{Y}-Y))
+\nabla_{\Theta^{(2)}}C = \frac{1}{m}((\hat{Y}-Y) \times (A^{(2)})^{\text{T}})
 €€</p>
 
 <p>Our hypothetical network has one hidden layer, which means it has two sets of weights and biases. We will therefore need to find €\nabla_{\Theta^{(1)}}C€ and €\nabla_{b^{(1)}}C€ as well. Since derivations like these can become quite tedious, I will skip most of them going forward. If you want, you can try and do them yourself — it’s a good exercise!</p>
@@ -172,7 +176,7 @@ C(\hat{Y}, Y) = C(\text{softmax}(\sigma(A^{(1)}\Theta^{(1)}+b^{(1)})\Theta^{(2)}
 \Theta^{(i)}:=\Theta^{(i)}-\nabla_{\Theta^{(i)}}C
 €€</p>
 
-<p>This time, we are going to do <em>almost</em> the same; the slight twist being that I am going to introduce a <strong>learning rate</strong>. As the name implies, a learning rate (denoted €\alpha€) determines the rate with which our model learns, and is simply a coefficient on the gradient. While a learning rate sounds like something you would want to turn all the way up, this immediately creates a problem.</p>
+<p>This time, we are going to do <em>almost</em> the same; the slight twist being that I am going to introduce a <strong>learning rate</strong>. As the name implies, a learning rate (denoted €\alpha€) determines the rate with which our model learns, and is simply a coefficient on the gradient. While a learning rate sounds like something you would want to crank all the way up, this immediately creates a problem.</p>
 
 <p><img src="/assets/posts/4/learning_rates.gif" width="800" /></p>
 
@@ -195,20 +199,20 @@ b^{(i)} := b^{(i)} - 0.002 \cdot \nabla_{b^{(i)}}C
 <figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 
 <span class="k">class</span> <span class="nc">NeuralNetwork</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer_sizes</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer_sizes</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">NeuralNetwork</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
 
         <span class="n">n_layers</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">layer_sizes</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="p">(</span><span class="n">n_layers</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">thetas</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">biases</span> <span class="o">=</span> <span class="p">[]</span>
 
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_layers</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span> <span class="c"># a network with n layers has n-1 set of weights and biases</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">layer_sizes</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">layer_sizes</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]))</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">biases</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">layer_sizes</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">thetas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">layer_sizes</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span> <span class="n">layer_sizes</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">biases</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">layer_sizes</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">))</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">thetas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thetas</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">biases</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">biases</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">alpha</span>
         <span class="k">else</span><span class="p">:</span>
@@ -218,19 +222,19 @@ b^{(i)} := b^{(i)} - 0.002 \cdot \nabla_{b^{(i)}}C
         <span class="n">Zs</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">As</span> <span class="o">=</span> <span class="p">[</span><span class="n">A</span><span class="p">]</span>
 
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">)):</span>
-            <span class="n">Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">A</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">biases</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thetas</span><span class="p">)):</span>
+            <span class="n">Z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thetas</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">As</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">biases</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
             <span class="n">Zs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span>
-                <span class="n">A</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span>
-                <span class="n">As</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thetas</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="n">As</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">Z</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">Y_hat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span>
-                <span class="k">return</span> <span class="p">(</span><span class="n">Zs</span><span class="p">,</span> <span class="n">As</span><span class="p">,</span> <span class="n">Y_hat</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">Zs</span><span class="p">,</span> <span class="n">As</span><span class="p">,</span> <span class="n">Y_hat</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">sigmoid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Z</span><span class="p">):</span> <span class="k">return</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">Z</span><span class="p">))</span>
-    <span class="k">def</span> <span class="nf">softmax</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Z</span><span class="p">):</span> <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">Z</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span><span class="bp">None</span><span class="p">]</span></code></pre></figure>
+    <span class="k">def</span> <span class="nf">softmax</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Z</span><span class="p">):</span> <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">Z</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></code></pre></figure>
 
 <p>First, we will add a method <code class="highlighter-rouge">sigmoid_prime</code> to <code class="highlighter-rouge">NeuralNetwork</code>. This will be the derivative of the sigmoid activation function €\frac{\partial \sigma}{\partial z}€.</p>
 
@@ -242,11 +246,11 @@ b^{(i)} := b^{(i)} - 0.002 \cdot \nabla_{b^{(i)}}C
     <span class="n">weight_gradients</span><span class="p">,</span> <span class="n">bias_gradients</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
     <span class="n">bias_gradient</span> <span class="o">=</span> <span class="n">Y_hat</span> <span class="o">-</span> <span class="n">Y</span>
 
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">))):</span>
-        <span class="n">weight_gradients</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">As</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">bias_gradient</span><span class="p">))</span>
-        <span class="n">bias_gradients</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">bias_gradient</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thetas</span><span class="p">))):</span>
+        <span class="n">weight_gradients</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">bias_gradient</span><span class="p">,</span> <span class="n">As</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
+        <span class="n">bias_gradients</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">Y</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">bias_gradient</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span> <span class="bp">None</span><span class="p">])</span>
 
-        <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="n">bias_gradient</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">bias_gradient</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigmoid_prime</span><span class="p">(</span><span class="n">Zs</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="n">bias_gradient</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thetas</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">bias_gradient</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigmoid_prime</span><span class="p">(</span><span class="n">Zs</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">weight_gradients</span><span class="p">))),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">bias_gradients</span><span class="p">)))</span></code></pre></figure>
 
@@ -254,7 +258,7 @@ b^{(i)} := b^{(i)} - 0.002 \cdot \nabla_{b^{(i)}}C
 
 <ol>
   <li>We initialize two lists – <code class="highlighter-rouge">weight_gradients</code> and <code class="highlighter-rouge">bias_gradients</code> — which we will use to hold the gradient matrices for our weights and biases.</li>
-  <li>We calculate <code class="highlighter-rouge">bias_gradient</code>, which initially holds a €75 \times 10€ matrix containing the gradients w.r.t. the output layer’s biases for all 75 samples in our mini-batch.</li>
+  <li>We calculate <code class="highlighter-rouge">bias_gradient</code>, which initially holds a €10 \times 75€ matrix containing the gradients w.r.t. the output layer’s biases for all 75 samples in our mini-batch.</li>
   <li>We iterate from the output layer towards the input layer (hence <code class="highlighter-rouge">reversed()</code>), deriving the weight gradients at each step of the way (note that <code class="highlighter-rouge">.T</code> transposes a numpy matrix). We also update the value of <code class="highlighter-rouge">bias_gradient</code> to the gradient w.r.t. the biases in the preceding layer, so we can use this value in the next iteration.</li>
   <li>Since the gradients have been added in reverse order, we return the numpy representation of the reversed <code class="highlighter-rouge">weight_gradients</code> and <code class="highlighter-rouge">bias_gradients</code> lists.</li>
 </ol>
@@ -275,11 +279,11 @@ b^{(i)} := b^{(i)} - 0.002 \cdot \nabla_{b^{(i)}}C
 
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">epochs</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_iter</span><span class="p">):</span>
-            <span class="n">Zs</span><span class="p">,</span> <span class="n">As</span><span class="p">,</span> <span class="n">Y_hat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward_pass</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">batch_size</span><span class="o">*</span><span class="n">j</span><span class="p">:</span><span class="n">batch_size</span><span class="o">*</span><span class="n">j</span><span class="o">+</span><span class="n">batch_size</span><span class="p">])</span>
-            <span class="n">weight_gradients</span><span class="p">,</span> <span class="n">bias_gradients</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backprop</span><span class="p">(</span><span class="n">Zs</span><span class="p">,</span> <span class="n">As</span><span class="p">,</span> <span class="n">Y_hat</span><span class="p">,</span> <span class="n">Y</span><span class="p">[</span><span class="n">batch_size</span><span class="o">*</span><span class="n">j</span><span class="p">:</span><span class="n">batch_size</span><span class="o">*</span><span class="n">j</span><span class="o">+</span><span class="n">batch_size</span><span class="p">])</span>
+            <span class="n">Zs</span><span class="p">,</span> <span class="n">As</span><span class="p">,</span> <span class="n">Y_hat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward_pass</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">batch_size</span><span class="o">*</span><span class="n">j</span><span class="p">:</span><span class="n">batch_size</span><span class="o">*</span><span class="n">j</span><span class="o">+</span><span class="n">batch_size</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="c"># transposing to turn samples into column vectors</span>
+            <span class="n">weight_gradients</span><span class="p">,</span> <span class="n">bias_gradients</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backprop</span><span class="p">(</span><span class="n">Zs</span><span class="p">,</span> <span class="n">As</span><span class="p">,</span> <span class="n">Y_hat</span><span class="p">,</span> <span class="n">Y</span><span class="p">[:,</span> <span class="n">batch_size</span><span class="o">*</span><span class="n">j</span><span class="p">:</span><span class="n">batch_size</span><span class="o">*</span><span class="n">j</span><span class="o">+</span><span class="n">batch_size</span><span class="p">])</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">update_params</span><span class="p">(</span><span class="n">weight_gradients</span><span class="p">,</span> <span class="n">bias_gradients</span><span class="p">)</span>
 
-        <span class="k">print</span><span class="p">(</span><span class="s">"loss after Epoch #"</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s">": "</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cross_entropy</span><span class="p">(</span><span class="n">Y</span><span class="p">[</span><span class="n">batch_size</span><span class="o">*</span><span class="n">j</span><span class="p">:</span><span class="n">batch_size</span><span class="o">*</span><span class="n">j</span><span class="o">+</span><span class="n">batch_size</span><span class="p">],</span> <span class="n">Y_hat</span><span class="p">)))</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">"Cost after Epoch #"</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s">": "</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cross_entropy</span><span class="p">(</span><span class="n">Y</span><span class="p">[:,</span> <span class="n">batch_size</span><span class="o">*</span><span class="n">j</span><span class="p">:</span><span class="n">batch_size</span><span class="o">*</span><span class="n">j</span><span class="o">+</span><span class="n">batch_size</span><span class="p">],</span> <span class="n">Y_hat</span><span class="p">)))</span>
 
 <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">):</span>
     <span class="n">Zs</span><span class="p">,</span> <span class="n">As</span><span class="p">,</span> <span class="n">Y_hat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward_pass</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
@@ -337,16 +341,16 @@ b^{(i)} := b^{(i)} - 0.002 \cdot \nabla_{b^{(i)}}C
 <p>The code below ensures that the variables <code class="highlighter-rouge">X_train</code>, <code class="highlighter-rouge">Y_train</code>, <code class="highlighter-rouge">X_test</code>, and <code class="highlighter-rouge">Y_test</code> contains the samples and labels in a format suited to our network.</p>
 
 <figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">X_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">train_images</span><span class="p">)</span>
-<span class="n">Y_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">train_labels</span><span class="p">),</span> <span class="mi">10</span><span class="p">))</span>
+<span class="n">Y_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">10</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">train_labels</span><span class="p">)))</span>
 
 <span class="n">X_test</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">test_images</span><span class="p">)</span>
-<span class="n">Y_test</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">test_labels</span><span class="p">),</span> <span class="mi">10</span><span class="p">))</span>
+<span class="n">Y_test</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">10</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">test_labels</span><span class="p">)))</span>
 
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">train_labels</span><span class="p">)):</span>
-    <span class="n">Y_train</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">train_labels</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">Y_train</span><span class="p">[</span><span class="n">train_labels</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
 
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">test_labels</span><span class="p">)):</span>
-    <span class="n">Y_test</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">test_labels</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span></code></pre></figure>
+    <span class="n">Y_test</span><span class="p">[</span><span class="n">test_labels</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span></code></pre></figure>
 
 <h2 id="training-and-testing-our-network">Training and testing our network</h2>
 
