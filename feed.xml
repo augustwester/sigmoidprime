@@ -5,8 +5,8 @@
     <description>Striving for intuitive explanations of concepts in machine learning.</description>
     <link>http://sigmoidprime.com//</link>
     <atom:link href="http://sigmoidprime.com//feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Mon, 30 Apr 2018 23:50:47 +0200</pubDate>
-    <lastBuildDate>Mon, 30 Apr 2018 23:50:47 +0200</lastBuildDate>
+    <pubDate>Mon, 30 Apr 2018 23:52:40 +0200</pubDate>
+    <lastBuildDate>Mon, 30 Apr 2018 23:52:40 +0200</lastBuildDate>
     <generator>Jekyll v3.3.0</generator>
     
       <item>
@@ -346,7 +346,7 @@ loss after Epoch &lt;span class=&quot;c&quot;&gt;#5: 0.243978653084&lt;/span&gt;
 
 &lt;p&gt;By the end of the 1000 epochs, the network’s accuracy on the test set will be printed out:&lt;/p&gt;
 
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;Number of correctly classified images: 9364 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;0.9364%&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-shell&quot; data-lang=&quot;shell&quot;&gt;Number of correctly classified images: 9364 of 10000 &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;0.9364% accuracy&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
 
