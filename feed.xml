@@ -5,14 +5,14 @@
     <description>Striving for intuitive explanations of concepts in machine learning.</description>
     <link>http://sigmoidprime.com//</link>
     <atom:link href="http://sigmoidprime.com//feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Mon, 30 Apr 2018 23:52:40 +0200</pubDate>
-    <lastBuildDate>Mon, 30 Apr 2018 23:52:40 +0200</lastBuildDate>
+    <pubDate>Mon, 04 Jun 2018 22:35:02 +0200</pubDate>
+    <lastBuildDate>Mon, 04 Jun 2018 22:35:02 +0200</lastBuildDate>
     <generator>Jekyll v3.3.0</generator>
     
       <item>
         <title>How to Build (and Understand) a Neural Network Pt. 4: Backpropagation</title>
         <description>
-&lt;p&gt;In this final post of the series, we will see how to apply &lt;strong&gt;backpropagation&lt;/strong&gt; to the neural net we built in the last chapter. Backpropagation will allow our network to incrementally improve itself as it gets exposed to new data. This will ultimately enable it to classify the MNIST test set with close to 95% accuracy.&lt;/p&gt;
+&lt;p&gt;In this final post of the series, we will see how to apply &lt;strong&gt;backpropagation&lt;/strong&gt; to the neural net we built in the last chapter. Backpropagation will allow our network to incrementally improve itself as it gets exposed to new data, which will ultimately enable it to classify the MNIST test set with close to 95% accuracy.&lt;/p&gt;
 
 &lt;p&gt;Recall how we optimized our logistic regression model in &lt;a href=&quot;http://sigmoidprime.com/how-to-build-a-neural-network-pt2&quot;&gt;Pt. 2&lt;/a&gt; by minimizing a loss function using gradient descent? Since backpropagation relies heavily on gradient descent, the intuition behind it bears repeating.&lt;/p&gt;
 
