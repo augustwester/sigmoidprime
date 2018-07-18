@@ -49,7 +49,7 @@ h2 {
         -webkit-font-smoothing: antialiased; }
 
 main {
-  width: 95%;
+  width: 90%;
   max-width: 1120px;
   margin: 0 auto;
   margin-top: 80px; }
@@ -74,7 +74,7 @@ main {
     font-size: 1.25em;
     color: rgba(162, 166, 184, 0.6);
     -webkit-font-smoothing: antialiased;
-    text-align: center; }
+    text-align: left; }
 
 ul, ol, p {
   font-weight: normal;
@@ -163,10 +163,10 @@ article {
     margin-bottom: 15px;
     width: inherit; }
   article .post-title {
-    text-align: center;
+    text-align: left;
     font-size: 38px; }
   article .subtext {
-    text-align: center;
+    text-align: left;
     margin-bottom: 20px;
     font-size: 17px;
     width: inherit;
