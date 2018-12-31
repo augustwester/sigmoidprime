@@ -1,0 +1,270 @@
+<html>
+<head>
+  <script src="/libs/svgjs/svg.min.js"></script>
+  <script type="text/javascript">
+    let CIFAR_IMAGE_SIZE = 8
+    let CIFAR_IMAGE_PIXEL_WIDTH = 75
+    let CIFAR_IMAGE_PIXEL_HEIGHT = 30
+
+    let KERNEL_SIZE = 3
+    let INITIAL_KERNEL_OFFSET_X = 0
+    let INITIAL_KERNEL_OFFSET_Y = 100
+
+    let ACTIVATION_OFFSET_X = 100
+    let ACTIVATION_OFFSET_Y = INITIAL_KERNEL_OFFSET_Y
+
+    let ANIMATION_DURATION_IN_MS = 200
+    let ANIMATION_INTERVAL = 100
+
+    Math.radians = function(degrees) {
+      return degrees * Math.PI / 180
+    }
+
+    let SKEWX_IN_DEGREES = 30
+    let SKEWX_IN_RADIANS = Math.radians(SKEWX_IN_DEGREES)
+
+    function randomGrayscaleValue() {
+      let v = 255*Math.random()
+      return (v < 128) ? v : 0;
+    }
+
+    // The RGB color codes of the CIFAR image
+    let colors = ["rgb(188, 204, 203)",
+                  "rgb(193, 206, 206)",
+                  "rgb(199, 209, 210)",
+                  "rgb(217, 223, 226)",
+                  "rgb(232, 235, 236)",
+                  "rgb(225, 229, 227)",
+                  "rgb(211, 217, 215)",
+                  "rgb(209, 215, 213)",
+                  "rgb(130, 150, 145)",
+                  "rgb(138, 156, 156)",
+                  "rgb(154, 170, 171)",
+                  "rgb(177, 191, 191)",
+                  "rgb(192, 202, 200)",
+                  "rgb(196, 201, 200)",
+                  "rgb(189, 197, 196)",
+                  "rgb(186, 194, 191)",
+                  "rgb(115, 124, 117)",
+                  "rgb(110, 124, 122)",
+                  "rgb(109, 125, 126)",
+                  "rgb(127, 140, 140)",
+                  "rgb(137, 148, 147)",
+                  "rgb(145, 153, 152)",
+                  "rgb(155, 169, 169)",
+                  "rgb(143, 155, 150)",
+                  "rgb(102, 113, 106)",
+                  "rgb(107, 114, 107)",
+                  "rgb(109, 120, 114)",
+                  "rgb(93, 97, 88)",
+                  "rgb(91, 95, 89)",
+                  "rgb(102, 119, 115)",
+                  "rgb(107, 120, 117)",
+                  "rgb(105, 111, 107)",
+                  "rgb(105, 107, 98)",
+                  "rgb(106, 105, 99)",
+                  "rgb(105, 109, 100)",
+                  "rgb(102, 97, 84)",
+                  "rgb(81, 75, 61)",
+                  "rgb(98, 102, 93)",
+                  "rgb(103, 101, 94)",
+                  "rgb(108, 108, 99)",
+                  "rgb(104, 103, 90)",
+                  "rgb(106, 101, 93)",
+                  "rgb(99, 95, 84)",
+                  "rgb(100, 91, 75)",
+                  "rgb(43, 29, 14)",
+                  "rgb(36, 17, 1)",
+                  "rgb(60, 45, 29)",
+                  "rgb(98, 95, 81)",
+                  "rgb(117, 108, 88)",
+                  "rgb(132, 115, 89)",
+                  "rgb(113, 96, 75)",
+                  "rgb(112, 96, 77)",
+                  "rgb(111, 87, 61)",
+                  "rgb(68, 43, 19)",
+                  "rgb(56, 36, 19)",
+                  "rgb(102, 79, 45)",
+                  "rgb(156, 113, 63)",
+                  "rgb(167, 123, 70)",
+                  "rgb(111, 84, 44)",
+                  "rgb(96, 63, 30)",
+                  "rgb(132, 94, 49)",
+                  "rgb(135, 90, 40)",
+                  "rgb(110, 74, 32)",
+                  "rgb(124, 87, 32)"]
+
+    var outputRectsBlue
+    var outputRectsGreen
+    var outputRectsPurple
+
+    var kernelBlue
+    var kernelGreen
+    var kernelPurple
+
+    var cifarImageContainer
+    var kernelContainer
+    var outputBlueContainer
+    var outputGreenContainer
+    var outputPurpleContainer
+    var cifarImage
+    var outputRectGroups
+
+    SVG.on(document, 'DOMContentLoaded', function() {
+      let container = SVG("image").viewbox(0, 0, 740, 560)
+
+      function start() {
+        /* Setting up SVG containers for the elements on screen */
+        //container = SVG("image").viewbox(0, 0, 740, 560)
+        cifarImageContainer = container.nested().move(0,320)
+        kernelContainer = container.nested().id("kernelContainer").move(INITIAL_KERNEL_OFFSET_X, 100)
+        outputBlueContainer = container.group().move(ACTIVATION_OFFSET_X, ACTIVATION_OFFSET_Y)
+        outputGreenContainer = container.group().move(ACTIVATION_OFFSET_X, ACTIVATION_OFFSET_Y)
+        outputPurpleContainer = container.group().move(ACTIVATION_OFFSET_X, ACTIVATION_OFFSET_Y)
+
+        /* Creating the individual rects making up the CIFAR image */
+        cifarImage = cifarImageContainer.group().attr({ transform: "skewX("+SKEWX_IN_DEGREES+")" })
+        for (i=0; i<64; i++) {
+          cifarImage.rect(CIFAR_IMAGE_PIXEL_WIDTH, CIFAR_IMAGE_PIXEL_HEIGHT).attr({
+            x: CIFAR_IMAGE_PIXEL_WIDTH*(i%8),
+            y: CIFAR_IMAGE_PIXEL_HEIGHT*Math.floor(i/8),
+            fill: colors[i]
+          })
+        }
+
+        /* Setting up groups to contain the kernels */
+        kernelBlue = kernelContainer.group()
+        kernelGreen = kernelContainer.group()
+        kernelPurple = kernelContainer.group()
+
+        /* Setting up groups to contain the rects representing the activations */
+        outputRectsBlue = outputBlueContainer.group().skew(SKEWX_IN_DEGREES, 0)
+        outputRectsBlue.outputColors = []
+        outputRectsGreen = outputGreenContainer.group().skew(SKEWX_IN_DEGREES, 0)
+        outputRectsGreen.outputColors = []
+        outputRectsPurple = outputPurpleContainer.group().skew(SKEWX_IN_DEGREES, 0)
+        outputRectsPurple.outputColors = []
+
+        /* Randomly generating the activation colors for each convolution */
+        for (i=0; i<36; i++) {
+          outputRectsBlue.outputColors.push(parseInt(randomGrayscaleValue()))
+          outputRectsGreen.outputColors.push(parseInt(randomGrayscaleValue()))
+          outputRectsPurple.outputColors.push(parseInt(randomGrayscaleValue()))
+        }
+
+        /* Populating the output rect containers */
+        outputRectGroups = [outputRectsBlue, outputRectsGreen, outputRectsPurple]
+        outputRectGroups.forEach(function(container) {
+          for (row=0; row<6; row++) {
+            for (column=0; column<6; column++) {
+              let y = CIFAR_IMAGE_PIXEL_HEIGHT * row
+              let x = CIFAR_IMAGE_PIXEL_WIDTH * column
+              let c = container.outputColors[6 * row + column]
+              container.rect(75, 30).attr({x: x, y: y, fill: "rgb("+c+","+c+","+c+")"}).hide()
+            }
+          }
+        })
+
+        kernelBlue.path("M 100 0 L 0 220 L 52 310 L 118 30 L 100 0").attr({ fill: "rgba(93,223,255,0.43)" })
+        kernelBlue.path("M 192 30 L 276 310 L 52 310 L 118 30").attr({ fill: "rgba(93,223,255,0.43)" })
+        kernelBlue.line(100, 0, 0, 220).stroke({ color: "rgba(255,255,255,0.3)" })
+        kernelBlue.line(52, 310, 117, 29).stroke({ color: "rgba(255,255,255,0.3)" })
+        kernelBlue.line(191.5, 30, 276, 310).stroke({ color: "rgba(255,255,255,0.3)" })
+        kernelBlue.rect(75, 30).attr({ x: 100, fill: "rgb(38,143,182)", transform: "skewX("+SKEWX_IN_DEGREES+")" })
+        kernelBlue.activations = outputRectsBlue
+
+        kernelGreen.path("M 100 0 L 0 220 L 52 310 L 118 30 L 100 0").attr({ fill: "rgba(129,230,21,0.43)" })
+        kernelGreen.path("M 192 30 L 276 310 L 52 310 L 118 30").attr({ fill: "rgba(129,230,21,0.43)" })
+        kernelGreen.line(100, 0, 0, 220).stroke({ color: "rgba(255,255,255,0.3)" })
+        kernelGreen.line(52, 310, 117, 29).stroke({ color: "rgba(255,255,255,0.3)" })
+        kernelGreen.line(191.5, 30, 276, 310).stroke({ color: "rgba(255,255,255,0.3)" })
+        kernelGreen.rect(75, 30).attr({ x: 100, fill: "rgb(88,153,19)", transform: "skewX("+SKEWX_IN_DEGREES+")" })
+        kernelGreen.activations = outputRectsGreen
+        kernelGreen.hide()
+
+        kernelPurple.path("M 100 0 L 0 220 L 52 310 L 118 30 L 100 0").attr({ fill: "rgba(191,70,218,0.43)" })
+        kernelPurple.path("M 192 30 L 276 310 L 52 310 L 118 30").attr({ fill: "rgba(191,70,218,0.43)" })
+        kernelPurple.line(100, 0, 0, 220).stroke({ color: "rgba(255,255,255,0.3)" })
+        kernelPurple.line(52, 310, 117, 29).stroke({ color: "rgba(255,255,255,0.3)" })
+        kernelPurple.line(191.5, 30, 276, 310).stroke({ color: "rgba(255,255,255,0.3)" })
+        kernelPurple.rect(75, 30).attr({ x: 100, fill: "rgb(140,16,165)", transform: "skewX("+SKEWX_IN_DEGREES+")" })
+        kernelPurple.activations = outputRectsPurple
+        kernelPurple.hide()
+
+        animate(kernelBlue)
+      
+        function animate(kernel) {
+          let c = SVG.get("kernelContainer")
+          let outputSize = CIFAR_IMAGE_SIZE - KERNEL_SIZE + 1
+
+          for (let i=0; i<outputSize; i++) {
+            for (let j=0; j<outputSize; j++) {
+              let currentOffsetDueToSkew = Math.tan(SKEWX_IN_RADIANS) * CIFAR_IMAGE_PIXEL_HEIGHT * i
+              let nextOffsetDueToSkew = Math.tan(SKEWX_IN_RADIANS) * CIFAR_IMAGE_PIXEL_HEIGHT * (i + 1)
+              let dx = (j == outputSize-1) ? - CIFAR_IMAGE_PIXEL_WIDTH * (outputSize - 1) + nextOffsetDueToSkew - currentOffsetDueToSkew : CIFAR_IMAGE_PIXEL_WIDTH
+              let dy = (j == outputSize-1) ? CIFAR_IMAGE_PIXEL_HEIGHT : 0
+              let isLastIteration = i == outputSize-1 && j == outputSize-1
+
+              if (!isLastIteration) {
+                c.delay(ANIMATION_INTERVAL).animate(ANIMATION_DURATION_IN_MS, ">").dmove(dx, dy).after(function(situation) {
+                  kernel.activations.children()[i * outputSize + j].show()
+                })
+              } else {
+                c.animate(0).after(function(situation) {
+                  kernel.activations.children()[i * outputSize + j].show()
+                  kernel.hide()
+                  moveToTop(kernel.activations)
+                  c.move(0, 100)
+
+                  if (kernel == kernelBlue) {
+                    kernelGreen.show()
+                    animate(kernelGreen)
+                  } else if (kernel == kernelGreen) {
+                    kernelPurple.show()
+                    animate(kernelPurple)
+                  } else if (kernel == kernelPurple) {
+                    setTimeout(function() {
+                      combineActivations()
+                    }, 1000)
+                  }
+                })
+              }
+            }
+          }
+
+          function moveToTop(activations) {
+            if (activations == kernelBlue.activations) {
+              activations.parent().animate(500, "<>").scale(0.4).move(0,0)
+            } else if (activations == kernelGreen.activations) {
+              activations.parent().animate(500, "<>").scale(0.4).move(648,0)
+            } else if (activations == kernelPurple.activations) {
+              activations.parent().animate(500, "<>").scale(0.4).move(1296,0)
+            }
+          }
+
+          function combineActivations() {
+            outputRectsBlue.parent().animate(500, "<>").move(648,0)
+            outputRectsPurple.parent().animate(500, "<>").move(648,0).after(function(situation) {
+              for (i=0; i<outputRectsPurple.children().length; i++) {
+                let r = outputRectsBlue.outputColors[i]
+                let g = outputRectsGreen.outputColors[i]
+                let b = outputRectsPurple.outputColors[i]
+                outputRectsPurple.children()[i].fill("rgb("+r+", "+g+", "+b+")")
+              }
+
+              setTimeout(function() {
+                container.clear()
+                start()
+              }, 2500)
+            })
+          }
+        }
+      }
+      start()
+    })
+  </script>
+</head>
+<body style="margin:0;">
+    <div id="image" width="100%" height="100%"></div>
+</body>
+</html>

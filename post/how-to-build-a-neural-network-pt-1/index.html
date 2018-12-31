@@ -1,15 +1,15 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
     <title>sigmoid prime: approachable machine learning</title>
-    <meta name="description" content="Striving for intuitive explanations of concepts in machine learning.">
+    <meta name="description" content="Striving for intuitive explanations of machine learning algorithms.">
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:creator" content="@wster">
     <meta name="twitter:title" content="How to Build (and Understand) a Neural Network Pt. 1: The Perceptron">
     <meta name="twitter:description" content="A beginner's introduction to the perceptron learning algorithm.">
-    <meta name="twitter:image" content="http://sigmoidprime.com/assets/posts/1/thumb.png">
+    <meta name="twitter:image" content="http://sigmoidprime.com//assets/posts/1/thumb.png">
 
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/libs/highlight/styles/atom-one-light.css">
@@ -32,28 +32,30 @@
 
     <script src="/libs/highlight/highlight.pack.js"></script>
     <script src="/libs/katex/katex.min.js"></script>
-    <script src="/libs/katex/contrib/auto-render.min.js"></script>
+    <script src="/libs/katex/contrib/auto-render.js"></script>
     <script src="/libs/d3/d3.v3.min.js"></script>
     <script src="/libs/c3/c3.min.js"></script>
     <script src="/libs/function-plot/function-plot.js"></script>
+    <script src="/libs/svgjs/svg.min.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>
   </head>
   <body>
     <header class="top-header">
       <div class="inner-header">
         <div class="logo-container">
-          <a href="/"><span class="logo" style="font-size:25px;">sigmoid<span class="prime" style="font-size:42px">′</span></span></a>
+          <a href="/"><span class="logo">sigmoid<span class="prime">′</span></span></a>
+          <span class="tagline">approachable machine learning.</span>
         </div>
       </div>
     </header>
-    <main style="margin-top:0px;">
+    <main style="margin-top:80px;">
       <div class="article-container ">
         <article>
           <header>
             <h1 class="post-title">How to Build (and Understand) a Neural Network Pt. 1: The Perceptron</h1>
           </header>
           <div class="date-ct">
-            <p>By August Wester on 30 December 2016</p>
+            <p>30 December 2016</p>
           </div>
           
 <p>Building a neural network is fairly easy. It doesn’t require you to know any obscure programming language, and you can build a working model with surprisingly few lines of code. To understand how it works however — to <em>really</em> understand it — takes mathematical insight more than anything else. While this may sound lofty, anyone with a firm grasp of high school level math is equipped to take on the task.</p>

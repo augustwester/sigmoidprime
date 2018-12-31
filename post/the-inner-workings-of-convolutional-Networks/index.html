@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>sigmoid prime: approachable machine learning</title>
+    <meta name="description" content="Striving for intuitive explanations of machine learning algorithms.">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:creator" content="@wster">
+    <meta name="twitter:title" content="The Inner Workings of Convolutional Nets">
+    <meta name="twitter:description" content="">
+    <meta name="twitter:image" content="http://sigmoidprime.com//assets/posts/5/thumb.png">
+
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/libs/highlight/styles/atom-one-light.css">
+    <link rel="stylesheet" href="/libs/katex/katex.min.css">
+    <link rel="stylesheet" href="/libs/c3/c3.min.css">
+
+    <link rel="apple-touch-icon-precomposed" sizes="57x57" href="/assets/favicons/apple-touch-icon-57x57.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/assets/favicons/apple-touch-icon-114x114.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/assets/favicons/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/assets/favicons/apple-touch-icon-144x144.png">
+    <link rel="apple-touch-icon-precomposed" sizes="60x60" href="/assets/favicons/apple-touch-icon-60x60.png">
+    <link rel="apple-touch-icon-precomposed" sizes="120x120" href="/assets/favicons/apple-touch-icon-120x120.png">
+    <link rel="apple-touch-icon-precomposed" sizes="76x76" href="/assets/favicons/apple-touch-icon-76x76.png">
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="/assets/favicons/apple-touch-icon-152x152.png">
+    <link rel="icon" type="image/png" href="/assets/favicons/favicon-196x196.png" sizes="196x196">
+    <link rel="icon" type="image/png" href="/assets/favicons/favicon-96x96.png" sizes="96x96">
+    <link rel="icon" type="image/png" href="/assets/favicons/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="/assets/favicons/favicon-16x16.png" sizes="16x16">
+    <link rel="icon" type="image/png" href="/assets/favicons/favicon-128.png" sizes="128x128">
+
+    <script src="/libs/highlight/highlight.pack.js"></script>
+    <script src="/libs/katex/katex.min.js"></script>
+    <script src="/libs/katex/contrib/auto-render.js"></script>
+    <script src="/libs/d3/d3.v3.min.js"></script>
+    <script src="/libs/c3/c3.min.js"></script>
+    <script src="/libs/function-plot/function-plot.js"></script>
+    <script src="/libs/svgjs/svg.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+  </head>
+  <body>
+    <header class="top-header">
+      <div class="inner-header">
+        <div class="logo-container">
+          <a href="/"><span class="logo">sigmoid<span class="prime">′</span></span></a>
+          <span class="tagline">approachable machine learning.</span>
+        </div>
+      </div>
+    </header>
+    <main style="margin-top:80px;">
+      <div class="article-container ">
+        <article>
+          <header>
+            <h1 class="post-title">The Inner Workings of Convolutional Nets</h1>
+          </header>
+          <div class="date-ct">
+            <p>31 December 2018</p>
+          </div>
+          
+<p>Of all the stunning advancements in deep learning made during the last 10 years, the progress in the field of computer vision is perhaps the most striking. At the heart of this progress is a model known as a convolutional neural network – or “CNN” for short – which resembles the structure of the brain’s visual cortex and has become a staple of almost all computer vision systems today.</p>
+
+<p>In this post, we will begin by exploring the structure and operations of convolutional nets including kernels, stride, zero-padding, pooling, and more. We will also look at simple regularization techniques like dropout that improve a model’s generalization. Finally, we will create and train our own CNN using Keras on an image set known as <a href="https://www.cs.toronto.edu/~kriz/cifar.html">CIFAR-10</a>, achieving around 85% accuracy.</p>
+
+<h2 id="cifar-10">CIFAR-10</h2>
+
+<p>The CIFAR-10 dataset contains 60,000 €32 \times 32€ images, 50,000 of which are training images. Each image belongs to one of the following 10 classes:</p>
+
+<p><img src="/assets/posts/5/cifar-10.svg" width="800px" /></p>
+
+<p>All classes are mutually exclusive and are allotted an equal number of images.</p>
+
+<h2 id="what-is-a-convolutional-net">What is a convolutional net?</h2>
+
+<p>If you followed my series on <a href="http://sigmoidprime.com/post/how-to-build-a-neural-network-pt-1/">How to Build (and Understand) a Neural Network</a>, you will remember that a “fully connected” or “dense” neural network takes as input one or more data samples, each represented by a flat €n€-dimensional vector. While this is fine for relatively simple problems like MNIST, the one-dimensional structure of the input presents a serious limitation to the kinds of patterns a dense network can discover in the data.</p>
+
+<p>For instance, take a moment to consider the problem of object detection in images using a dense neural network. In order to distinguish between objects – say an apple and a banana – a network needs to incorporate some sort of “shape detection”  from which it can draw its distinction. But given the flatness of its input, a dense network has no concept of vertical versus horizontal, and it would thus be blind to a crucial property of its input; namely its multidimensionality.</p>
+
+<p><img src="/assets/posts/5/flattened_fruits.svg" width="800px" /></p>
+
+<p class="subtext">Flattened €8 \times 8€ images of a banana, apple, orange, kiwi, and pear. This is what a dense network sees.</p>
+
+<p>This is where convolutional neural nets come into the picture. A CNN is a specialized type of neural network that vastly outperforms dense networks in image recognition tasks, and they do this by first preserving the dimensionality of their input.</p>
+
+<p><img src="/assets/posts/5/fruits.svg" width="800px" /></p>
+
+<p class="subtext">Unflattened €8 \times 8€ images of a banana, apple, orange, kiwi, and pear. This is what a convolutional neural network sees.</p>
+
+<p>Another key property of CNNs, and the one responsible for their name, is the use of convolutions in place of regular matrix multiplications. Let’s see what this means.</p>
+
+<p>Recall that a dense network has <strong>full connectivity</strong>, meaning that all of its hidden neurons are dependent on all neurons in the preceding layer. What convolution does is it introduces <strong>sparse connectivity</strong>, meaning that each hidden neuron is now only dependent on a fixed subset of the neurons in the preceding layer. The difference can be seen in the following illustration.</p>
+
+<div class="imgwcaption">
+    <img src="/assets/posts/5/fc.gif" />
+    <p><b>Full connectivity</b>. Each neuron receives input from all neurons in the preceding layer.</p>
+</div>
+
+<div class="imgwcaption">
+    <img src="/assets/posts/5/sc.gif" />
+    <p><b>Sparse connectivity</b>. Each neuron receives input from a fixed subset of neurons in the preceding layer.</p>
+</div>
+
+<p>In a dense network, the weight between a pair of input and output neurons is never shared with another pair of input and output neurons. In a CNN, this is not so. Here, you use a fixed set of weights called a <strong>kernel</strong>, and slide it over the entire input. This property is called <strong>weight sharing</strong>, and is one of the primary reasons that CNNs outperform dense networks in accuracy as well as memory efficiency.</p>
+
+<p>To illustrate how the use of sparse connectivity and weight sharing reduces memory consumption compared to a dense network working on the same data, assume we used a dense network to process RGB images of size €512 \times 512€ pixels. A single image would then be represented by a €512 \times 512 \times 3€ matrix, which, when flattened, would produce a vector of dimension €786.432€. Assuming the first hidden layer in our network had 100 neurons, the first weight matrix alone would have €786.432 \times 100 = 78.643.200€ elements!</p>
+
+<p>Conversely, a convolutional net <em>operating on the same flattened data</em> and with 100 units of output after its first convolution would only require €786.333€ individual weights between the first and second layer (a reduction of 100x). This is because the size of the output equals €m - k + 1€ where €m€ is the size of the input and €k€ is the size of the kernel. Can you see why by looking at the illustration above?</p>
+
+<h2 id="kernels">Kernels</h2>
+
+<p>So far, we have talked about the properties of convolutional networks in the context of flat data. Exploring how they operate on higher dimensional data will no doubt make things a bit more interesting. To do that, let us first try to visualize the operations of a CNN with a €3 \times 3€ kernel on a downsampled €8 \times 8€ image from the CIFAR-10 dataset.</p>
+
+<iframe src="/assets/posts/5/1kernel.html" width="100%" height="605" scrolling="no" style="border:none;"></iframe>
+
+<p>There are a few things to bear in mind here. First, while the illustration shows the image as a two-dimensional structure, it is in fact three-dimensional given that it has a width, a height, and a depth in the form of an RGB channel. This means that the kernel itself is actually a €3 \times 3 \times 3€ matrix. Each distinct output – illustrated by the gray and black pixels – is computed in the following way:</p>
+
+<p>The €3 \times 3 \times 3€ kernel is multiplied element-wise with whatever €3 \times 3 \times 3€ region of the input is below it (sometimes called the <strong>receptive field</strong>). The result of this operation is a new matrix of the same shape, and the sum of all the elements in this matrix is the output at one particular location. This means that, as opposed to the input and the kernel, the output of a convolution is always two-dimensional (hence my attempt to illustrate the output using grayscale colors).</p>
+
+<p>More formally, the scalar output €z€ at one location is the sum of all elements in the entrywise product of the current receptive field €R€ and the kernel €K€:</p>
+
+<p>€€
+H = R \odot K
+€€</p>
+
+<p class="subtext">Entrywise or “Hadamard” product of the kernel and receptive field.</p>
+
+<p>€€
+z = \sum_{l=1}^d \sum_{i=1}^{k} \sum_{j=1}^{k} h_{i,j,l}
+€€</p>
+
+<p class="subtext">Sum of all elements in the entrywise product. €k€ is the width and height of the kernel and receptive field, while €d€ is the depth.</p>
+
+<p>A second thing to notice is how the use of weight sharing produces the sense of the kernel sliding over the image. The discrete applications of the same kernel across the entire input results in an important and characteristic property of convolutional nets called <strong>translational invariance</strong>.</p>
+
+<p>Translational invariance means that whatever pattern a kernel has been trained to recognize – be it horizontal lines or the round shape of an apple – this information will be embedded in the activation <em>regardless of where in the input the pattern appears</em>.</p>
+
+<p>As we will see in the next post on feature visualization, the patterns that are picked up by kernels in the initial layers of a convolutional net usually pertain to the simplest components of the visual world, such as horizontal or vertical lines. As one proceeds through the layers however, the patterns become gradually more complex, such as the shape of eyes and ears, and ultimately the overall characteristics of a person’s face (insofar as the model has been trained to perform facial recognition of course).</p>
+
+<p>With kernels acting as the pattern-finding components of convolutional nets, multiple kernels are always needed to solve any kind of complex problem. The illustration below shows three distinct convolutions by three distinct kernels, as well as how the outputs of each are combined to produce a cohesive whole. Again, it is important to emphasize that the depth of a kernel <em>always</em> equals the depth of the input while the width and height are usually much smaller.</p>
+
+<iframe src="/assets/posts/5/3kernels.html" width="100%" height="605" scrolling="no" style="border:none;"></iframe>
+
+<p>If there are €n€ kernels of size €k \times k \times d€, the output produced by convolving over an input of size €m \times m \times d€ will be €(m - k + 1) \times (m - k + 1) \times n€. In the above case, this comes out to €6 \times 6 \times 3€, which, in this particular example, can be roughly interpreted as a €6 \times 6€ RGB image. This image would then be fed as input to the subsequent convolutional layer in the network.</p>
+
+<h2 id="stride">Stride</h2>
+
+<p>Another hyperparameter, aside from the size and number of kernels, is <strong>stride</strong>. In the illustrations shown so far, we have used a stride of €1€, meaning that the kernels sweep across the image in steps of one pixel at a time. To decrease – or even eliminate – the overlap of receptive fields that results from this, we can increase the stride, and force the kernel to take bigger steps along the €x€ and €y€ axes of the input. With stride now in the picture, we need to update the formula for the output size €z€ to:</p>
+
+<p>€€
+z = \frac{m - k}{s} + 1
+€€</p>
+
+<p class="subtext">Where €s=\text{stride}€.</p>
+
+<p>One thing to notice is that increasing the stride always decreases the size of the output along the width and height dimensions. This sometimes proves practical in situations where we want to downscale the computational burden on subsequent layers.</p>
+
+<h2 id="zero-padding">Zero-padding</h2>
+
+<p>One problem we are currently facing is that a convolution with a kernel larger than €1 \times 1€ <em>always</em> produces an output smaller than the input. The reason why this is a problem is that it puts an upper bound on the number of layers we can have in our network. To solve this, we use <strong>zero-padding</strong>, which is simply making the input volume bigger by padding it with zeros along the borders.</p>
+
+<p>The final formula for the output size thus becomes:</p>
+
+<p>€€
+z = \frac{(m + 2p) - k}{s} + 1
+€€</p>
+
+<p class="subtext">Where €p=\text{zero-padding}€.</p>
+
+<p>Now, as long as we know the size of the input €m€ and kernel €k€ as well as the stride €s€, we can always rearrange the above expression to find a €p€ which produces an output of the desired size €z€.</p>
+
+<p>It is important to note that since the input can only be padded with a whole number of pixels, €p€ must always be an integer. Naturally, this restriction also holds for stride and kernel size.</p>
+
+<h2 id="relu">ReLU</h2>
+
+<p>Just like in a dense network, once a €z \times z \times n€ output matrix has been computed, each element of the matrix is passed – element wise – through a nonlinear activation function.</p>
+
+<p>In the previous series of posts, we used the sigmoid function as our activation function. This time, we will instead use the <a href="https://en.wikipedia.org/wiki/Rectifier_(neural_networks)">ReLU function</a>, which is even simpler, and has been shown to work better than its s-shaped counterpart for a wide range of deep learning tasks.</p>
+
+<p>€€
+f(x) = \max(x, 0)
+€€</p>
+
+<h2 id="pooling">Pooling</h2>
+
+<p>At this point, we have touched on two of the three main components of a convolutional network layer: the convolution itself (with all its associated hyperparameters) and the activation function. The third component, <strong>pooling</strong>, simplifies the output for the subsequent layer in the network by reducing it to a kind of summary of the actual activations. This step is not strictly necessary, but it is very commonly applied, since it reduces computational load <em>and</em> improves accuracy.</p>
+
+<p>There are multiple variations of pooling; the most common being <strong>max pooling</strong>, which reduces the size of the input by accentuating the strong activations and attenuating the weaker ones. Similar to sliding a kernel over an image, max pooling takes as input a volume of size €m \times m \times n€ and produces an output of size €\frac{m - k}{s} + 1 \times \frac{m - k}{s} + 1 \times n€ where €k€ is the size of the <strong>pooling window</strong> and €s€ is the stride. Unlike a kernel however, the pooling window is not a matrix, but simply the region of the input used in each pooling step. This step is very simple: For a window size of €2 \times 2€, output the largest number in the €2 \times 2€ receptive field and discard the others. Note that the pooling window is two-dimensional, and is distinctly applied at each depth layer, meaning that the pooling layer always preserves dimensionality.</p>
+
+<h2 id="classification">Classification</h2>
+
+<p>At this point, you might be wondering how we move from convolutional layers to classification. After all, classification ultimately involves a flat vector of probabilities calculated by taking into account the entire input. This is something sparse connectivity doesn’t provide. You <em>could</em> technically use €n=\text{number of classes}€ kernels of the same size as the input  and run the results through softmax. But why not just flatten the output of the last convolutional layer, and then use <em>that</em> as input to a simple dense network whose output layer provides us with our classification? (<a href="http://sigmoidprime.com/post/how-to-build-a-neural-network-pt-4/">Backpropagation</a> will still work great; we simply push the gradients through to the convolutional network instead of stopping at the dense network’s input layer.)</p>
+
+<p>This architecture is a staple of most CNNs, and for good reason. The convolutional layers are responsible for feature detection, while the dense layers are tasked with discovering which activations correspond to which classes; a decidedly simpler but equally important task.</p>
+
+<h2 id="implementing-a-cnn-using-keras">Implementing a CNN using Keras</h2>
+
+<p>Now that we have a basic grasp of much of the underlying theory, let us try to implement our own convolutional network using <a href="https://keras.io/">Keras</a>; an API which acts as a wrapper around <a href="https://tensorflow.org/">Tensorflow</a>, <a href="https://github.com/Microsoft/cntk">CNTK</a> or <a href="https://github.com/Theano/Theano">Theano</a>. We will be using the Tensorflow version, so everything we need can be installed by running:</p>
+
+<p><code class="highlighter-rouge">pip3 install tensorflow</code></p>
+
+<p>Once Tensorflow is installed, fetching the CIFAR-10 dataset and configuring, training, testing, and saving our convolutional net is incredibly easy (all the code can be accessed <a href="https://gist.github.com/wster/c2cfebde9c5319185eb9c2a426a87cef">here</a>). Let’s start with the basic setup:</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">from</span> <span class="nn">tensorflow</span> <span class="kn">import</span> <span class="n">keras</span>
+<span class="kn">from</span> <span class="nn">tensorflow.keras.datasets</span> <span class="kn">import</span> <span class="n">cifar10</span>
+<span class="kn">from</span> <span class="nn">tensorflow.keras.models</span> <span class="kn">import</span> <span class="n">Sequential</span>
+<span class="kn">from</span> <span class="nn">tensorflow.keras.layers</span> <span class="kn">import</span> <span class="n">Conv2D</span><span class="p">,</span> <span class="n">MaxPooling2D</span><span class="p">,</span> <span class="n">Flatten</span><span class="p">,</span> <span class="n">Dense</span><span class="p">,</span> <span class="n">Activation</span><span class="p">,</span> <span class="n">BatchNormalization</span>
+<span class="kn">from</span> <span class="nn">tensorflow.keras.preprocessing.image</span> <span class="kn">import</span> <span class="n">ImageDataGenerator</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+<span class="c"># Hyperparameters</span>
+<span class="n">NUM_CLASSES</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">ACTIVATION</span> <span class="o">=</span> <span class="s">"relu"</span>
+<span class="n">LEARNING_RATE</span> <span class="o">=</span> <span class="mf">1e-3</span>
+<span class="n">BATCH_SIZE</span> <span class="o">=</span> <span class="mi">64</span>
+<span class="n">EPOCHS</span> <span class="o">=</span> <span class="mi">64</span>
+<span class="n">LOSS_FUNCTION</span> <span class="o">=</span> <span class="s">"categorical_crossentropy"</span>
+<span class="n">LAMBDA</span> <span class="o">=</span> <span class="mf">1e-4</span>
+<span class="n">REGULARIZER</span> <span class="o">=</span> <span class="n">keras</span><span class="o">.</span><span class="n">regularizers</span><span class="o">.</span><span class="n">l2</span><span class="p">(</span><span class="n">LAMBDA</span><span class="p">)</span>
+
+<span class="c"># Loading CIFAR-10</span>
+<span class="p">(</span><span class="n">x_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">),</span> <span class="p">(</span><span class="n">x_test</span><span class="p">,</span> <span class="n">y_test</span><span class="p">)</span> <span class="o">=</span> <span class="n">cifar10</span><span class="o">.</span><span class="n">load_data</span><span class="p">()</span>
+
+<span class="c"># Normalizing training samples</span>
+<span class="n">mean_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">x_train</span><span class="p">)</span>
+<span class="n">std_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">x_train</span><span class="p">)</span>
+<span class="n">x_train</span> <span class="o">=</span> <span class="p">(</span><span class="n">x_train</span> <span class="o">-</span> <span class="n">mean_train</span><span class="p">)</span> <span class="o">/</span> <span class="n">std_train</span>
+
+<span class="c"># Normalizing test samples</span>
+<span class="n">mean_test</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">x_test</span><span class="p">)</span>
+<span class="n">std_test</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">x_test</span><span class="p">)</span>
+<span class="n">x_test</span> <span class="o">=</span> <span class="p">(</span><span class="n">x_test</span> <span class="o">-</span> <span class="n">mean_test</span><span class="p">)</span> <span class="o">/</span> <span class="n">std_test</span>
+
+<span class="c"># One-hot encoding training and testing labels</span>
+<span class="n">y_train</span> <span class="o">=</span> <span class="n">keras</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">to_categorical</span><span class="p">(</span><span class="n">y_train</span><span class="p">,</span> <span class="n">NUM_CLASSES</span><span class="p">)</span>
+<span class="n">y_test</span>  <span class="o">=</span> <span class="n">keras</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">to_categorical</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span> <span class="n">NUM_CLASSES</span><span class="p">)</span></code></pre></figure>
+
+<p>After importing all the relevant parts of the Keras library, we start by defining our hyperparameters and loading the CIFAR-10 dataset by calling <code class="highlighter-rouge">load_data()</code> on the <code class="highlighter-rouge">cifar10</code> module. This will proceed to fetch and load into memory the entire dataset. Afterwards, we normalize all samples, and ensure that the associated labels are one-hot encoded (this is required for computing the network’s loss function).</p>
+
+<p>We can now proceed to set up the model architecture:</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="c"># Model architecture</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">()</span>
+
+<span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Conv2D</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">padding</span><span class="o">=</span><span class="s">'same'</span><span class="p">,</span> <span class="n">kernel_regularizer</span><span class="o">=</span><span class="n">REGULARIZER</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="n">x_train</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Activation</span><span class="p">(</span><span class="n">ACTIVATION</span><span class="p">))</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">BatchNormalization</span><span class="p">())</span>
+
+<span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Conv2D</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">padding</span><span class="o">=</span><span class="s">'same'</span><span class="p">,</span> <span class="n">kernel_regularizer</span><span class="o">=</span><span class="n">REGULARIZER</span><span class="p">))</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">MaxPooling2D</span><span class="p">(</span><span class="n">pool_size</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">)))</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Activation</span><span class="p">(</span><span class="n">ACTIVATION</span><span class="p">))</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">BatchNormalization</span><span class="p">())</span>
+
+<span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Conv2D</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">padding</span><span class="o">=</span><span class="s">'same'</span><span class="p">,</span> <span class="n">kernel_regularizer</span><span class="o">=</span><span class="n">REGULARIZER</span><span class="p">))</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Activation</span><span class="p">(</span><span class="n">ACTIVATION</span><span class="p">))</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">BatchNormalization</span><span class="p">())</span>
+
+<span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Conv2D</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">padding</span><span class="o">=</span><span class="s">'same'</span><span class="p">,</span> <span class="n">kernel_regularizer</span><span class="o">=</span><span class="n">REGULARIZER</span><span class="p">))</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">MaxPooling2D</span><span class="p">(</span><span class="n">pool_size</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">)))</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Activation</span><span class="p">(</span><span class="n">ACTIVATION</span><span class="p">))</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">BatchNormalization</span><span class="p">())</span>
+
+<span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Conv2D</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">padding</span><span class="o">=</span><span class="s">'same'</span><span class="p">,</span> <span class="n">kernel_regularizer</span><span class="o">=</span><span class="n">REGULARIZER</span><span class="p">))</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Activation</span><span class="p">(</span><span class="n">ACTIVATION</span><span class="p">))</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">BatchNormalization</span><span class="p">())</span>
+
+<span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Conv2D</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">padding</span><span class="o">=</span><span class="s">'same'</span><span class="p">,</span> <span class="n">kernel_regularizer</span><span class="o">=</span><span class="n">REGULARIZER</span><span class="p">))</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">MaxPooling2D</span><span class="p">(</span><span class="n">pool_size</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">)))</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Activation</span><span class="p">(</span><span class="n">ACTIVATION</span><span class="p">))</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">BatchNormalization</span><span class="p">())</span>
+
+<span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Flatten</span><span class="p">())</span>
+
+<span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Dense</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">ACTIVATION</span><span class="p">))</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Dense</span><span class="p">(</span><span class="n">NUM_CLASSES</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s">'softmax'</span><span class="p">))</span>
+
+<span class="n">model</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span> <span class="c"># Print out a summary</span></code></pre></figure>
+
+<p>Take a moment to appreciate the simplicity and expressiveness of the Keras API. If you have read everything up until this point, most of the above code should be pretty self-explanatory; perhaps except for <strong>batch normalization</strong> and <strong>kernel regularization</strong>.</p>
+
+<p>Batch normalization simply refers to normalizing the activations of a layer, such that it has a mean of 0 and a standard deviation of 1. While this increases the number of operations performed by the network (and thus slows down the forward and backward passes), it actually speeds up learning and results in an overall decrease in convergence time. You can read more about the advantages of batch normalization <a href="https://towardsdatascience.com/batch-normalization-8a2e585775c9">here</a>.</p>
+
+<p>Kernel regularization refers to adding the individual weights of a kernel to a network’s loss function. This is a very common regularization technique, which prevents overfitting when configured appropriately. If we let €l€ be the value of a loss function for a particular mini batch with no kernel regularization, the value of the loss function <em>with</em> kernel regularization would then be</p>
+
+<p>€€
+l + \lambda \sum_{w \in W} w^2
+€€</p>
+
+<p>where €W€ equals all weights in all kernels with L2 regularization enabled. The €\lambda€ coefficient determines the power of the regularization. Tune it up enough and your model will surely end up underfitting; tune it down and it will be prone to overfitting. In this case, €\lambda = 0.0001€, which seems to work pretty well. (As you can probably tell, configuring these parameters is not a hard science, and one often has to try out different values to see what works best in a given situation.)</p>
+
+<h2 id="data-augmentation-in-keras">Data augmentation in Keras</h2>
+
+<p>In machine learning, one can never take too many measures to boost generalization. Regularization is one such measure, since reducing overfitting implies better generalization. Another simple yet effective technique is data augmentation. This consists of simply taking whatever samples you already have and modifying them in ways (such as by rotation) that subtly change their appearance. A picture of a dog rotated at a 12 degree angle is, after all, still a picture of a dog. Keras has a built-in mechanism for data augmentation, which we set up in the following way:</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">datagen</span> <span class="o">=</span> <span class="n">ImageDataGenerator</span><span class="p">(</span><span class="n">rotation_range</span><span class="o">=</span><span class="mi">45</span><span class="p">,</span>
+                             <span class="n">width_shift_range</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+                             <span class="n">height_shift_range</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+                             <span class="n">horizontal_flip</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></code></pre></figure>
+
+<p>This specifies that we will permit rotations between -45 and 45 degrees, horizontal and vertical offsets by less than or equal to 10% of the image’s width/height, and horizontal flips/mirroring.</p>
+
+<h2 id="training">Training</h2>
+
+<p>The time has come to train our model. To do that, we will use the Adam optimizer, which is a more sophisticated variation of stochastic gradient descent. If you are interested, you can read more about it <a href="https://machinelearningmastery.com/adam-optimization-algorithm-for-deep-learning">here</a>.</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="c"># Training</span>
+<span class="n">adam</span> <span class="o">=</span> <span class="n">keras</span><span class="o">.</span><span class="n">optimizers</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">lr</span><span class="o">=</span><span class="n">LEARNING_RATE</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="nb">compile</span><span class="p">(</span><span class="n">loss</span><span class="o">=</span><span class="n">LOSS_FUNCTION</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="n">adam</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="p">[</span><span class="s">'accuracy'</span><span class="p">])</span>
+<span class="n">model</span><span class="o">.</span><span class="n">fit_generator</span><span class="p">(</span><span class="n">augmented_data</span><span class="p">,</span> <span class="n">epochs</span><span class="o">=</span><span class="n">EPOCHS</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">validation_data</span><span class="o">=</span><span class="p">(</span><span class="n">x_test</span><span class="p">,</span> <span class="n">y_test</span><span class="p">))</span>
+
+<span class="c"># Saving the model to disk</span>
+<span class="n">model_json</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">'model.json'</span><span class="p">,</span> <span class="s">'w'</span><span class="p">)</span> <span class="k">as</span> <span class="n">json_file</span><span class="p">:</span>
+    <span class="n">json_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">model_json</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">save_weights</span><span class="p">(</span><span class="s">'model.h5'</span><span class="p">)</span></code></pre></figure>
+
+<p>Crunching through all 64 epochs will most likely take a couple of hours, depending on your hardware. By the 64th epoch, though, you should see an accuracy of about 85% on the test set.</p>
+
+<p>In the next post, we will use the DeepDream feature visualization technique to probe the internals of our trained CNN.</p>
+
+        </article>
+        <br /><br />
+        <footer>
+          <div class="inner-footer">
+            <p><b>Questions? Comments? Corrections?</b></p>
+            <br />
+            <p>Whatever it may be, don't hesitate to let me know. You can get in touch on <a href="http://twitter.com/wster" target="_blank">Twitter</a> or via <a href="mailto:august.wester@gmail.com">email</a>.</p>
+          </div>
+        </footer>
+      </div>
+    </main>
+    <script type="text/javascript">
+      var config = [{left:"€€", right:"€€", display:true}, {left: "€", right:"€", display:false}];
+      renderMathInElement(document.body, {delimiters: config});
+    </script>
+    
+    <script>
+      (function(i,s,o,g,r,a,m){i["GoogleAnalyticsObject"]=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,"script","https://www.google-analytics.com/analytics.js","ga");
+      ga("create", "UA-89251189-1", "auto");
+      ga("send", "pageview");
+    </script>
+    
+  </body>
+</html>

@@ -1,15 +1,15 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
     <title>sigmoid prime: approachable machine learning</title>
-    <meta name="description" content="Striving for intuitive explanations of concepts in machine learning.">
+    <meta name="description" content="Striving for intuitive explanations of machine learning algorithms.">
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:creator" content="@wster">
     <meta name="twitter:title" content="How to Build (and Understand) a Neural Network Pt. 4: Backpropagation">
     <meta name="twitter:description" content="A guide to backpropagation in neural networks.">
-    <meta name="twitter:image" content="http://sigmoidprime.com/assets/posts/4/thumb.png">
+    <meta name="twitter:image" content="http://sigmoidprime.com//assets/posts/4/thumb.png">
 
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/libs/highlight/styles/atom-one-light.css">
@@ -32,28 +32,30 @@
 
     <script src="/libs/highlight/highlight.pack.js"></script>
     <script src="/libs/katex/katex.min.js"></script>
-    <script src="/libs/katex/contrib/auto-render.min.js"></script>
+    <script src="/libs/katex/contrib/auto-render.js"></script>
     <script src="/libs/d3/d3.v3.min.js"></script>
     <script src="/libs/c3/c3.min.js"></script>
     <script src="/libs/function-plot/function-plot.js"></script>
+    <script src="/libs/svgjs/svg.min.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>
   </head>
   <body>
     <header class="top-header">
       <div class="inner-header">
         <div class="logo-container">
-          <a href="/"><span class="logo" style="font-size:25px;">sigmoid<span class="prime" style="font-size:42px">′</span></span></a>
+          <a href="/"><span class="logo">sigmoid<span class="prime">′</span></span></a>
+          <span class="tagline">approachable machine learning.</span>
         </div>
       </div>
     </header>
-    <main style="margin-top:0px;">
+    <main style="margin-top:80px;">
       <div class="article-container ">
         <article>
           <header>
             <h1 class="post-title">How to Build (and Understand) a Neural Network Pt. 4: Backpropagation</h1>
           </header>
           <div class="date-ct">
-            <p>By August Wester on 26 December 2017</p>
+            <p>26 December 2017</p>
           </div>
           
 <p>In this final post of the series, we will see how to apply <strong>backpropagation</strong> to the neural net we built in the last chapter. Backpropagation will allow our network to incrementally improve itself as it gets exposed to new data, which will ultimately enable it to classify the MNIST test set with close to 95% accuracy.</p>
