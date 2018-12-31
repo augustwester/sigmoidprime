@@ -5,8 +5,8 @@
     <description>Striving for intuitive explanations of machine learning algorithms.</description>
     <link>http://sigmoidprime.com///</link>
     <atom:link href="http://sigmoidprime.com///feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Mon, 31 Dec 2018 14:39:56 +0100</pubDate>
-    <lastBuildDate>Mon, 31 Dec 2018 14:39:56 +0100</lastBuildDate>
+    <pubDate>Mon, 31 Dec 2018 14:51:14 +0100</pubDate>
+    <lastBuildDate>Mon, 31 Dec 2018 14:51:14 +0100</lastBuildDate>
     <generator>Jekyll v3.3.0</generator>
     
       <item>
@@ -272,8 +272,8 @@ l + \lambda \sum_{w \in W} w^2
 &lt;p&gt;In the next post, we will use the DeepDream feature visualization technique to probe the internals of our trained CNN.&lt;/p&gt;
 </description>
         <pubDate>Mon, 31 Dec 2018 00:00:00 +0100</pubDate>
-        <link>http://sigmoidprime.com///post/the-inner-workings-of-convolutional-Networks/</link>
-        <guid isPermaLink="true">http://sigmoidprime.com///post/the-inner-workings-of-convolutional-Networks/</guid>
+        <link>http://sigmoidprime.com///post/the-inner-workings-of-convolutional-nets/</link>
+        <guid isPermaLink="true">http://sigmoidprime.com///post/the-inner-workings-of-convolutional-nets/</guid>
         
         
       </item>
