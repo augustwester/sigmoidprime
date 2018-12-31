@@ -5,8 +5,8 @@
     <description>Striving for intuitive explanations of machine learning algorithms.</description>
     <link>http://sigmoidprime.com///</link>
     <atom:link href="http://sigmoidprime.com///feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Mon, 31 Dec 2018 19:09:18 +0100</pubDate>
-    <lastBuildDate>Mon, 31 Dec 2018 19:09:18 +0100</lastBuildDate>
+    <pubDate>Mon, 31 Dec 2018 19:11:44 +0100</pubDate>
+    <lastBuildDate>Mon, 31 Dec 2018 19:11:44 +0100</lastBuildDate>
     <generator>Jekyll v3.3.0</generator>
     
       <item>
@@ -34,7 +34,7 @@
 
 &lt;p class=&quot;subtext&quot;&gt;Flattened €8 \times 8€ images of a banana, apple, orange, kiwi, and pear. This is what a dense network sees.&lt;/p&gt;
 
-&lt;p&gt;This is where convolutional neural nets come into the picture. A CNN is a specialized type of neural network that vastly outperforms dense networks in image recognition tasks, and they do this by first preserving the dimensionality of their input.&lt;/p&gt;
+&lt;p&gt;This is where convolutional neural nets come into the picture (no pun intended). A CNN is a specialized type of neural network that vastly outperforms dense networks in image recognition tasks, and they do this by first preserving the dimensionality of their input.&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;/assets/posts/5/fruits.svg&quot; width=&quot;800px&quot; /&gt;&lt;/p&gt;
 
