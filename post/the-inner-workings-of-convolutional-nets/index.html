@@ -313,9 +313,9 @@ l + \lambda \sum_{w \in W} w^2
     <span class="n">json_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">model_json</span><span class="p">)</span>
 <span class="n">model</span><span class="o">.</span><span class="n">save_weights</span><span class="p">(</span><span class="s">'model.h5'</span><span class="p">)</span></code></pre></figure>
 
-<p>Crunching through all 64 epochs will most likely take a couple of hours, depending on your hardware. By the 64th epoch, though, you should see an accuracy of about 85% on the test set.</p>
+<p>Crunching through all 64 epochs will most likely take a couple of hours depending on your hardware. By the 64th epoch, though, you should see an accuracy of about 85% on the test set. To improve this further, I suggest you take a look at <a href="https://appliedmachinelearning.blog/2018/03/24/achieving-90-accuracy-in-object-recognition-task-on-cifar-10-dataset-with-keras-convolutional-neural-networks/">this blog post</a>, which outlines how to utilize techniques like learning rate decay and dropout to achieve close to 90% accuracy.</p>
 
-<p>In the next post, we will use the DeepDream feature visualization technique to probe the internals of our trained CNN.</p>
+<p>In the next post, we will use the <a href="https://ai.googleblog.com/2015/06/inceptionism-going-deeper-into-neural.html">DeepDream</a> feature visualization technique to probe the internals of our own trained CNN as well as more complex pretrained models.</p>
 
         </article>
         <br /><br />

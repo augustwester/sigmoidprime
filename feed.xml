@@ -5,8 +5,8 @@
     <description>Striving for intuitive explanations of machine learning algorithms.</description>
     <link>http://sigmoidprime.com///</link>
     <atom:link href="http://sigmoidprime.com///feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Mon, 31 Dec 2018 19:11:44 +0100</pubDate>
-    <lastBuildDate>Mon, 31 Dec 2018 19:11:44 +0100</lastBuildDate>
+    <pubDate>Tue, 01 Jan 2019 02:10:19 +0100</pubDate>
+    <lastBuildDate>Tue, 01 Jan 2019 02:10:19 +0100</lastBuildDate>
     <generator>Jekyll v3.3.0</generator>
     
       <item>
@@ -267,9 +267,9 @@ l + \lambda \sum_{w \in W} w^2
     &lt;span class=&quot;n&quot;&gt;json_file&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;model_json&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 &lt;span class=&quot;n&quot;&gt;model&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;save_weights&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'model.h5'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
-&lt;p&gt;Crunching through all 64 epochs will most likely take a couple of hours, depending on your hardware. By the 64th epoch, though, you should see an accuracy of about 85% on the test set.&lt;/p&gt;
+&lt;p&gt;Crunching through all 64 epochs will most likely take a couple of hours depending on your hardware. By the 64th epoch, though, you should see an accuracy of about 85% on the test set. To improve this further, I suggest you take a look at &lt;a href=&quot;https://appliedmachinelearning.blog/2018/03/24/achieving-90-accuracy-in-object-recognition-task-on-cifar-10-dataset-with-keras-convolutional-neural-networks/&quot;&gt;this blog post&lt;/a&gt;, which outlines how to utilize techniques like learning rate decay and dropout to achieve close to 90% accuracy.&lt;/p&gt;
 
-&lt;p&gt;In the next post, we will use the DeepDream feature visualization technique to probe the internals of our trained CNN.&lt;/p&gt;
+&lt;p&gt;In the next post, we will use the &lt;a href=&quot;https://ai.googleblog.com/2015/06/inceptionism-going-deeper-into-neural.html&quot;&gt;DeepDream&lt;/a&gt; feature visualization technique to probe the internals of our own trained CNN as well as more complex pretrained models.&lt;/p&gt;
 </description>
         <pubDate>Mon, 31 Dec 2018 00:00:00 +0100</pubDate>
         <link>http://sigmoidprime.com///post/the-inner-workings-of-convolutional-nets/</link>
