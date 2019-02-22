@@ -99,7 +99,9 @@ ul, ol, p {
     color: #e32d2d; }
 
 .front-page-article-container {
-  max-width: 1120px; }
+  max-width: 1120px;
+  /* This prevents the thumbnail from pushing down the text when the
+  screen size gets sufficiently narrow. */ }
   .front-page-article-container article {
     width: inherit; }
   .front-page-article-container h1 {
@@ -131,6 +133,10 @@ ul, ol, p {
     font-weight: 600;
     text-transform: uppercase;
     font-size: 14px; }
+  @media screen and (max-width: 1000px) {
+    .front-page-article-container .thumbnail-container {
+      width: 35%;
+      height: auto; } }
   @media screen and (max-width: 768px) {
     .front-page-article-container h1 {
       font-size: 22px;
