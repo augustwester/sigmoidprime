@@ -67,7 +67,7 @@
 
 <ul>
   <li><strong>Input layer:</strong> The input layer doesn’t do much at all; it merely represents the input of raw data to the network. The input is always a numerical representation of a piece of data (e.g. a grayscale value between 0 and 1 representing the intensity of a pixel in an image).</li>
-  <li><strong>Hidden layer:</strong> Above, we have two hidden layers, each consisting of three neurons. (The term ‘hidden’ is silly, and refers to nothing more than the fact that the layers lie between the input and the output of the network.) The job of each hidden neuron is to take its input and apply it to a mathematical function known as an <strong>activation function</strong>. The output of the activation function — the <strong>activation</strong> — is then passed on to the next layer in the network.</li>
+  <li><strong>Hidden layer:</strong> Above, we have two hidden layers, each consisting of three neurons. (The term ‘hidden’ is a bit silly; it refers to nothing more than the fact that the layers lie between the input and the output of the network.) The job of each hidden neuron is to apply a mathematical function to its input known as an <strong>activation function</strong>. The output of the activation function — the <strong>activation</strong> — is then passed on to the next layer in the network.</li>
   <li><strong>Output layer</strong>: The output layer is the last part of a  neural net. Each neuron in the output layer receives the full set of activations from the final hidden layer. On the basis of this, it then outputs a probabilistic estimate that enables us to infer something about the input data. In non-binary classification problems, there is one output neuron for each of the classes we wish to distinguish between. The output of each output neuron is the probability that a sample belongs to whatever class the output neuron represents.</li>
 </ul>
 
@@ -332,7 +332,7 @@ x \cdot y = 0
   <li>A matrix <code class="highlighter-rouge">Y_hat</code> containing the probability distribution over all possible classes and for all samples in <code class="highlighter-rouge">A</code>.</li>
 </ul>
 
-<p>This concludes our implementation of the forward pass for our neural network. In the next (and final) post of the series, we will explore how our network can automatically find the right values for our weights and biases using <strong>backpropagation</strong>.</p>
+<p>This concludes our implementation of the forward pass for our neural network. In the <a href="http://sigmoidprime.com/post/how-to-build-a-neural-network-pt-4">next (and final)</a> post of the series, we will explore how our network can automatically find the right values for our weights and biases using <strong>backpropagation</strong>.</p>
 
         </article>
         <br /><br />
