@@ -51,7 +51,7 @@
     <script src="/libs/pivot/pivot.js"></script>
     <script src="/libs/isMobile.js"></script>
     <script>
-    if (window.mobileAndTabletCheck) {
+    if (!window.isSmartphoneOrTablet()) {
       pivot.init({ selector: ".thumbnail", sensitivity: 20, scale: 2 })
     }
     </script>
