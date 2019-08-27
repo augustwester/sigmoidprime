@@ -129,7 +129,7 @@ x \cdot \theta
 <p>€€
 \begin{Bmatrix}1 \cr x_1 \cr x_2\cr x_3 \cr x_4 \end{Bmatrix}
 \cdot
-\begin{Bmatrix}\theta_0 \cr \theta_1 \cr \theta_2 \cr \theta_3 \cr \theta_4\end{Bmatrix} = \theta_0 + \theta_1x_1 \cdots + \theta_4x_4
+\begin{Bmatrix}\theta_0 \cr \theta_1 \cr \theta_2 \cr \theta_3 \cr \theta_4\end{Bmatrix} = \theta_0 + \theta_1x_1 + \cdots + \theta_4x_4
 €€</p>
 
 <p>All of this may seem like mere mathematical housekeeping, but as we will see, it will keep our code neat and tidy, and — much more importantly — it will allow us to vectorize our computations. Vectorization is important, since it enables significant computational speedups, as soon as we begin to handle more complex models with larger amounts of data. (For a small dataset like ours, it won’t really make a difference, but it is good practice to keep it in mind.)</p>
@@ -137,7 +137,7 @@ x \cdot \theta
 <p>We will now define a function known as the <a href="https://en.wikipedia.org/wiki/Heaviside_step_function">heaviside step function</a> or unit step function:</p>
 
 <p>€€
-\sigma(z)=\begin{cases} 1 &amp; {\small z &gt; 0,} \cr 0 &amp; {\small otherwise} \end{cases}
+\sigma(z)=\begin{cases} 1 &amp; {\small z &gt; 0,} \cr 0 &amp; \text{otherwise} \end{cases}
 €€</p>
 
 <p>If it isn’t immediately obvious from this definition, the heaviside step function takes a scalar input €z€ and returns 1 if €z€ is positive, and 0 if €z€ is nonpositive. The sole purpose of the heaviside step function is to classify points below the decision boundary as 0, and points above the decision boundary as 1. The output will thus be our prediction of the Iris type.</p>
@@ -172,7 +172,7 @@ x \cdot \theta
 
 <p>We would then subtract 1.9 from €\theta_i€’s current value.</p>
 
-<p>To see why we subtract, remember that the output of the model was 1 when it should have been 0. This means that the result of the dot product €(x \cdot \theta)€ was positive when it should have been negative, and therefore that the parameters are currently adjusted too high. Had we predicted a 0 when the true label was 1, the value of €\theta_i€ would have been increased by 1.9. <!-- The reason we multiply by the corresponding feature €x_i^{(j)}€ is to ensure that big errors (that is, wrong predictions in the face of very striking features) result in big adjustments and small errors in small adjustments. --></p>
+<p>To see why we subtract, remember that the output of the model was 1 when it should have been 0. This means that the result of the dot product €(x \cdot \theta)€ was positive when it should have been negative, and therefore that the parameters are currently adjusted too high. Had we predicted a 0 when the true label was 1, the value of €\theta_i€ would have been increased by 1.9.</p>
 
 <p>This same learning algorithm holds for the bias. However, since the bias’ corresponding “feature” is 1, this leaves us with:</p>
 
@@ -182,13 +182,13 @@ x \cdot \theta
 
 <p>And that’s it!</p>
 
-<p>A cool thing about the perceptron algorithm is that it is guaranteed to find exactly the right parameters that separate the two classes at 100% accuracy (granted that the data is linearly separable of course). The question is whether these parameters generalize and enable the model to correctly predict the classes of samples that weren’t in the training set. Finding patterns in unlabelled data is, after all, the purpose of all machine learning algorithms. We’ll see how to do this once we code up our perceptron in the next section.</p>
+<p>A cool thing about the perceptron algorithm is that it is guaranteed to find exactly the right parameters that separate the two classes at 100% accuracy (granted that the data is linearly separable of course). The question is whether these parameters generalize and enable the model to correctly predict the classes of samples that weren’t in the training set.</p>
 
 <h2 id="getting-our-hands-dirty">Getting our hands dirty</h2>
 
 <p>To start off, make sure that you have Python and <a href="http://www.numpy.org/">NumPy</a> installed on your machine. If you are not already familiar with NumPy, it is an essential package for Python for doing matrix and vector operations. There will be tons of these going forward.</p>
 
-<p>To import and handle the Iris dataset, we will use <a href="http://pandas.pydata.org">Pandas</a>. NumPy as well as Pandas can be installed by running <code class="highlighter-rouge">pip numpy</code> and <code class="highlighter-rouge">pip pandas</code> in the command line. Once you’ve got everything set up, we’ll create a new Python file and do the requisite imports at the top. We will also be including the Iris dataset made available from <a href="https://archive.ics.uci.edu/ml/datasets/Iris">UCI’s website</a>. As a courtesy, I recommend that you download the file and reference it locally in order to spare UCI of unnecessary traffic.</p>
+<p>To import and handle the Iris dataset, we will use <a href="http://pandas.pydata.org">Pandas</a>. NumPy as well as Pandas can be installed by running <code class="highlighter-rouge">pip3 install numpy</code> and <code class="highlighter-rouge">pip3 install pandas</code> in the command line. Once you’ve got everything set up, we’ll create a new Python file and do the requisite imports at the top. We will also be including the Iris dataset made available from <a href="https://archive.ics.uci.edu/ml/datasets/Iris">UCI’s website</a>. As a courtesy, you may want to download the file and reference it locally in order to spare UCI of unnecessary traffic.</p>
 
 <figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
@@ -215,9 +215,11 @@ x \cdot \theta
 <span class="n">train_targets</span> <span class="o">=</span> <span class="n">train_targets</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">50</span><span class="p">))</span>
 <span class="n">test_targets</span> <span class="o">=</span> <span class="n">test_targets</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">50</span><span class="p">))</span></code></pre></figure>
 
-<p>I hope the comments make it clear what is going on here. We will use the training features to train the model, and our test features to verify whether the model generalizes and correctly predicts the classes of unseen examples. A 50/50 split between training and test samples is not very common (usually it is 60/40 or 70/30 with the majority going to the training samples), but it should suffice for this example.</p>
+<p>I hope the comments make it clear what is going on here.</p>
 
-<p>Note that all training samples are now stored within a 50x5 matrix €X€. If you are unfamiliar with matrices, they can simply be thought of as containers of multiple vectors. Thus, the 50x5 matrix contains 50 samples/vectors, and each of those vectors contains four features <em>and</em> a 1 for the bias term. In other words, our matrix €X€ contains 50 €x€s.</p>
+<p>We will use the training samples to train the model, and our test samples to verify whether the model generalizes and correctly predicts the classes of unseen samples. A 50/50 split between training and test samples is not very common (usually it is 60/40 or 70/30 with the majority going to the training samples), but it should suffice for this example.</p>
+
+<p>Note that all training samples are now stored within a 50x5 matrix €X€. If you are unfamiliar with matrices, they can simply be thought of as containers of multiple vectors. Thus, the 50x5 matrix contains 50 samples/vectors, and each of those vectors contains four features <em>and</em> a bias. In other words, our matrix €X€ contains 50 €x€s.</p>
 
 <p>Now that we have our data organized and ready, it is time to code the actual perceptron. Let’s start by creating a <code class="highlighter-rouge">Perceptron</code> class with a <code class="highlighter-rouge">fit</code> method that takes three parameters: <code class="highlighter-rouge">X</code>, <code class="highlighter-rouge">y</code> and <code class="highlighter-rouge">epochs</code>. <code class="highlighter-rouge">X</code> will be our matrix of features, <code class="highlighter-rouge">y</code> will be a vector containing the corresponding target values, and <code class="highlighter-rouge">epochs</code> will be an integer specifying how many times to loop over the training data. If we didn’t specify the number of epochs, we would only have 50 iterations to update our parameters, which probably wouldn’t be enough for them to converge on the most optimal values.</p>
 
