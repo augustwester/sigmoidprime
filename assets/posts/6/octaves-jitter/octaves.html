@@ -1,0 +1,156 @@
+<html>
+    <head>
+        <script src="anime.min.js"></script>
+        <style>
+            #original_small {
+                position: absolute;
+                width:100px;
+                height:100px;
+                top: 300px;
+                background-image: url(images/marilyn-small.png);
+            }
+
+            #overlay_small {
+                position: absolute;
+                width:100px;
+                height:100px;
+                top: 300px;
+                background-image: url(images/overlay-small.png);
+                opacity: 0;
+            }
+
+            #original_medium {
+                position: absolute;
+                width:200px;
+                height:200px;
+                left:150px;
+                top:200px;
+                background-image: url(images/marilyn-medium.png);
+            }
+
+            #overlay_medium {
+                position: absolute;
+                width:200px;
+                height:200px;
+                left:150px;
+                top:200px;
+                background-image: url(images/overlay-medium.png);
+                opacity: 0;
+            }
+
+            #original_large {
+                position: absolute;
+                width:400px;
+                height:400px;
+                left:400px;
+                top:0px;
+                background-image: url(images/marilyn-large.png);
+            }
+
+            #overlay_large {
+                position: absolute;
+                width:400px;
+                height:400px;
+                left:400px;
+                top:0px;
+                background-image: url(images/overlay-large.png);
+                opacity: 0;
+            }
+
+            #play_button {
+                position: absolute;
+                top:0;
+                left:0;
+                -webkit-tap-highlight-color: transparent;
+            }
+        </style>
+    </head>
+    <body style="margin:0;">
+        <div id="original_large"></div>
+        <div id="overlay_large"></div>
+
+        <div id="original_medium"></div>
+        <div id="overlay_medium"></div>
+
+        <div id="original_small"></div>
+        <div id="overlay_small"></div>
+
+        <svg id="play_button">
+            <g id="play_button" transform="matrix(0.725,0,0,0.725,0,0)" style="cursor: pointer;">
+                <circle id="SvgjsCircle1359" r="22" cx="22" cy="22" fill="#fdfdfd" stroke="#e7e7e7" stroke-width="1"></circle>
+                <polygon id="play_icon" points="15,14 31,22 15,30 15,14" fill="#777777"></polygon>
+                <polygon id="stop_icon" points="14,14 30,14 30,30 14,30 14,14" fill="#777777" style="display: none;"></polygon>
+            </g>
+        </svg>
+
+        <script>
+            const timeline = anime.timeline({
+                autoplay: false,
+                duration: 1600,
+                easing: 'easeInOutQuad',
+                complete: function() {
+                    document.getElementById("play_icon").style.display = "block"
+                    document.getElementById("stop_icon").style.display = "none"
+                }
+            })
+
+            timeline.add({
+                targets: '#overlay_small',
+                opacity: [0,1],
+                easing: 'linear'
+            })
+
+            timeline.add({
+                targets: '#overlay_small',
+                translateX: [0, 200],
+                translateY: -50,
+                scale: 2,
+            })
+
+            timeline.add({
+                targets: '#overlay_small',
+                opacity: [1,0],
+                easing: 'linear',
+            })
+
+            timeline.add({
+                targets: '#overlay_medium',
+                opacity: [0,1],
+                easing: 'linear',
+            }, '-=1400')
+
+            timeline.add({
+                targets: '#overlay_medium',
+                translateX: [0, 350],
+                translateY: -100,
+                scale: 2,
+            })
+
+            timeline.add({
+                targets: '#overlay_medium',
+                opacity: [1,0],
+                easing: 'linear'
+            })
+
+            timeline.add({
+                targets: '#overlay_large',
+                opacity: [0, 1],
+                easing: 'linear',
+            }, '-=1400')
+
+            function start() {
+                if (timeline.began && !timeline.completed) {
+                    document.getElementById("play_icon").style.display = "block"
+                    document.getElementById("stop_icon").style.display = "none"
+                    timeline.reset()
+                } else if (!timeline.began || timeline.completed) {
+                    document.getElementById("play_icon").style.display = "none"
+                    document.getElementById("stop_icon").style.display = "block"
+                    timeline.play()
+                }
+            }
+
+            document.querySelector('#play_button').onclick = start;
+        </script>
+    </body>
+</html>

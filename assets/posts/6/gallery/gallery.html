@@ -1,0 +1,133 @@
+<html>
+    <head>
+        <style>
+            *, body {
+                margin: 0;
+                padding: 0;
+            }
+            #image {
+                width:100%;
+            }
+            .thumbs {
+                display: flex;
+                width:100%;
+                flex-direction: row;
+                flex-wrap: nowrap;
+                justify-content: space-between;
+                margin-top: 10px;
+            }
+            .grid {
+                width:17%;
+                height:0;
+                padding-bottom: 17%;
+                position: relative;
+                display: flex;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: space-between;
+            }
+            .thumb {
+                width:64px;
+                height:64px;
+                background-size: 64px 64px;
+                cursor: pointer;
+            }
+            .bottom_thumb {
+                margin-top: 8px;
+            }
+            .separator {
+                width:1px;
+                height: 100px;
+                background-color: lightgray;
+                margin-top: 18px;
+            }
+            .titles {
+                width:100%;
+                height:24px;
+                display:flex;
+                flex-direction: row;
+                flex-wrap: nowrap;
+                margin-top: 10px;
+                justify-content: space-between;
+            }
+            .title {
+                font-family: "Helvetica Neue", Arial;
+                font-weight: 500;
+                color: rgb(173, 173, 173);
+                font-size: 13px;
+                text-align: center;
+                width:64px;
+            }
+        </style>
+    </head>
+    <body>
+        <img id="image" src="images/mixed0.jpg">
+
+        <div class="thumbs">
+            <div class="thumb" style="opacity:0.3" onclick="thumbnailClicked(this)"></div>
+            <div class="thumb" onclick="thumbnailClicked(this)"></div>
+            <div class="thumb" onclick="thumbnailClicked(this)"></div>
+            <div class="thumb" onclick="thumbnailClicked(this)"></div>
+            <div class="thumb" onclick="thumbnailClicked(this)"></div>
+            <div class="thumb" onclick="thumbnailClicked(this)"></div>
+            <div class="thumb" onclick="thumbnailClicked(this)"></div>
+            <div class="thumb" onclick="thumbnailClicked(this)"></div>
+            <div class="thumb" onclick="thumbnailClicked(this)"></div>
+            <div class="thumb" onclick="thumbnailClicked(this)"></div>
+            <div class="thumb" onclick="thumbnailClicked(this)"></div>
+        </div>    
+
+        <div class="titles">
+            <p class="title">Mixed_5b</p>
+            <p class="title">Mixed_5c</p>
+            <p class="title">Mixed_5d</p>
+            <p class="title">Mixed_6a</p>
+            <p class="title">Mixed_6b</p>
+            <p class="title">Mixed_6c</p>
+            <p class="title">Mixed_6d</p>
+            <p class="title">Mixed_6e</p>
+            <p class="title">Mixed_7a</p>
+            <p class="title">Mixed_7b</p>
+            <p class="title">Mixed_7c</p>
+        </div>
+
+        <script type="text/javascript">
+        let channelNames = [
+          "mixed0.jpg",
+          "mixed1.jpg",
+          "mixed2.jpg",
+          "mixed3.jpg",
+          "mixed4.jpg",
+          "mixed5.jpg",
+          "mixed6.jpg",
+          "mixed7.jpg",
+          "mixed8.jpg",
+          "mixed9.jpg",
+          "mixed10.jpg"
+        ]
+        
+        let thumbnails = document.getElementsByClassName("thumb")
+        for (var i=0; i<thumbnails.length; i++) {
+            let url = "images/thumbs/" + channelNames[i]
+            thumbnails[i].style.backgroundImage = "url("+url+")"
+        }
+
+        function thumbnailClicked(element) {
+            let selectedImageUrl = element.style.backgroundImage
+            let selectedImageUrlComponents = selectedImageUrl.split("/")
+            var selectedImage = selectedImageUrlComponents[selectedImageUrlComponents.length - 1]
+            selectedImage = selectedImage.replace("\")", "") // removing the trailing ") since reference is wrapped in url("")
+
+            let mainImageElement = document.getElementById("image")
+            mainImageElement.src = "images/" + selectedImage
+
+            let thumbnails = document.getElementsByClassName("thumb")
+            for (var i=0; i<thumbnails.length; i++) {
+                thumbnails[i].style.opacity = 1
+            }
+
+            element.style.opacity = 0.3
+        }
+        </script>
+    </body>
+</html>

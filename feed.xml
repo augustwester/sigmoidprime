@@ -5,9 +5,135 @@
     <description>Striving for intuitive explanations of machine learning algorithms.</description>
     <link>http://sigmoidprime.com///</link>
     <atom:link href="http://sigmoidprime.com///feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Tue, 27 Aug 2019 22:56:08 +0200</pubDate>
-    <lastBuildDate>Tue, 27 Aug 2019 22:56:08 +0200</lastBuildDate>
+    <pubDate>Sat, 18 Dec 2021 19:21:34 +0100</pubDate>
+    <lastBuildDate>Sat, 18 Dec 2021 19:21:34 +0100</lastBuildDate>
     <generator>Jekyll v3.3.0</generator>
+    
+      <item>
+        <title>DeepDream</title>
+        <description>
+&lt;p&gt;Trained neural networks are notoriously opaque. They consist of millions — if not billions — of parameters, and when they fail, explaining why is not always easy. This has prompted researchers to invent novel techniques that reveal to us why neural networks behave the way they do. One such technique is &lt;a href=&quot;https://ai.googleblog.com/2015/06/inceptionism-going-deeper-into-neural.html&quot;&gt;DeepDream&lt;/a&gt;, which, besides being a useful research tool, is also really fun!&lt;/p&gt;
+
+&lt;p&gt;Published in 2015 by Google research scientist &lt;a href=&quot;https://twitter.com/zzznah&quot;&gt;Alex Mordvintsev&lt;/a&gt;, DeepDream is a wonderfully simple technique designed to expose the abstract patterns hidden within the interconnections of trained neural networks. Not long after its publication, DeepDream’s psychedelic imagery quickly infiltrated social media and stoked a public fascination with the strange world of neural nets.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/posts/6/seattle.jpeg&quot; width=&quot;100%&quot; /&gt;&lt;/p&gt;
+
+&lt;p class=&quot;subtext&quot;&gt;Credit: &lt;a href=&quot;https://twitter.com/zzznah/status/1123963384133767169&quot;&gt;Alex Mordvintsev&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;For the layman, DeepDream is perhaps best explained as a kind of algorithmic &lt;a href=&quot;https://en.wikipedia.org/wiki/Pareidolia&quot;&gt;pareidolia&lt;/a&gt; (the phenomenon of seeing faces or familiar objects in, for instance, a patch of clouds), and more often than not, the algorithm produces bizarre and fascinating images that are sure to catch the attention of anyone who comes across them. However, DeepDream is not &lt;em&gt;just&lt;/em&gt; a fun gimmick.&lt;/p&gt;
+
+&lt;p&gt;While the behavior of trained neural networks are usually opaque to humans, techniques like DeepDream are helping researchers shed a light on their inner workings by allowing the networks to reveal to us what they are seeing. This has given rise to the field known as &lt;a href=&quot;https://distill.pub/2018/building-blocks/&quot;&gt;interpretability&lt;/a&gt;, which aims to make sense of the behavior of trained neural networks.&lt;/p&gt;
+
+&lt;p&gt;In this post, we will explore how DeepDream works at a high level through interactive visualizations. We will also program an implementation of the algorithm using PyTorch and apply it to a pretrained version of the &lt;a href=&quot;https://pytorch.org/hub/pytorch_vision_inception_v3/&quot;&gt;Inception-v3 model&lt;/a&gt;. This implementation will make it easy for you to create customized “dreams” by running the algorithm on your own images and tweaking its parameters.&lt;/p&gt;
+
+&lt;h2 id=&quot;intuition&quot;&gt;Intuition&lt;/h2&gt;
+
+&lt;p&gt;To understand how DeepDream works at an intuitive level, recall that neural networks rely on &lt;a href=&quot;/post/how-to-build-a-neural-network-pt-4&quot;&gt;backpropagation&lt;/a&gt; and are therefore differentiable end-to-end. DeepDream exploits this property — not by minimizing a loss function — but by maximizing the output of a hidden layer of one’s own choosing. Crucially, this optimization is not performed by tweaking the network’s parameters, but by tweaking the input image itself. This has the interesting effect of the input image slowly morphing into an often surreal version of itself. As shown in the animation below, the modifications are applied iteratively, with each run accentuating the effects more and more.&lt;/p&gt;
+
+&lt;iframe src=&quot;/assets/posts/6/visualization/deep_dream_layer.html&quot; width=&quot;600px&quot; height=&quot;630px&quot; scrolling=&quot;no&quot; style=&quot;border:none;margin-left:100px;&quot;&gt;&lt;/iframe&gt;
+
+&lt;p class=&quot;subtext&quot;&gt;Select a layer and click play. Darker colors represent higher output values.&lt;/p&gt;
+
+&lt;p&gt;More formally, assume that €x_n€ is the input image for iteration €n€ of the algorithm, and €y€ is the L2 norm of the corresponding output of an arbitrary hidden layer of a &lt;a href=&quot;/post/the-inner-workings-of-convolutional-nets&quot;&gt;CNN&lt;/a&gt;. To maximize €y€, we obtain €\frac{\partial y}{\partial x_n}€ and update the input image using the update rule €x_{n+1} := x_n + \alpha \frac{\partial y}{\partial x_n}€ where €\alpha€ is some predetermined step size. This process is also known as &lt;strong&gt;gradient ascent&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;At a high level, that is all there is to it. However, if we implement this exactly as described, the patterns that appear will occur at a low level of resolution across the image and will often suffer from high-frequency artifacts. While there is nothing inherently wrong with this, we can make use of a few tricks to give our images that extra “pop.”&lt;/p&gt;
+
+&lt;h2 id=&quot;gradient-normalization-octaves-and-jitter&quot;&gt;Gradient normalization, octaves, and jitter&lt;/h2&gt;
+
+&lt;p&gt;To solve the resolution issue, we can start by constructing a &lt;a href=&quot;https://en.wikipedia.org/wiki/Pyramid_(image_processing)&quot;&gt;Gaussian pyramid&lt;/a&gt; from the original image. This is simply a set of increasingly downscaled versions of the image referred to as &lt;a href=&quot;https://github.com/google/deepdream/blob/master/dream.ipynb&quot;&gt;‘octaves’&lt;/a&gt;. The octaves are then processed using gradient ascent, from smallest to largest, for a fixed number of iterations. Importantly, since the gradient values are often extremely small, the gradient is normalized before being added to the image.&lt;/p&gt;
+
+&lt;p&gt;Following the gradient ascent steps, the difference between the untampered octave and its ‘dreamy’ counterpart is obtained as &lt;code class=&quot;highlighter-rouge&quot;&gt;dream - octave&lt;/code&gt;. In the subsequent iteration (this time with a larger octave), this difference is scaled up to match the size of the new octave. These are then added before being sent through the network, and the process is repeated.&lt;/p&gt;
+
+&lt;iframe src=&quot;/assets/posts/6/octaves-jitter/octaves.html&quot; width=&quot;100%&quot; height=&quot;400px&quot; scrolling=&quot;no&quot; style=&quot;border:none;&quot;&gt;&lt;/iframe&gt;
+
+&lt;p class=&quot;subtext&quot;&gt;When an octave has been processed, the changes to the image are extracted, upscaled and applied to the next octave before it too gets processed.&lt;/p&gt;
+
+&lt;p&gt;Upscaling the changes in this way ensures that the patterns become bigger and more defined, which usually leads to a more intriguing result. You will in other words notice that adjusting the number of octaves is an effective way of managing the size of the patterns in the final image.&lt;/p&gt;
+
+&lt;p&gt;The final thing we need to take care of is the occurrence of high-frequency artifacts that reduce the “smoothness” of our images. One way to combat this is by using what the authors of DeepDream call “jitter,” which is simply randomized application of the &lt;code class=&quot;highlighter-rouge&quot;&gt;np.roll&lt;/code&gt; function. This means that the image is shifted along the €x€ and €y€ axis while maintaining its original dimensions. The animation below illustrates the combined application of octaves and jitter.&lt;/p&gt;
+
+&lt;iframe src=&quot;/assets/posts/6/octaves-jitter/jitter.html&quot; width=&quot;100%&quot; height=&quot;400px&quot; scrolling=&quot;no&quot; style=&quot;border:none;&quot;&gt;&lt;/iframe&gt;
+
+&lt;p&gt;For the best results, jitter should be applied before &lt;em&gt;each&lt;/em&gt; step of gradient ascent. I struggled for many hours trying to eliminate the noisy artifcats, with jitter seeming to make almost no difference. The problem turned out to be caused by the fact that I was only applying jitter once &lt;em&gt;per octave&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Below is a side-by-side comparison of images optimized using either none, some, or all of the techniques mentioned here.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/posts/6/side-by-side.png&quot; width=&quot;100%&quot; /&gt;&lt;/p&gt;
+
+&lt;p class=&quot;subtext&quot;&gt;(1) original, (2) only gradient normalization, (3) gradient normalization and octaves, (4) gradient normalization, octaves, and jitter.&lt;/p&gt;
+
+&lt;p&gt;Each of the images below are the result of optimizing for different layers in the Inception-v3 model (&lt;code class=&quot;highlighter-rouge&quot;&gt;Mixed_5b&lt;/code&gt; through &lt;code class=&quot;highlighter-rouge&quot;&gt;Mixed_7c&lt;/code&gt;). You will notice that the patterns become gradually more complex as the depth of the layer increases. This is a clear demonstration of how each of the network’s representations are built on top of other more rudimentary ones, going all the way down to the basic colors, edges, and shadows that are encoded in the earliest layers.&lt;/p&gt;
+
+&lt;iframe src=&quot;/assets/posts/6/gallery/gallery.html&quot; width=&quot;100%&quot; height=&quot;635px&quot; scrolling=&quot;no&quot; style=&quot;border:none;&quot;&gt;&lt;/iframe&gt;
+
+&lt;p&gt;While optimizing for the output of deeper layers produces gradually more complex patterns, the images also reach a point at which most of the high-level structure appears more noisy than when optimizing for shallower layers. Unfortunately, this makes it difficult for complex patterns such as dogs, cats, cars or people to show up in the final image. I am still not exactly sure what is responsible for this but I would love to know!&lt;/p&gt;
+
+&lt;h2 id=&quot;optimizing-random-noise&quot;&gt;Optimizing random noise&lt;/h2&gt;
+
+&lt;p&gt;Optimizing photographs is fun, but it is not the most useful application of DeepDream from a research perspective. To get the clearest view into a network’s learned abstractions, one can prevent the input image from biasing the output by starting with an image of random noise. The output thus becomes a more crystallized version of what the layer or filter has learned to recognize.&lt;/p&gt;
+
+&lt;p&gt;Personally, I find that the most effective (and beautiful) way of optimizing random noise is by progressively zooming into the image while running gradient ascent for a fixed number of steps in each frame. Rather than optimizing for whole layers, optimizing for specific channels usually gives the best results. Below are a few examples.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/posts/6/series2.png&quot; width=&quot;100%&quot; /&gt;&lt;/p&gt;
+
+&lt;p class=&quot;subtext&quot;&gt;Optimizing for random channels in the Inception-v3 model’s &lt;code class=&quot;highlighter-rouge&quot;&gt;Mixed_5&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;Mixed_6&lt;/code&gt; layers, starting with random noise and using progressive zoom.&lt;/p&gt;
+
+&lt;p&gt;The provided implementation (see below) makes it easy for you to create images like this, at any resolution you like. Further, it allows you to not only optimize for any layer or channel in the network, but for any combination of layers and channels. The possibilities are endless!&lt;/p&gt;
+
+&lt;h2 id=&quot;implementation&quot;&gt;Implementation&lt;/h2&gt;
+
+&lt;p&gt;To help you run DeepDream on your own images, check out the GitHub repo &lt;a href=&quot;https://github.com/augustwester/deep-dream&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;The entrypoint for the algorithm is contained in the file &lt;code class=&quot;highlighter-rouge&quot;&gt;dream.py&lt;/code&gt;. This is also where you can tweak its hyperparameters such as &lt;code class=&quot;highlighter-rouge&quot;&gt;num_octaves&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;steps_per_octave&lt;/code&gt;, and &lt;code class=&quot;highlighter-rouge&quot;&gt;step_size&lt;/code&gt;. Perhaps most importantly, the code contains the following dictionary:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;n&quot;&gt;settings&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;Mixed_5b&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;Mixed_5c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;Mixed_5d&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;42&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;69&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;Mixed_6a&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;Mixed_6b&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;Mixed_6c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;Mixed_6d&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;Mixed_6e&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;Mixed_7a&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;Mixed_7b&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;Mixed_7c&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Changing the dictionary values lets you select which channels and/or layers to optimize. Supplying &lt;code class=&quot;highlighter-rouge&quot;&gt;&quot;all&quot;&lt;/code&gt; as a value optimizes the whole layer while a tuple of ints optimizes the specific channels located at the corresponding indices.&lt;/p&gt;
+
+&lt;p&gt;To optimize an image, simply load it using &lt;code class=&quot;highlighter-rouge&quot;&gt;PIL&lt;/code&gt; and pass it to the &lt;code class=&quot;highlighter-rouge&quot;&gt;dream&lt;/code&gt; function:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;img = PIL.Image.load(&quot;your_image.jpg&quot;)
+dream_img = dream(img, num_octaves=3, steps_per_octave=100, settings=settings)
+dream_img.save(&quot;dream.jpg&quot;)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;In order to optimize random noise using progressive zoom, use the functions &lt;code class=&quot;highlighter-rouge&quot;&gt;random_noise&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;zoom_dream&lt;/code&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;noise = helpers.random_noise(250, 250)
+dream_noise = zoom_dream(noise, num_frames=50, steps_per_frame=50, settings=settings)
+dream_noise.save(&quot;dream_noise.jpg&quot;)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;On GitHub, you will find &lt;a href=&quot;https://github.com/augustwester/deepdream/blob/main/example.ipynb&quot;&gt;a Jupyter notebook&lt;/a&gt; which makes it easy to try out both approaches.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;While DeepDream can be a useful tool for researchers, it is also simply a fun and interesting way of breathing new, surreal life into images of all kinds.&lt;/p&gt;
+
+&lt;p&gt;Personally, I find many of DeepDream’s images incredibly strange yet oddly familiar. They are reminiscent of &lt;a href=&quot;https://en.wikipedia.org/wiki/Phosphene&quot;&gt;phosphenes&lt;/a&gt; (the phenomenon of seeing light without light actually entering the eye), which is fascinating given that it hints at the fact that the visual abstractions in the brain might be similar to the ones encoded in neural networks.&lt;/p&gt;
+
+&lt;p&gt;Despite the fact that neural networks are “toy models” of the human brain, there are similarities between the two. Perhaps we will one day be using interpretability techniques to gain insight into the inner workings of the &lt;em&gt;human&lt;/em&gt; mind. If that is not an exciting prospect, I don’t know what is.&lt;/p&gt;
+</description>
+        <pubDate>Sat, 18 Dec 2021 00:00:00 +0100</pubDate>
+        <link>http://sigmoidprime.com///post/deepdream/</link>
+        <guid isPermaLink="true">http://sigmoidprime.com///post/deepdream/</guid>
+        
+        
+      </item>
     
       <item>
         <title>The Inner Workings of Convolutional Nets</title>

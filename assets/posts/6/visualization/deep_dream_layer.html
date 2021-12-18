@@ -1,0 +1,296 @@
+<html>
+    <head>
+        <script src="/libs/svgjs/svg.min.js"></script>
+        <script>
+            const BIG_POLYGON_POINTS        = new SVG.PointArray([[400, 0], [0, 200], [400, 400], [800, 200], [400, 0]])
+            const SMALL_POLYGON_POINTS      = new SVG.PointArray([[40, 0], [0, 20], [40, 40], [80, 20], [40, 0]])
+            const CONTRACTED_HIGHLIGHT_PATH = new SVG.PointArray([[0, 0], [400, 200], [800, 0], [800, 0], [400, 200], [0, 0]])
+            const EXPANDED_HIGHLIGHT_PATH   = new SVG.PointArray([[0, 0], [400, 200], [800, 0], [800, 150], [400, 350], [0, 150], [0, 0]])
+
+            let INPUT_LAYERS = []
+            let HIDDEN_LAYERS = []
+            let HIGHLIGHT = undefined
+            let ANIMATION_MANAGER = undefined
+            let SELECTED_LAYER = undefined
+            let PLAY_BUTTON = undefined
+
+            const FORWARD_HIGHLIGHT_COLOR  = "#5FB9FF"
+            const BACKWARD_HIGHLIGHT_COLOR = "#FF5F5F"
+
+            function InputLayer(container, points, img) {
+                this.container = container
+                this.img = img
+                this.points = points
+                this.svg = this.container.group().x(20).polygon(this.points).fill(this.img)
+            }
+
+            function HiddenLayer(container, points, number, selected) {
+                this.container = container
+                this.points = points
+                this.number = number
+                this.selected = selected
+                let activations = []
+
+                this.updateActivations = function(minColor, maxColor, animated) {
+                    activations.forEach(function(item, index, array) {
+                        item.updateColor(minColor, maxColor, animated)
+                    })
+                }
+
+                this.strokeColor = container.gradient('linear', function(stop) {
+                    stop.at(0, 'rgb(227,45,45)')
+                    stop.at(1, 'rgb(210,73, 170)')
+                })
+                this.shadow = container.gradient('radial', function(stop) {
+                    stop.at({ offset: 0, color: 'rgb(0,0,0)', opacity: 0.7 })
+                    stop.at({ offset: 0.5, color: 'rgb(0,0,0)', opacity: 0.4 })
+                    stop.at({ offset: 1, color: 'rgb(0,0,0)', opacity: 0 })
+                })
+
+                let group = this.container.group().x(20).y(150*number)
+
+                const strokeWidth = this.selected ? 20 : 0
+                let layer = group.polygon(this.points).stroke({ color: this.strokeColor, width: strokeWidth })
+
+                for (i=0; i<10; i++) {
+                    for (j=0; j<10; j++) {
+                        let x = layer.width()/20*j + layer.width()/20*i
+                        let y = layer.cy() - layer.height()/20*j + layer.height()/20*i
+                        let activation = new Activation(group, x, y, "#fff")
+                        activations.push(activation)
+                    }
+                }
+
+                let shadowOverlay = group.polygon(this.points).fill(this.shadow)
+                let invisible = group.polygon(this.points).opacity(0).style("cursor: pointer; -webkit-tap-highlight-color: transparent;")
+
+                let strokeColor = this.strokeColor
+                let trueThis = this
+                invisible.mouseover(function() {
+                    if (!ANIMATION_MANAGER.playing) {
+                        layer.animate(200, "<>").stroke({ color: strokeColor, width: 20 })
+                    }
+                }).mouseout(function() {
+                    if (!ANIMATION_MANAGER.playing) {
+                        if (!selected) layer.animate(200, "<>").stroke({ color: strokeColor, width: 0 })
+                    }
+                }).mouseup(function() {
+                    if (!ANIMATION_MANAGER.playing) {
+                        setSelectedLayer(trueThis)
+                    }
+                })
+
+                this.setSelected = function(isSelected) {
+                    if (isSelected) {
+                        layer.stroke({ color: strokeColor, width: 20 })
+                    } else {
+                        layer.animate(200, "<>").stroke({ color: strokeColor, width: 0 })
+                    }
+                    selected = isSelected
+                }
+            }
+
+            function Activation(group, x, y, color) {
+                this.svg = group.polygon(SMALL_POLYGON_POINTS).fill(color).x(x).cy(y)
+                this.color = color
+
+                this.updateColor = function(minColor, maxColor, animated) {
+                    let c = minColor + Math.abs(Math.round((maxColor-minColor) * Math.random()))
+
+                    if (animated) {
+                        this.svg.animate(200, "<>").fill("rgb("+c+","+c+","+c+")")
+                    } else {
+                        this.svg.fill("rgb("+c+","+c+","+c+")")
+                    }
+                }
+            }
+
+            function Highlight(container, points, number) {
+                this.container = container
+                this.points = points.move(20, 0)
+                this.svg = container.polygon(this.points).y(200).fill(FORWARD_HIGHLIGHT_COLOR).opacity(0.3)
+            }
+
+            function AnimationManager(inputLayers, hiddenLayers, highlight, playing) {
+                this.inputLayers = inputLayers
+                this.hiddenLayers = hiddenLayers
+                this.highlight = highlight
+                this.playing = playing
+                this.iteration = 0
+
+                this.start = function() {
+                    this.resetState(this.inputLayers, this.hiddenLayers, this.highlight)
+                    this.playing = true
+                    this.animate(true)
+                }
+
+                this.resetState = function() {
+                    this.inputLayers.forEach((collection) => {
+                        collection.forEach((image) => {
+                            if (image.svg.fx != undefined) {
+                                image.svg.fx.pause()
+                            }
+                            image.svg.fx = undefined // ensuring that input image is reset even if animation was ongoing during interrupt
+                            image.svg.opacity(0)
+                        })
+                    })
+
+                    this.hiddenLayers[0].updateActivations(255, 255, false)
+                    this.hiddenLayers[1].updateActivations(255, 255, false)
+                    this.hiddenLayers[2].updateActivations(255, 255, false)
+
+                    this.highlight.svg.plot(CONTRACTED_HIGHLIGHT_PATH)
+                    this.highlight.svg.fill(FORWARD_HIGHLIGHT_COLOR)
+                    this.highlight.svg.y(200) // Move to original position
+                }
+
+                this.stop = function() {
+                    this.playing = false
+                    this.highlight.svg.fx.pause()
+                    this.highlight.svg.fx = undefined
+                    this.resetState()
+                    // Stop ongoing animation here.
+                }
+
+                this.animate = function(isForwardPass) {
+                    let iteration = this.iteration
+
+                    for (let i=0; i<SELECTED_LAYER.number; i++) {
+                        const originY = isForwardPass ? 200+(150*i) : (200 + SELECTED_LAYER.number * 150) - (150 * (i+1))
+                        const destinationY = isForwardPass ? 200+(150*i)+150 : (200+SELECTED_LAYER.number*150)-(150*i) - 150
+                        const expandedPath = EXPANDED_HIGHLIGHT_PATH.move(20, originY)
+                        const contractedPath = CONTRACTED_HIGHLIGHT_PATH.move(20, destinationY)
+
+                        this.highlight.svg.animate(300, "<>").plot(expandedPath).delay(50)
+                        this.highlight.svg.animate(300, "<>").plot(contractedPath).after(function(situation) {
+                            if (isForwardPass) {
+                                if (SELECTED_LAYER.number == i+1) {
+                                    const minColor = Math.round(180-(60*iteration))
+                                    const maxColor = Math.round(255-(60*iteration))
+                                    hiddenLayers[i].updateActivations(minColor, maxColor, true)
+                                } else {
+                                    hiddenLayers[i].updateActivations(180, 255, true)
+                                }
+                            }
+                        }).delay(100)
+                    }
+
+                    if (isForwardPass) {
+                        this.highlight.svg.fx.after(function(situation) {
+                            highlight.svg.fill(BACKWARD_HIGHLIGHT_COLOR)
+                        })
+                        this.animate(false)
+                    } else {
+                        this.highlight.svg.fx.after(function(situation) {
+                            highlight.svg.fx.pause()
+                            inputLayers[SELECTED_LAYER.number-1][iteration].svg.animate(1500).opacity(1).after(function(situation) {
+                                if (iteration < 2) {
+                                    highlight.svg.fx.play()
+                                } else {
+                                    highlight.svg.fx = undefined
+                                    ANIMATION_MANAGER.playing = false
+                                    PLAY_BUTTON.toggleIcon()
+                                }
+                            })
+                            highlight.svg.fill(FORWARD_HIGHLIGHT_COLOR)
+                        })
+
+                        if (this.iteration < 2) {
+                            this.iteration++
+                            this.animate(true)
+                        } else {
+                            this.iteration = 0
+                        }
+                    }
+                }
+            }
+
+            function PlayButton(container) {
+                this.container = container
+                this.group = container.group().move(840-45, 850-44).style("cursor: pointer;")
+                this.svg = this.group.circle(44).fill("#FDFDFD").stroke({ color: "#E7E7E7", width: 1 })
+
+                let playIcon = this.group.polygon("0 0, 16 8, 0 16, 0 0").fill("#777").cx(this.svg.cx()+1).cy(this.svg.cy())
+                let stopIcon = this.group.polygon("0 0, 16 0, 16 16, 0 16, 0 0").fill("#777").cx(this.svg.cx()).cy(this.svg.cy()).hide()
+
+                this.group.mouseup(function() {
+                    if (!ANIMATION_MANAGER.playing) {
+                        ANIMATION_MANAGER.start()
+                        playIcon.hide(); stopIcon.show()
+                    } else {
+                        console.log("Will stop")
+                        ANIMATION_MANAGER.stop()
+                        playIcon.show(); stopIcon.hide()
+                    }
+                })
+
+                this.toggleIcon = function() {
+                    if (!ANIMATION_MANAGER.playing) {
+                        playIcon.show(); stopIcon.hide()
+                    } else {
+                        playIcon.hide(); stopIcon.show()
+                    }
+                }
+            }
+
+            function setSelectedLayer(layer) {
+                SELECTED_LAYER = layer
+
+                HIDDEN_LAYERS.forEach((item) => {
+                    if (item == SELECTED_LAYER) {
+                        item.setSelected(true)
+                    } else {
+                        item.setSelected(false)
+                    }
+                })
+            }
+
+            SVG.on(document, 'DOMContentLoaded', function() {
+                let container = SVG("image").viewbox(0,0,840,401+150*3)
+
+                let thirdHiddenLayer  = new HiddenLayer(container, BIG_POLYGON_POINTS, 3, false)
+                let secondHiddenLayer = new HiddenLayer(container, BIG_POLYGON_POINTS, 2, true)
+                let firstHiddenLayer  = new HiddenLayer(container, BIG_POLYGON_POINTS, 1, false)
+
+                let originalImage = new InputLayer(container, BIG_POLYGON_POINTS, "images/original.png")
+                
+                let thirdLayerDream1 = new InputLayer(container, BIG_POLYGON_POINTS, "images/3-1.png")
+                let thirdLayerDream2 = new InputLayer(container, BIG_POLYGON_POINTS, "images/3-2.png")
+                let thirdLayerDream3 = new InputLayer(container, BIG_POLYGON_POINTS, "images/3-3.png")
+
+                let secondLayerDream1 = new InputLayer(container, BIG_POLYGON_POINTS, "images/2-1.png")
+                let secondLayerDream2 = new InputLayer(container, BIG_POLYGON_POINTS, "images/2-2.png")
+                let secondLayerDream3 = new InputLayer(container, BIG_POLYGON_POINTS, "images/2-3.png")
+
+                let firstLayerDream1 = new InputLayer(container, BIG_POLYGON_POINTS, "images/1-1.png")
+                let firstLayerDream2 = new InputLayer(container, BIG_POLYGON_POINTS, "images/1-2.png")
+                let firstLayerDream3 = new InputLayer(container, BIG_POLYGON_POINTS, "images/1-3.png")
+
+                thirdLayerDream1.svg.opacity(0)
+                thirdLayerDream2.svg.opacity(0)
+                thirdLayerDream3.svg.opacity(0)
+
+                secondLayerDream1.svg.opacity(0)
+                secondLayerDream2.svg.opacity(0)
+                secondLayerDream3.svg.opacity(0)
+
+                firstLayerDream1.svg.opacity(0)
+                firstLayerDream2.svg.opacity(0)
+                firstLayerDream3.svg.opacity(0)
+
+                // INPUT_LAYERS = [dream0, dream1, dream2, dream3]
+                INPUT_LAYERS = [[firstLayerDream1, firstLayerDream2, firstLayerDream3],
+                                [secondLayerDream1, secondLayerDream2, secondLayerDream3],
+                                [thirdLayerDream1, thirdLayerDream2, thirdLayerDream3]]
+                HIDDEN_LAYERS = [firstHiddenLayer, secondHiddenLayer, thirdHiddenLayer]
+                HIGHLIGHT  = new Highlight(container, CONTRACTED_HIGHLIGHT_PATH)
+                SELECTED_LAYER = secondHiddenLayer
+                PLAY_BUTTON = new PlayButton(container)
+                ANIMATION_MANAGER = new AnimationManager(INPUT_LAYERS, HIDDEN_LAYERS, HIGHLIGHT, false)
+            })
+        </script>
+    </head>
+    <body style="margin:0;">
+        <div id="image" width="100%" height="100%"></div>
+    </body>
+</html>

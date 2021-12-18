@@ -4,7 +4,8 @@
   padding: 0; }
 
 a {
-  text-decoration: none; }
+  text-decoration: none;
+  font-family: "Helvetica Neue", Helvetica, Arial; }
 
 h1, h2, h3 {
   font-family: "Helvetica Neue", Helvetica, Arial;
@@ -71,13 +72,28 @@ main {
   height: auto;
   margin-top: 20px;
   margin-bottom: 50px; }
-  .date-ct p {
+  .date-ct .date-span {
+    float: left; }
+  .date-ct .date-span p {
     line-height: 1.25em;
     font-weight: 500;
     font-size: 1.25em;
     color: rgba(162, 166, 184, 0.6);
     -webkit-font-smoothing: antialiased;
     text-align: left; }
+  .date-ct .github-span {
+    float: right;
+    display: inline-block; }
+  .date-ct .github-span img {
+    float: left;
+    margin-right: 10px;
+    margin-top: -2px; }
+  .date-ct .github-span a {
+    float: left;
+    background: -webkit-linear-gradient(45deg, #e32d2d, #d249aa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 500; }
 
 ul, ol, p {
   font-weight: normal;
