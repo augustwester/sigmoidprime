@@ -1,226 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>sigmoid prime: approachable machine learning</title>
-    <meta name="description" content="Striving for intuitive explanations of machine learning algorithms.">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:creator" content="@augustwester">
-    <meta name="twitter:title" content="How to Build (and Understand) a Neural Network Pt. 4: Backpropagation">
-    <meta name="twitter:description" content="A guide to backpropagation in neural networks.">
-    <meta name="twitter:image" content="http://sigmoidprime.com//assets/posts/4/thumb.png">
-
-    <link rel="stylesheet" href="/css/style.css">
-    <link rel="stylesheet" href="/libs/highlight/styles/atom-one-light.css">
-    <link rel="stylesheet" href="/libs/katex/katex.min.css">
-    <link rel="stylesheet" href="/libs/c3/c3.min.css">
-
-    <link rel="apple-touch-icon-precomposed" sizes="57x57" href="/assets/favicons/apple-touch-icon-57x57.png">
-<link rel="apple-touch-icon-precomposed" sizes="114x114" href="/assets/favicons/apple-touch-icon-114x114.png">
-<link rel="apple-touch-icon-precomposed" sizes="72x72" href="/assets/favicons/apple-touch-icon-72x72.png">
-<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/assets/favicons/apple-touch-icon-144x144.png">
-<link rel="apple-touch-icon-precomposed" sizes="60x60" href="/assets/favicons/apple-touch-icon-60x60.png">
-<link rel="apple-touch-icon-precomposed" sizes="120x120" href="/assets/favicons/apple-touch-icon-120x120.png">
-<link rel="apple-touch-icon-precomposed" sizes="76x76" href="/assets/favicons/apple-touch-icon-76x76.png">
-<link rel="apple-touch-icon-precomposed" sizes="152x152" href="/assets/favicons/apple-touch-icon-152x152.png">
-<link rel="icon" type="image/png" href="/assets/favicons/favicon-196x196.png" sizes="196x196">
-<link rel="icon" type="image/png" href="/assets/favicons/favicon-96x96.png" sizes="96x96">
-<link rel="icon" type="image/png" href="/assets/favicons/favicon-32x32.png" sizes="32x32">
-<link rel="icon" type="image/png" href="/assets/favicons/favicon-16x16.png" sizes="16x16">
-<link rel="icon" type="image/png" href="/assets/favicons/favicon-128.png" sizes="128x128">
-
-    <script src="/libs/highlight/highlight.pack.js"></script>
-    <script src="/libs/katex/katex.min.js"></script>
-    <script src="/libs/katex/contrib/auto-render.js"></script>
-
-    
-
-    <script>hljs.initHighlightingOnLoad();</script>
-  </head>
-  <body>
-    <div id="sidebar">
-    <div class="picture"></div>
-    <p class="hi">Hi. I'm <span class="highlight">August</span>.</p>
-    <p class="bio">I'm a Master's student in computer science at the IT University in <span class="highlight">Copenhagen</span> where I'm specializing in <span class="highlight">machine learning</span>.</p>
-    <p class="bio">During my studies, I have focused primarily on the topic of generative models and adversarial robustness. More recently, I have become fascinated with <span class="highlight">causal inference</span>.</p>
-    <p class="bio">I'm driven by the idea of one day creating software with <span class="highlight">creativity</span> and <span class="highlight">personhood</span>.</p>
-    <div class="social-media-container">
-      <div class="social-media-icons">
-        <a href="https://twitter.com/augustwester"><img src="/assets/icons/twitter.svg" style="width:35px;height:28px;"></a>
-        <a href="https://github.com/augustwester"><img src="/assets/icons/github.svg" style="width:28px;height:28px;"></a>
-        <a href="mailto:august.wester@gmail.com"><img src="/assets/icons/email.svg" style="width:28px;height:28px;"></a>
-      </div>
-    </div>
-</div>
-    <div id="overlay">
-      <div id="content">
-        <header class="top-header">
-    <a onclick="toggleSidebar()"><div id="hamburger">
-      <div class="sidebar-icon-top"></div>
-      <div class="sidebar-icon-bottom"></div>
-    </div></a>
-    <div class="inner-header">
-      <div class="logo-container">
-        <a href="/"><span class="logo">sigmoid<span class="prime">′</span></span></a>
-        <span class="tagline">approachable machine learning.</span>
-      </div>
-    </div>
-</header>
-        <main style="margin-top:80px;">
-          <div class="article-container ">
-            <article>
-              <header>
-                <h1 class="post-title">How to Build (and Understand) a Neural Network Pt. 4: Backpropagation</h1>
-              </header>
-              <div class="date-ct">
-                <span class="date-span">
-                  <p>26 December 2017</p>
-                </span>
-                
-                <div style="clear:both"></div>
-              </div>
-              
-<p>In this final post of the series, we will see how to apply <strong>backpropagation</strong> to the neural net we built in the last chapter. Backpropagation will allow our network to incrementally improve itself as it gets exposed to new data, which will ultimately enable it to classify the MNIST test set with close to 95% accuracy.</p>
-
-<p>Recall how we optimized our logistic regression model in <a href="http://sigmoidprime.com/how-to-build-a-neural-network-pt2">Pt. 2</a> by minimizing a loss function using gradient descent? Since backpropagation relies heavily on gradient descent, the intuition behind it bears repeating.</p>
-
-<p><img src="/assets/posts/4/animated.gif" width="850" /></p>
-
-<p>As we saw in <a href="http://sigmoidprime.com/how-to-build-a-neural-network-pt2">Pt. 2</a>, a loss function produces a quantitative measure of the classification accuracy of our model. Given that our model only consists of our weights and biases, it is helpful to imagine a landscape with peaks and valleys (like the one above), where navigating along the €x€ and €y€ axes corresponds to changing our parameters, and where the change in elevation along the €z€ axis corresponds to the resulting change in our loss function. As our model becomes increasingly accurate, the average output of the loss function decreases. When navigating the landscape, this is why we try our best to <em>descend</em> toward the deepest valleys.</p>
-
-<p>Keep in mind that this only serves as a helpful mental image, and not an accurate representation of what is actually going on. In reality, our model will have thousands of parameters, and the peaks and valleys will thus be embedded in very high-dimensional spaces that are impossible to visualize.</p>
-
-<h2 id="the-chain-rule">The chain rule</h2>
-
-<p>As we explored in the previous post, the objective of a learning algorithm for a neural network is to find a configuration of weights and biases that transform the input data into a probability distribution over all of the classes the input sample can belong to.</p>
-
-<p>If we zoom in on what happens to a single sample €a^{(1)}€ as it passes through a network with €l€ layers, we can represent its journey like this:</p>
-
-<p>€€
-a^{(2)} = \sigma(\Theta^{(1)}a^{(1)}+b^{(1)})
-€€</p>
-
-<p>€€
-a^{(3)} = \sigma(\Theta^{(2)}a^{(2)}+b^{(2)})
-€€</p>
-
-<p>€€
-\vdots
-€€</p>
-
-<p>€€
-\hat{y} = \text{softmax}(\Theta^{(l-1)}a^{(l-1)}+b^{(l-1)})
-€€</p>
-
-<p>In order to see exactly how our weights are affecting the loss (and thus how changing them can move us closer to the valleys), we need to brush up on the <strong>chain rule</strong>. The chain rule tells us how to derive a function with respect to variables inside nested functions. For instance, take the following expression:</p>
-
-<p>€€
-f(g(2x))
-€€</p>
-
-<p>If we want to know how the value of €x€ influences the value of €f€, the chain rule tells us that we have to derive the outside function and then incrementally multiply by the derivatives of the nested functions like so:</p>
-
-<p>€€
-\frac{\partial f}{\partial x} = \frac{\partial f}{\partial g} \cdot \frac{\partial g}{\partial 2x} \cdot \frac{\partial 2x}{\partial x}
-€€</p>
-
-<p>What this expression signifies is actually quite remarkable. It tells us <em>exactly</em> how changing the value of €x€ affects the value of €f€, even though €x€ is buried inside multiple nested functions. This is crucial knowledge when the time comes to navigate the landscape of the loss function.</p>
-
-<h2 id="a-small-update-to-the-cross-entropy-loss-function">A small update to the cross-entropy loss function</h2>
-
-<p>This is the cross-entropy loss function. It looks a little different from the one we saw in <a href="http://sigmoidprime.com/how-to-build-a-neural-network-pt2">Pt. 2</a>, but the idea behind it is exactly the same.</p>
-
-<p>€€
-\frac{1}{m} \sum\limits_{j=1}^{m} \sum\limits_{i=1}^{n} - y_{i,j} \log(\hat{y}_{i,j}) - (1 - y_{i,j}) \log(1 - \hat{y}_{i,j})
-€€</p>
-
-<p>Where in <a href="http://sigmoidprime.com/how-to-build-a-neural-network-pt2">Pt. 2</a>, we only had a single output for each sample, now we have 10 (each output represents the probability of the input image being a digit from 0-9), so instead of merely summing over €m€ samples, we also sum over the €n€ outputs for each sample.</p>
-
-<h2 id="backpropagating-our-way-through-a-three-layered-network">Backpropagating our way through a three-layered network</h2>
-
-<p>In the following, we will explore the mechanics of backpropagation through a three-layered neural network (a network with one input layer, one hidden layer, and one output layer) and for a mini-batch €A^{(1)}€ of 75 samples. The entire forward pass of such a network (including evaluation of the cross-entropy loss function €C€) can be expressed like this:</p>
-
-<p>€€
-C(\hat{Y}, Y) = C(\text{softmax}(\Theta^{(2)}\sigma(\Theta^{(1)}A^{(1)}+b^{(1)}) + b^{(2)}), Y)
-€€</p>
-
-<p>With our neural net represented as functions nested inside other functions, we’re now poised to figure out how changing the parameters €\Theta^{(1)}€, €\Theta^{(2)}€, €b^{(1)}€, and €b^{(2)}€ influences the loss €C€. To do this, we first need to find €\frac{\partial C}{\partial b^{(2)}}€ and €\frac{\partial C}{\partial \Theta^{(2)}}€, and this is where the chain rule comes into the picture.</p>
-
-<p>Notice that since our parameters are not represented as scalars but as vectors and matrices, we will be using the gradient notation €\nabla_{\hat{Y}}C€ instead of €\frac{\partial C}{\partial \hat{Y}}€.</p>
-
-<p>When we apply the chain rule to find the gradient of €C€ w.r.t. €b^{(2)}€ and €\Theta^{(2)}€, we get the following:</p>
-
-<p>€€
-\nabla_{b^{(2)}}C =
-\nabla_{Z^{(2)}} \hat{Y}
-\odot
-\nabla_{\hat{Y}}C
-€€</p>
-
-<p>€€
-\nabla_{\Theta^{(2)}}C = \nabla_{b^{(2)}}C \times (\nabla_{\Theta^{(2)}}Z^{(2)})^{\text{T}}
-€€</p>
-
-<p>This expression demands a bit of explanation:</p>
-
-<ul>
-  <li>€\odot€ signifies “element-wise multiplication”. That is, if you have two matrices of equal dimensions, you multiply their corresponding elements, resulting in a new, identically shaped matrix.</li>
-  <li>€Z^{(2)}€ is our shorthand expression for the weighted input to the output layer. This would be a €10 \times 1€ matrix given a single sample as input to the network, and a €10 \times 75€ matrix given a mini-batch of 75 samples.</li>
-  <li>Superscript €\text{T}€ means <strong>transposition</strong>. When you transpose a matrix, you turn its row vectors into column vectors and vice-versa. Thus, a transposed €5 \times 10€ matrix is a €10 \times 5€ matrix.</li>
-</ul>
-
-<p>With that out of the way, let us walk through the expression one step at a time: First we do element-wise multiplication between €\nabla_{\hat{Y}}C€ and €\nabla_{Z^{(2)}} \hat{Y}€. Since the shape of both of these matrices is €10 \times 75€, the result is a new €10 \times 75€ matrix containing the products of their corresponding elements. To get the average of €{\nabla_{b^{(2)}}}C€, we collapse it into a €10 \times 1€ vector by summing along all 10 rows. The resulting €10 \times 1€ vector is then divided by 75 in order to give us the average gradient across all 75 samples in the mini-batch.</p>
-
-<p>Given that €\nabla_{\Theta^{(2)}}Z^{(2)}€ contains the partial derivatives w.r.t. each weight in €\Theta^{(2)}€, €\nabla_{\Theta^{(2)}}Z^{(2)}€ must be equal to the activations of the hidden layer €A^{(2)}€. If we assume that the hidden layer has three neurons, €\nabla_{\Theta^{(2)}}Z^{(2)}€ must therefore be of shape €3 \times 75€. Multiplying €{\nabla_{b^{(2)}}}C€ by the transpose of €\nabla_{\Theta^{(2)}}Z^{(2)}€ yields a €10 \times 3€ matrix that matches the shape of €\Theta^{(2)}€. Note that had we not transposed €\nabla_{\Theta^{(2)}}Z^{(2)}€, we wouldn’t have been able to multiply the two matrices, since their original shapes don’t match up.</p>
-
-<p>Matrix multiplication can be quite tricky to wrap one’s head around, so don’t sweat it if you are a bit perplexed. Just know that, had we been dealing with scalars, the equivalent expressions would look like this:</p>
-
-<p>€€
-\frac{\partial C}{\partial b^{(2)}} = \frac{\partial C}{\partial \hat{y}} \cdot \frac{\partial \hat{y}}{\partial z^{(2)}}
-€€
-€€
-\frac{\partial C}{\partial \Theta^{(2)}} = \frac{\partial C}{\partial \hat{y}} \cdot \frac{\partial \hat{y}}{\partial z^{(2)}} \cdot \frac{\partial z^{(2)}}{\partial \Theta^{(2)}}
-€€</p>
-
-<p>We now have the derivatives of €C€ w.r.t. each individual weight in €\Theta^{(2)}€. However, these are the <em>combined</em> gradients of all 75 samples in our mini-batch. To get some truly useful values, we simply have to divide by 75. This way, we again get the <em>average</em> of our 75 individual gradients, and we will thus minimize the loss function in a way that satisfies the greatest possible number of samples. Neat!</p>
-
-<p>One more thing regarding the above expression: When you do element-wise multiplication between €\nabla_{\hat{Y}}C€ and €\nabla_{Z^{(2)}} \hat{Y}€, you discover something wonderful: It turns out that it simplifies to €\hat{Y}-Y€.</p>
-
-<p>Knowing all of this, the final expression for €\nabla_{\Theta^{(2)}}C€ for a mini-batch of €m€ samples can now be expressed as:</p>
-
-<p>€€
-\nabla_{\Theta^{(2)}}C = \frac{1}{m}((\hat{Y}-Y) \times (A^{(2)})^{\text{T}})
-€€</p>
-
-<p>Our hypothetical network has one hidden layer, which means it has two sets of weights and biases. We will therefore need to find €\nabla_{\Theta^{(1)}}C€ and €\nabla_{b^{(1)}}C€ as well. Since derivations like these can become quite tedious, I will skip most of them going forward. If you want, you can try and do them yourself — it’s a good exercise!</p>
-
-<p>Once you have found the gradients for all weights and biases, it is time to update their values. In <a href="http://sigmoidprime.com/how-to-build-a-neural-network-pt2">Pt. 2</a>, we updated our parameters using the following update rule:</p>
-
-<p>€€
-\Theta^{(i)}:=\Theta^{(i)}-\nabla_{\Theta^{(i)}}C
-€€</p>
-
-<p>This time, we are going to do <em>almost</em> the same; the slight twist being that I am going to introduce a <strong>learning rate</strong>. As the name implies, a learning rate (denoted €\alpha€) determines the rate with which our model learns, and is simply a coefficient on the gradient. While a learning rate sounds like something you would want to crank all the way up, this immediately creates a problem.</p>
-
-<p><img src="/assets/posts/4/learning_rates.gif" width="800" /></p>
-
-<p>As shown above, a learning rate which is too large (illustrated on the right) can cause an algorithm to overshoot the minimum of its loss function. This happens because increasing the learning rate tells our parameters to take bigger and bigger steps when moving across the landscape. Since the steps are proportional to the slope of the function at any given point, a large learning rate can cause a runaway effect (as shown above). At the same time however, you want the learning rate to be large enough to approach the minimum at as rapid a pace as possible. Finding a good balance can be difficult, which is why techniques such as learning rate decay (that are outside the scope of this post) have been invented. In this example, we will simply be using a constant learning rate of 0.002. Our update rules will thus look like this:</p>
-
-<p>€€
-\Theta^{(i)}:=\Theta^{(i)}-0.002 \cdot \nabla_{\Theta^{(i)}}C
-€€</p>
-
-<p>€€
-b^{(i)} := b^{(i)} - 0.002 \cdot \nabla_{b^{(i)}}C
-€€</p>
-
-<p>Each time we have sent a mini-batch through the network, we calculate the gradient with respect to all of our parameters and  use these to update their values. This results in the network being slightly better equipped to classify samples during the next forward pass, since we have inched a little closer to the bottom of a valley.</p>
-
-<h2 id="backpropagation-in-code">Backpropagation in code</h2>
-
-<p>To apply what we have learned, we will extend our <code class="highlighter-rouge">NeuralNetWork</code> class to support backpropagation. To brush up your memory, here is the code we wrote in <a href="http://sigmoidprime.com/how-to-build-a-neural-network-pt3">Pt. 3</a>:</p>
-
-<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<!doctype html> <html lang="en"> <head> <meta charset="utf-8"> <title>sigmoid prime: approachable machine learning</title> <meta name="description" content="Striving for intuitive explanations of machine learning algorithms."> <meta name="twitter:card" content="summary_large_image"> <meta name="twitter:creator" content="@augustwester"> <meta name="twitter:title" content="How to Build (and Understand) a Neural Network Pt. 4: Backpropagation"> <meta name="twitter:description" content="A guide to backpropagation in neural networks."> <meta name="twitter:image" content="http://sigmoidprime.com//assets/posts/4/thumb.png"> <link rel="stylesheet" href="/css/style.css"> <link rel="stylesheet" href="/libs/highlight/styles/github.min.css"> <link rel="stylesheet" href="/libs/katex/katex.min.css"> <link rel="stylesheet" href="/libs/c3/c3.min.css"> <link rel="apple-touch-icon-precomposed" sizes="57x57" href="/assets/favicons/apple-touch-icon-57x57.png"> <link rel="apple-touch-icon-precomposed" sizes="114x114" href="/assets/favicons/apple-touch-icon-114x114.png"> <link rel="apple-touch-icon-precomposed" sizes="72x72" href="/assets/favicons/apple-touch-icon-72x72.png"> <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/assets/favicons/apple-touch-icon-144x144.png"> <link rel="apple-touch-icon-precomposed" sizes="60x60" href="/assets/favicons/apple-touch-icon-60x60.png"> <link rel="apple-touch-icon-precomposed" sizes="120x120" href="/assets/favicons/apple-touch-icon-120x120.png"> <link rel="apple-touch-icon-precomposed" sizes="76x76" href="/assets/favicons/apple-touch-icon-76x76.png"> <link rel="apple-touch-icon-precomposed" sizes="152x152" href="/assets/favicons/apple-touch-icon-152x152.png"> <link rel="icon" type="image/png" href="/assets/favicons/favicon-196x196.png" sizes="196x196"> <link rel="icon" type="image/png" href="/assets/favicons/favicon-96x96.png" sizes="96x96"> <link rel="icon" type="image/png" href="/assets/favicons/favicon-32x32.png" sizes="32x32"> <link rel="icon" type="image/png" href="/assets/favicons/favicon-16x16.png" sizes="16x16"> <link rel="icon" type="image/png" href="/assets/favicons/favicon-128.png" sizes="128x128"> <script src="/libs/highlight/highlight.pack.js"></script> <script src="/libs/katex/katex.min.js"></script> <script src="/libs/katex/contrib/auto-render.js"></script> <script>hljs.initHighlightingOnLoad();</script> </head> <body> <div id="sidebar"> <div class="picture"></div> <p class="hi">Hi. I'm <span class="highlight">August</span>.</p> <p class="bio">I'm a Master's student in computer science at the IT University in <span class="highlight">Copenhagen</span> where I'm specializing in <span class="highlight">machine learning</span>.</p> <p class="bio">During my studies, I have focused primarily on the topic of generative models and adversarial robustness. More recently, I have become fascinated with <span class="highlight">causal inference</span>.</p> <p class="bio">I'm driven by the idea of one day creating software with <span class="highlight">creativity</span> and <span class="highlight">personhood</span>.</p> <div class="social-media-container"> <div class="social-media-icons"> <a href="https://twitter.com/augustwester"><img src="/assets/icons/twitter.svg" style="width:35px;height:28px;"></a> <a href="https://github.com/augustwester"><img src="/assets/icons/github.svg" style="width:28px;height:28px;"></a> <a href="mailto:august.wester@gmail.com"><img src="/assets/icons/email.svg" style="width:28px;height:28px;"></a> </div> </div> </div> <div id="overlay"> <div id="content"> <header class="top-header"> <div id="hamburger" onclick="toggleSidebar()"> <div class="sidebar-icon-top"></div> <div class="sidebar-icon-bottom"></div> </div> <div class="inner-header"> <div class="logo-container"> <a href="/"><span class="logo">sigmoid<span class="prime">′</span></span></a> <span class="tagline">approachable machine learning.</span> </div> </div> </header> <main style="margin-top:80px;"> <div class="article-container "> <article> <header> <h1 class="post-title">How to Build (and Understand) a Neural Network Pt. 4: Backpropagation</h1> </header> <div class="date-ct"> <span class="date-span"> <p>26 December 2017</p> </span> <div style="clear:both"></div> </div> <p>In this final post of the series, we will see how to apply <strong>backpropagation</strong> to the neural net we built in the last chapter. Backpropagation will allow our network to incrementally improve itself as it gets exposed to new data, which will ultimately enable it to classify the MNIST test set with close to 95% accuracy.</p> <p>Recall how we optimized our logistic regression model in <a href="http://sigmoidprime.com/how-to-build-a-neural-network-pt2">Pt. 2</a> by minimizing a loss function using gradient descent? Since backpropagation relies heavily on gradient descent, the intuition behind it bears repeating.</p> <p><img src="/assets/posts/4/animated.gif" width="850" /></p> <p>As we saw in <a href="http://sigmoidprime.com/how-to-build-a-neural-network-pt2">Pt. 2</a>, a loss function produces a quantitative measure of the classification accuracy of our model. Given that our model only consists of our weights and biases, it is helpful to imagine a landscape with peaks and valleys (like the one above), where navigating along the €x€ and €y€ axes corresponds to changing our parameters, and where the change in elevation along the €z€ axis corresponds to the resulting change in our loss function. As our model becomes increasingly accurate, the average output of the loss function decreases. When navigating the landscape, this is why we try our best to <em>descend</em> toward the deepest valleys.</p> <p>Keep in mind that this only serves as a helpful mental image, and not an accurate representation of what is actually going on. In reality, our model will have thousands of parameters, and the peaks and valleys will thus be embedded in very high-dimensional spaces that are impossible to visualize.</p> <h2 id="the-chain-rule">The chain rule</h2> <p>As we explored in the previous post, the objective of a learning algorithm for a neural network is to find a configuration of weights and biases that transform the input data into a probability distribution over all of the classes the input sample can belong to.</p> <p>If we zoom in on what happens to a single sample €a^{(1)}€ as it passes through a network with €l€ layers, we can represent its journey like this:</p> <p>€€ a^{(2)} = \sigma(\Theta^{(1)}a^{(1)}+b^{(1)}) €€</p> <p>€€ a^{(3)} = \sigma(\Theta^{(2)}a^{(2)}+b^{(2)}) €€</p> <p>€€ \vdots €€</p> <p>€€ \hat{y} = \text{softmax}(\Theta^{(l-1)}a^{(l-1)}+b^{(l-1)}) €€</p> <p>In order to see exactly how our weights are affecting the loss (and thus how changing them can move us closer to the valleys), we need to brush up on the <strong>chain rule</strong>. The chain rule tells us how to derive a function with respect to variables inside nested functions. For instance, take the following expression:</p> <p>€€ f(g(2x)) €€</p> <p>If we want to know how the value of €x€ influences the value of €f€, the chain rule tells us that we have to derive the outside function and then incrementally multiply by the derivatives of the nested functions like so:</p> <p>€€ \frac{\partial f}{\partial x} = \frac{\partial f}{\partial g} \cdot \frac{\partial g}{\partial 2x} \cdot \frac{\partial 2x}{\partial x} €€</p> <p>What this expression signifies is actually quite remarkable. It tells us <em>exactly</em> how changing the value of €x€ affects the value of €f€, even though €x€ is buried inside multiple nested functions. This is crucial knowledge when the time comes to navigate the landscape of the loss function.</p> <h2 id="a-small-update-to-the-cross-entropy-loss-function">A small update to the cross-entropy loss function</h2> <p>This is the cross-entropy loss function. It looks a little different from the one we saw in <a href="http://sigmoidprime.com/how-to-build-a-neural-network-pt2">Pt. 2</a>, but the idea behind it is exactly the same.</p> <p>€€ \frac{1}{m} \sum\limits_{j=1}^{m} \sum\limits_{i=1}^{n} - y_{i,j} \log(\hat{y}_{i,j}) - (1 - y_{i,j}) \log(1 - \hat{y}_{i,j}) €€</p> <p>Where in <a href="http://sigmoidprime.com/how-to-build-a-neural-network-pt2">Pt. 2</a>, we only had a single output for each sample, now we have 10 (each output represents the probability of the input image being a digit from 0-9), so instead of merely summing over €m€ samples, we also sum over the €n€ outputs for each sample.</p> <h2 id="backpropagating-our-way-through-a-three-layered-network">Backpropagating our way through a three-layered network</h2> <p>In the following, we will explore the mechanics of backpropagation through a three-layered neural network (a network with one input layer, one hidden layer, and one output layer) and for a mini-batch €A^{(1)}€ of 75 samples. The entire forward pass of such a network (including evaluation of the cross-entropy loss function €C€) can be expressed like this:</p> <p>€€ C(\hat{Y}, Y) = C(\text{softmax}(\Theta^{(2)}\sigma(\Theta^{(1)}A^{(1)}+b^{(1)}) + b^{(2)}), Y) €€</p> <p>With our neural net represented as functions nested inside other functions, we’re now poised to figure out how changing the parameters €\Theta^{(1)}€, €\Theta^{(2)}€, €b^{(1)}€, and €b^{(2)}€ influences the loss €C€. To do this, we first need to find €\frac{\partial C}{\partial b^{(2)}}€ and €\frac{\partial C}{\partial \Theta^{(2)}}€, and this is where the chain rule comes into the picture.</p> <p>Notice that since our parameters are not represented as scalars but as vectors and matrices, we will be using the gradient notation €\nabla_{\hat{Y}}C€ instead of €\frac{\partial C}{\partial \hat{Y}}€.</p> <p>When we apply the chain rule to find the gradient of €C€ w.r.t. €b^{(2)}€ and €\Theta^{(2)}€, we get the following:</p> <p>€€ \nabla_{b^{(2)}}C = \nabla_{Z^{(2)}} \hat{Y} \odot \nabla_{\hat{Y}}C €€</p> <p>€€ \nabla_{\Theta^{(2)}}C = \nabla_{b^{(2)}}C \times (\nabla_{\Theta^{(2)}}Z^{(2)})^{\text{T}} €€</p> <p>This expression demands a bit of explanation:</p> <ul> <li>€\odot€ signifies “element-wise multiplication”. That is, if you have two matrices of equal dimensions, you multiply their corresponding elements, resulting in a new, identically shaped matrix.</li> <li>€Z^{(2)}€ is our shorthand expression for the weighted input to the output layer. This would be a €10 \times 1€ matrix given a single sample as input to the network, and a €10 \times 75€ matrix given a mini-batch of 75 samples.</li> <li>Superscript €\text{T}€ means <strong>transposition</strong>. When you transpose a matrix, you turn its row vectors into column vectors and vice-versa. Thus, a transposed €5 \times 10€ matrix is a €10 \times 5€ matrix.</li> </ul> <p>With that out of the way, let us walk through the expression one step at a time: First we do element-wise multiplication between €\nabla_{\hat{Y}}C€ and €\nabla_{Z^{(2)}} \hat{Y}€. Since the shape of both of these matrices is €10 \times 75€, the result is a new €10 \times 75€ matrix containing the products of their corresponding elements. To get the average of €{\nabla_{b^{(2)}}}C€, we collapse it into a €10 \times 1€ vector by summing along all 10 rows. The resulting €10 \times 1€ vector is then divided by 75 in order to give us the average gradient across all 75 samples in the mini-batch.</p> <p>Given that €\nabla_{\Theta^{(2)}}Z^{(2)}€ contains the partial derivatives w.r.t. each weight in €\Theta^{(2)}€, €\nabla_{\Theta^{(2)}}Z^{(2)}€ must be equal to the activations of the hidden layer €A^{(2)}€. If we assume that the hidden layer has three neurons, €\nabla_{\Theta^{(2)}}Z^{(2)}€ must therefore be of shape €3 \times 75€. Multiplying €{\nabla_{b^{(2)}}}C€ by the transpose of €\nabla_{\Theta^{(2)}}Z^{(2)}€ yields a €10 \times 3€ matrix that matches the shape of €\Theta^{(2)}€. Note that had we not transposed €\nabla_{\Theta^{(2)}}Z^{(2)}€, we wouldn’t have been able to multiply the two matrices, since their original shapes don’t match up.</p> <p>Matrix multiplication can be quite tricky to wrap one’s head around, so don’t sweat it if you are a bit perplexed. Just know that, had we been dealing with scalars, the equivalent expressions would look like this:</p> <p>€€ \frac{\partial C}{\partial b^{(2)}} = \frac{\partial C}{\partial \hat{y}} \cdot \frac{\partial \hat{y}}{\partial z^{(2)}} €€ €€ \frac{\partial C}{\partial \Theta^{(2)}} = \frac{\partial C}{\partial \hat{y}} \cdot \frac{\partial \hat{y}}{\partial z^{(2)}} \cdot \frac{\partial z^{(2)}}{\partial \Theta^{(2)}} €€</p> <p>We now have the derivatives of €C€ w.r.t. each individual weight in €\Theta^{(2)}€. However, these are the <em>combined</em> gradients of all 75 samples in our mini-batch. To get some truly useful values, we simply have to divide by 75. This way, we again get the <em>average</em> of our 75 individual gradients, and we will thus minimize the loss function in a way that satisfies the greatest possible number of samples. Neat!</p> <p>One more thing regarding the above expression: When you do element-wise multiplication between €\nabla_{\hat{Y}}C€ and €\nabla_{Z^{(2)}} \hat{Y}€, you discover something wonderful: It turns out that it simplifies to €\hat{Y}-Y€.</p> <p>Knowing all of this, the final expression for €\nabla_{\Theta^{(2)}}C€ for a mini-batch of €m€ samples can now be expressed as:</p> <p>€€ \nabla_{\Theta^{(2)}}C = \frac{1}{m}((\hat{Y}-Y) \times (A^{(2)})^{\text{T}}) €€</p> <p>Our hypothetical network has one hidden layer, which means it has two sets of weights and biases. We will therefore need to find €\nabla_{\Theta^{(1)}}C€ and €\nabla_{b^{(1)}}C€ as well. Since derivations like these can become quite tedious, I will skip most of them going forward. If you want, you can try and do them yourself — it’s a good exercise!</p> <p>Once you have found the gradients for all weights and biases, it is time to update their values. In <a href="http://sigmoidprime.com/how-to-build-a-neural-network-pt2">Pt. 2</a>, we updated our parameters using the following update rule:</p> <p>€€ \Theta^{(i)}:=\Theta^{(i)}-\nabla_{\Theta^{(i)}}C €€</p> <p>This time, we are going to do <em>almost</em> the same; the slight twist being that I am going to introduce a <strong>learning rate</strong>. As the name implies, a learning rate (denoted €\alpha€) determines the rate with which our model learns, and is simply a coefficient on the gradient. While a learning rate sounds like something you would want to crank all the way up, this immediately creates a problem.</p> <p><img src="/assets/posts/4/learning_rates.gif" width="800" /></p> <p>As shown above, a learning rate which is too large (illustrated on the right) can cause an algorithm to overshoot the minimum of its loss function. This happens because increasing the learning rate tells our parameters to take bigger and bigger steps when moving across the landscape. Since the steps are proportional to the slope of the function at any given point, a large learning rate can cause a runaway effect (as shown above). At the same time however, you want the learning rate to be large enough to approach the minimum at as rapid a pace as possible. Finding a good balance can be difficult, which is why techniques such as learning rate decay (that are outside the scope of this post) have been invented. In this example, we will simply be using a constant learning rate of 0.002. Our update rules will thus look like this:</p> <p>€€ \Theta^{(i)}:=\Theta^{(i)}-0.002 \cdot \nabla_{\Theta^{(i)}}C €€</p> <p>€€ b^{(i)} := b^{(i)} - 0.002 \cdot \nabla_{b^{(i)}}C €€</p> <p>Each time we have sent a mini-batch through the network, we calculate the gradient with respect to all of our parameters and use these to update their values. This results in the network being slightly better equipped to classify samples during the next forward pass, since we have inched a little closer to the bottom of a valley.</p> <h2 id="backpropagation-in-code">Backpropagation in code</h2> <p>To apply what we have learned, we will extend our <code class="highlighter-rouge">NeuralNetWork</code> class to support backpropagation. To brush up your memory, here is the code we wrote in <a href="http://sigmoidprime.com/how-to-build-a-neural-network-pt3">Pt. 3</a>:</p> <figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 
 <span class="k">class</span> <span class="nc">NeuralNetwork</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer_sizes</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
@@ -258,15 +36,7 @@ b^{(i)} := b^{(i)} - 0.002 \cdot \nabla_{b^{(i)}}C
         <span class="k">return</span> <span class="p">(</span><span class="n">Zs</span><span class="p">,</span> <span class="n">As</span><span class="p">,</span> <span class="n">Y_hat</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">sigmoid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Z</span><span class="p">):</span> <span class="k">return</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">Z</span><span class="p">))</span>
-    <span class="k">def</span> <span class="nf">softmax</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Z</span><span class="p">):</span> <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">Z</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></code></pre></figure>
-
-<p>First, we will add a method <code class="highlighter-rouge">sigmoid_prime</code> to <code class="highlighter-rouge">NeuralNetwork</code>. This will be the derivative of the sigmoid activation function €\frac{\partial \sigma}{\partial z}€.</p>
-
-<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">sigmoid_prime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">z</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">z</span><span class="p">))</span></code></pre></figure>
-
-<p>Next, we will add a <code class="highlighter-rouge">backprop</code> method to handle gradient derivation:</p>
-
-<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">backprop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Zs</span><span class="p">,</span> <span class="n">As</span><span class="p">,</span> <span class="n">Y_hat</span><span class="p">,</span> <span class="n">Y</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">softmax</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Z</span><span class="p">):</span> <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">Z</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></code></pre></figure> <p>First, we will add a method <code class="highlighter-rouge">sigmoid_prime</code> to <code class="highlighter-rouge">NeuralNetwork</code>. This will be the derivative of the sigmoid activation function €\frac{\partial \sigma}{\partial z}€.</p> <figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">sigmoid_prime</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">z</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">z</span><span class="p">))</span></code></pre></figure> <p>Next, we will add a <code class="highlighter-rouge">backprop</code> method to handle gradient derivation:</p> <figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">backprop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Zs</span><span class="p">,</span> <span class="n">As</span><span class="p">,</span> <span class="n">Y_hat</span><span class="p">,</span> <span class="n">Y</span><span class="p">):</span>
     <span class="n">weight_gradients</span><span class="p">,</span> <span class="n">bias_gradients</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
     <span class="n">bias_gradient</span> <span class="o">=</span> <span class="n">Y_hat</span> <span class="o">-</span> <span class="n">Y</span>
 
@@ -276,28 +46,11 @@ b^{(i)} := b^{(i)} - 0.002 \cdot \nabla_{b^{(i)}}C
 
         <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="n">bias_gradient</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">thetas</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">bias_gradient</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigmoid_prime</span><span class="p">(</span><span class="n">Zs</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">weight_gradients</span><span class="p">))),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">bias_gradients</span><span class="p">)))</span></code></pre></figure>
-
-<p>Let’s run through this method one step at a time.</p>
-
-<ol>
-  <li>We initialize two lists – <code class="highlighter-rouge">weight_gradients</code> and <code class="highlighter-rouge">bias_gradients</code> — which we will use to hold the gradient matrices for our weights and biases.</li>
-  <li>We calculate <code class="highlighter-rouge">bias_gradient</code>, which initially holds a €10 \times 75€ matrix containing the gradients w.r.t. the output layer’s biases for all 75 samples in our mini-batch.</li>
-  <li>We iterate from the output layer towards the input layer (hence <code class="highlighter-rouge">reversed()</code>), deriving the weight gradients at each step of the way (note that <code class="highlighter-rouge">.T</code> transposes a numpy matrix). We also update the value of <code class="highlighter-rouge">bias_gradient</code> to the gradient w.r.t. the biases in the preceding layer, so we can use this value in the next iteration.</li>
-  <li>Since the gradients have been added in reverse order, we return the numpy representation of the reversed <code class="highlighter-rouge">weight_gradients</code> and <code class="highlighter-rouge">bias_gradients</code> lists.</li>
-</ol>
-
-<p>From here on out, it’s smooth sailing. We’ll first add an <code class="highlighter-rouge">update_params</code> method and a <code class="highlighter-rouge">cross_entropy</code> method to calculate the loss:</p>
-
-<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">update_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">weight_gradients</span><span class="p">,</span> <span class="n">bias_gradients</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">weight_gradients</span><span class="p">))),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="n">bias_gradients</span><span class="p">)))</span></code></pre></figure> <p>Let’s run through this method one step at a time.</p> <ol> <li>We initialize two lists – <code class="highlighter-rouge">weight_gradients</code> and <code class="highlighter-rouge">bias_gradients</code> — which we will use to hold the gradient matrices for our weights and biases.</li> <li>We calculate <code class="highlighter-rouge">bias_gradient</code>, which initially holds a €10 \times 75€ matrix containing the gradients w.r.t. the output layer’s biases for all 75 samples in our mini-batch.</li> <li>We iterate from the output layer towards the input layer (hence <code class="highlighter-rouge">reversed()</code>), deriving the weight gradients at each step of the way (note that <code class="highlighter-rouge">.T</code> transposes a numpy matrix). We also update the value of <code class="highlighter-rouge">bias_gradient</code> to the gradient w.r.t. the biases in the preceding layer, so we can use this value in the next iteration.</li> <li>Since the gradients have been added in reverse order, we return the numpy representation of the reversed <code class="highlighter-rouge">weight_gradients</code> and <code class="highlighter-rouge">bias_gradients</code> lists.</li> </ol> <p>From here on out, it’s smooth sailing. We’ll first add an <code class="highlighter-rouge">update_params</code> method and a <code class="highlighter-rouge">cross_entropy</code> method to calculate the loss:</p> <figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">update_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">weight_gradients</span><span class="p">,</span> <span class="n">bias_gradients</span><span class="p">):</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">weights</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">*</span> <span class="n">weight_gradients</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">biases</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">*</span> <span class="n">bias_gradients</span>
 
-<span class="k">def</span> <span class="nf">cross_entropy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Y_hat</span><span class="p">):</span> <span class="k">return</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">Y_hat</span><span class="o">.</span><span class="n">size</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="nb">sum</span><span class="p">(</span><span class="o">-</span><span class="n">Y</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">Y_hat</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">Y</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">Y_hat</span><span class="p">))</span></code></pre></figure>
-
-<p>We will also add a <code class="highlighter-rouge">train</code> and a <code class="highlighter-rouge">test</code> method that utilize the methods we have already implemented.</p>
-
-<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">epochs</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">cross_entropy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Y_hat</span><span class="p">):</span> <span class="k">return</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">Y_hat</span><span class="o">.</span><span class="n">size</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="nb">sum</span><span class="p">(</span><span class="o">-</span><span class="n">Y</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">Y_hat</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">Y</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">Y_hat</span><span class="p">))</span></code></pre></figure> <p>We will also add a <code class="highlighter-rouge">train</code> and a <code class="highlighter-rouge">test</code> method that utilize the methods we have already implemented.</p> <figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">epochs</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">batch_size</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="n">batch_size</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">num_iter</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">batch_size</span><span class="p">)</span>
 
@@ -318,56 +71,16 @@ b^{(i)} := b^{(i)} - 0.002 \cdot \nabla_{b^{(i)}}C
     <span class="n">num_right</span> <span class="o">=</span> <span class="n">num_samples</span> <span class="o">-</span> <span class="n">num_wrong</span>
     <span class="n">accuracy</span> <span class="o">=</span> <span class="p">(</span><span class="n">num_right</span> <span class="o">/</span> <span class="n">num_samples</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
 
-    <span class="k">print</span><span class="p">(</span><span class="s">"Number of correctly classified images: "</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">num_right</span><span class="p">)</span> <span class="o">+</span> <span class="s">" out of "</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">num_samples</span><span class="p">)</span> <span class="o">+</span> <span class="s">" ("</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">accuracy</span><span class="p">)</span> <span class="o">+</span> <span class="s">")"</span><span class="p">)</span></code></pre></figure>
-
-<h2 id="downloading-mnist">Downloading MNIST</h2>
-
-<p>To download the MNIST dataset, we will use a Python script called <a href="https://github.com/sorki/python-mnist">python-mnist</a> that will make it easy for us to fetch and parse the images in a few lines of code.</p>
-
-<p>First, clone the repo to a fitting directory by running the following command:</p>
-
-<figure class="highlight"><pre><code class="language-shell" data-lang="shell">git clone https://github.com/sorki/python-mnist</code></pre></figure>
-
-<p>To download MNIST, run</p>
-
-<figure class="highlight"><pre><code class="language-shell" data-lang="shell"><span class="nb">cd </span>python-mnist
-./get_data.sh</code></pre></figure>
-
-<p>and the dataset should appear as binary files in a new <code class="highlighter-rouge">data</code> directory. We will also be using python-mnist to process the data, so for this, you can either reference the files you just cloned, or you can install python-mnist globally using pip:</p>
-
-<figure class="highlight"><pre><code class="language-shell" data-lang="shell">pip3 install python-mnist</code></pre></figure>
-
-<h2 id="preprocessing-the-data">Preprocessing the data</h2>
-
-<p>In order to use the dataset, it needs to be in a format that matches the architecture of the network we have built.</p>
-
-<p>To do this, create a new Python file called <code class="highlighter-rouge">main.py</code> in the same directory as <code class="highlighter-rouge">neural_network.py</code>. In it, import the MNIST class from python-mnist as well as NumPy, pickle and our <code class="highlighter-rouge">NeuralNetwork</code> class.</p>
-
-<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">pickle</span> <span class="c"># for saving the neural net to disk after training</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">"Number of correctly classified images: "</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">num_right</span><span class="p">)</span> <span class="o">+</span> <span class="s">" out of "</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">num_samples</span><span class="p">)</span> <span class="o">+</span> <span class="s">" ("</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">accuracy</span><span class="p">)</span> <span class="o">+</span> <span class="s">")"</span><span class="p">)</span></code></pre></figure> <h2 id="downloading-mnist">Downloading MNIST</h2> <p>To download the MNIST dataset, we will use a Python script called <a href="https://github.com/sorki/python-mnist">python-mnist</a> that will make it easy for us to fetch and parse the images in a few lines of code.</p> <p>First, clone the repo to a fitting directory by running the following command:</p> <figure class="highlight"><pre><code class="language-shell" data-lang="shell">git clone https://github.com/sorki/python-mnist</code></pre></figure> <p>To download MNIST, run</p> <figure class="highlight"><pre><code class="language-shell" data-lang="shell"><span class="nb">cd </span>python-mnist
+./get_data.sh</code></pre></figure> <p>and the dataset should appear as binary files in a new <code class="highlighter-rouge">data</code> directory. We will also be using python-mnist to process the data, so for this, you can either reference the files you just cloned, or you can install python-mnist globally using pip:</p> <figure class="highlight"><pre><code class="language-shell" data-lang="shell">pip3 install python-mnist</code></pre></figure> <h2 id="preprocessing-the-data">Preprocessing the data</h2> <p>In order to use the dataset, it needs to be in a format that matches the architecture of the network we have built.</p> <p>To do this, create a new Python file called <code class="highlighter-rouge">main.py</code> in the same directory as <code class="highlighter-rouge">neural_network.py</code>. In it, import the MNIST class from python-mnist as well as NumPy, pickle and our <code class="highlighter-rouge">NeuralNetwork</code> class.</p> <figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">pickle</span> <span class="c"># for saving the neural net to disk after training</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">mnist</span> <span class="kn">import</span> <span class="n">MNIST</span>
-<span class="kn">from</span> <span class="nn">neural_network</span> <span class="kn">import</span> <span class="n">NeuralNetwork</span></code></pre></figure>
-
-<p>Next, let’s load the actual MNIST data into memory. The <code class="highlighter-rouge">load_training</code> and <code class="highlighter-rouge">load_testing</code> methods in python-mnist will convert the binary files we downloaded before into regular Python lists.</p>
-
-<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">print</span><span class="p">(</span><span class="s">"Loading MNIST..."</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">neural_network</span> <span class="kn">import</span> <span class="n">NeuralNetwork</span></code></pre></figure> <p>Next, let’s load the actual MNIST data into memory. The <code class="highlighter-rouge">load_training</code> and <code class="highlighter-rouge">load_testing</code> methods in python-mnist will convert the binary files we downloaded before into regular Python lists.</p> <figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">print</span><span class="p">(</span><span class="s">"Loading MNIST..."</span><span class="p">)</span>
 <span class="n">mndata</span> <span class="o">=</span> <span class="n">MNIST</span><span class="p">(</span><span class="s">'python-mnist/data'</span><span class="p">)</span>
 <span class="n">train_images</span><span class="p">,</span> <span class="n">train_labels</span> <span class="o">=</span> <span class="n">mndata</span><span class="o">.</span><span class="n">load_training</span><span class="p">()</span>
-<span class="n">test_images</span><span class="p">,</span> <span class="n">test_labels</span> <span class="o">=</span> <span class="n">mndata</span><span class="o">.</span><span class="n">load_testing</span><span class="p">()</span></code></pre></figure>
-
-<p>Since we’ll need the functionality provided by numpy arrays inside of our neural net, we convert the lists <code class="highlighter-rouge">train_images</code> and <code class="highlighter-rouge">test_images</code> by wrapping them in a call to <code class="highlighter-rouge">np.array()</code>. We also need to convert the labels into a proper format.</p>
-
-<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="o">&gt;&gt;&gt;</span> <span class="n">train_labels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="mi">5</span></code></pre></figure>
-
-<p>As you can see, the labels are represented as a single number between 0-9. You may remember that in order to compute the loss, we need not just the network’s outputted probability distribution, but the ground truth for each of the 10 possible classes as well. Concretely, we want something like this instead:</p>
-
-<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="o">&gt;&gt;&gt;</span> <span class="n">train_labels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span></code></pre></figure>
-
-<p>The code below ensures that the variables <code class="highlighter-rouge">X_train</code>, <code class="highlighter-rouge">Y_train</code>, <code class="highlighter-rouge">X_test</code>, and <code class="highlighter-rouge">Y_test</code> contains the samples and labels in a format suited to our network. It also performs feature standardization (see <a href="http://sigmoidprime.com/how-to-build-a-neural-network-pt2">Pt. 2</a>) on the samples to keep the numbers small.</p>
-
-<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">X_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">train_images</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="n">test_images</span><span class="p">,</span> <span class="n">test_labels</span> <span class="o">=</span> <span class="n">mndata</span><span class="o">.</span><span class="n">load_testing</span><span class="p">()</span></code></pre></figure> <p>Since we’ll need the functionality provided by numpy arrays inside of our neural net, we convert the lists <code class="highlighter-rouge">train_images</code> and <code class="highlighter-rouge">test_images</code> by wrapping them in a call to <code class="highlighter-rouge">np.array()</code>. We also need to convert the labels into a proper format.</p> <figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="o">&gt;&gt;&gt;</span> <span class="n">train_labels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="mi">5</span></code></pre></figure> <p>As you can see, the labels are represented as a single number between 0-9. You may remember that in order to compute the loss, we need not just the network’s outputted probability distribution, but the ground truth for each of the 10 possible classes as well. Concretely, we want something like this instead:</p> <figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="o">&gt;&gt;&gt;</span> <span class="n">train_labels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span></code></pre></figure> <p>The code below ensures that the variables <code class="highlighter-rouge">X_train</code>, <code class="highlighter-rouge">Y_train</code>, <code class="highlighter-rouge">X_test</code>, and <code class="highlighter-rouge">Y_test</code> contains the samples and labels in a format suited to our network. It also performs feature standardization (see <a href="http://sigmoidprime.com/how-to-build-a-neural-network-pt2">Pt. 2</a>) on the samples to keep the numbers small.</p> <figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">X_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">train_images</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 <span class="n">Y_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">10</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">train_labels</span><span class="p">)))</span>
 <span class="n">X_test</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">test_images</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 <span class="n">Y_test</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">10</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">test_labels</span><span class="p">)))</span>
@@ -378,19 +91,7 @@ b^{(i)} := b^{(i)} - 0.002 \cdot \nabla_{b^{(i)}}C
 
 <span class="k">print</span><span class="p">(</span><span class="s">"Performing feature standardization..."</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X_train</span><span class="p">)):</span> <span class="n">X_train</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">X_train</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">X_train</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">X_train</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X_test</span><span class="p">)):</span> <span class="n">X_test</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">X_test</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">X_test</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">X_test</span><span class="p">[</span><span class="n">i</span><span class="p">])</span></code></pre></figure>
-
-<h2 id="training-and-testing-our-network">Training and testing our network</h2>
-
-<p>The time has now finally come to initialize our neural network. I have chosen an architecture of six hidden layers each containing 50 neurons, and a learning rate of 0.002:</p>
-
-<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">nn</span> <span class="o">=</span> <span class="n">NeuralNetwork</span><span class="p">(</span><span class="n">layer_sizes</span><span class="o">=</span><span class="p">[</span><span class="mi">784</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">10</span><span class="p">],</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.002</span><span class="p">)</span></code></pre></figure>
-
-<p>As you can see, we have made it easy to tweak and tune the hyperparameters of the network, so feel free to experiment as much as you’d like.</p>
-
-<p>We can now train the network by calling the <code class="highlighter-rouge">train</code> method, then test its accuracy by calling <code class="highlighter-rouge">test</code> immediately afterwards. We will also make sure to save it to disk using pickle in case you want to mess around with it afterwards. Note that the <code class="highlighter-rouge">X_train</code> and <code class="highlighter-rouge">X_test</code> are transposed, since we want each sample to be represented by a column vector.</p>
-
-<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">print</span><span class="p">(</span><span class="s">"Beginning training..."</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X_test</span><span class="p">)):</span> <span class="n">X_test</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">X_test</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">X_test</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">X_test</span><span class="p">[</span><span class="n">i</span><span class="p">])</span></code></pre></figure> <h2 id="training-and-testing-our-network">Training and testing our network</h2> <p>The time has now finally come to initialize our neural network. I have chosen an architecture of six hidden layers each containing 50 neurons, and a learning rate of 0.002:</p> <figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">nn</span> <span class="o">=</span> <span class="n">NeuralNetwork</span><span class="p">(</span><span class="n">layer_sizes</span><span class="o">=</span><span class="p">[</span><span class="mi">784</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">10</span><span class="p">],</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.002</span><span class="p">)</span></code></pre></figure> <p>As you can see, we have made it easy to tweak and tune the hyperparameters of the network, so feel free to experiment as much as you’d like.</p> <p>We can now train the network by calling the <code class="highlighter-rouge">train</code> method, then test its accuracy by calling <code class="highlighter-rouge">test</code> immediately afterwards. We will also make sure to save it to disk using pickle in case you want to mess around with it afterwards. Note that the <code class="highlighter-rouge">X_train</code> and <code class="highlighter-rouge">X_test</code> are transposed, since we want each sample to be represented by a column vector.</p> <figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">print</span><span class="p">(</span><span class="s">"Beginning training..."</span><span class="p">)</span>
 <span class="n">nn</span> <span class="o">=</span> <span class="n">NeuralNetwork</span><span class="p">(</span><span class="n">layer_sizes</span><span class="o">=</span><span class="p">[</span><span class="mi">784</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">10</span><span class="p">],</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.002</span><span class="p">)</span>
 <span class="n">nn</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">X_train</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">Y_train</span><span class="p">,</span> <span class="n">epochs</span><span class="o">=</span><span class="mi">1500</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 
@@ -400,79 +101,8 @@ b^{(i)} := b^{(i)} - 0.002 \cdot \nabla_{b^{(i)}}C
 <span class="k">print</span><span class="p">(</span><span class="s">"Saving the neural net to disk..."</span><span class="p">)</span>
 <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">nn</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="s">"neural_net.p"</span><span class="p">,</span> <span class="s">"wb"</span><span class="p">))</span>
 
-<span class="k">print</span><span class="p">(</span><span class="s">"Done"</span><span class="p">)</span></code></pre></figure>
-
-<p>With these settings, we are going to feed all the images to the network in batches of 10, and we will do that a thousand times. Since there are 60,000 images in the training set, this means that our network has to crunch through 60,000,000 images and update its 52,510 parameters 6,000,000 times. It goes without saying that this is quite an intensive and time-consuming operation, so expect a training time of a couple of hours.</p>
-
-<p>Once you run the script, you should see something similar to the output below. Note that the values aren’t going to be identical, since the parameters of the network have been randomly initialized. The important thing is that the loss is decreasing.</p>
-
-<figure class="highlight"><pre><code class="language-shell" data-lang="shell">loss after Epoch <span class="c">#1: 0.323842013643</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"Done"</span><span class="p">)</span></code></pre></figure> <p>With these settings, we are going to feed all the images to the network in batches of 10, and we will do that a thousand times. Since there are 60,000 images in the training set, this means that our network has to crunch through 60,000,000 images and update its 52,510 parameters 6,000,000 times. It goes without saying that this is quite an intensive and time-consuming operation, so expect a training time of a couple of hours.</p> <p>Once you run the script, you should see something similar to the output below. Note that the values aren’t going to be identical, since the parameters of the network have been randomly initialized. The important thing is that the loss is decreasing.</p> <figure class="highlight"><pre><code class="language-shell" data-lang="shell">loss after Epoch <span class="c">#1: 0.323842013643</span>
 loss after Epoch <span class="c">#2: 0.287431827718</span>
 loss after Epoch <span class="c">#3: 0.273531054997</span>
 loss after Epoch <span class="c">#4: 0.268344457733</span>
-loss after Epoch <span class="c">#5: 0.243978653084</span></code></pre></figure>
-
-<p>By the end of the 1000 epochs, the network’s accuracy on the test set will be printed out:</p>
-
-<figure class="highlight"><pre><code class="language-shell" data-lang="shell">Number of correctly classified images: 9364 of 10000 <span class="o">(</span>0.9364% accuracy<span class="o">)</span></code></pre></figure>
-
-<h2 id="conclusion">Conclusion</h2>
-
-<p>Congratulations! If you have made it all the way through these four parts, I hope you now have a much better understanding of neural nets and how they work. It goes without saying that there is still tons more to learn; even about vanilla neural nets like the ones we have been working with. These include learning rate decay, regularization, alternative activation functions, and much more!</p>
-
-<p>In future posts, I intend to build upon the basic knowledge we have acquired in this series to explore other exciting machine learning methods, such as GANs, capsule networks, and various NLP techniques. Stay tuned, and thanks a lot for reading!</p>
-
-            </article>
-            <br /><br />
-            <footer>
-              <div class="inner-footer">
-                <p><b>Questions? Comments? Corrections?</b></p>
-                <br />
-                <p>Whatever it may be, don't hesitate to let me know. You can get in touch on <a href="http://twitter.com/augustwester" target="_blank">Twitter</a> or via <a href="mailto:august.wester@gmail.com">email</a>.</p>
-              </div>
-            </footer>
-          </div>
-        </main>
-      </div>
-    </div>
-    <script>
-    function toggleSidebar() {
-      let content = document.getElementById("content");
-      let sidebar = document.getElementById("sidebar");
-      let overlay = document.getElementById("overlay");
-      let hamburger = document.getElementById("hamburger");
-
-      if (content.classList.contains("translate-right")) {
-        content.classList.remove("translate-right");
-        sidebar.classList.remove("translate-right");
-        content.style.pointerEvents = "auto";
-        overlay.style.cursor = "auto";
-        document.body.style.overflow = "visible";
-        overlay.onmouseup = undefined;
-      } else {
-        content.classList.add("translate-right");
-        content.style.pointerEvents = "none";
-        overlay.style.cursor = "pointer";
-        sidebar.classList.add("translate-right");
-        content.style.pointerEvents = "none";
-        document.body.style.overflow = "hidden";
-        overlay.onmouseup = function() { toggleSidebar(); }
-      }
-    }
-</script>
-    <script type="text/javascript">
-      var config = [{left:"€€", right:"€€", display:true}, {left: "€", right:"€", display:false}];
-      renderMathInElement(document.body, {delimiters: config});
-    </script>
-    
-    <script>
-    (function(i,s,o,g,r,a,m){i["GoogleAnalyticsObject"]=r;i[r]=i[r]||function(){
-    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-    })(window,document,"script","https://www.google-analytics.com/analytics.js","ga");
-    ga("create", "UA-89251189-1", "auto");
-    ga("send", "pageview");
-</script>
-    
-  </body>
-</html>
+loss after Epoch <span class="c">#5: 0.243978653084</span></code></pre></figure> <p>By the end of the 1000 epochs, the network’s accuracy on the test set will be printed out:</p> <figure class="highlight"><pre><code class="language-shell" data-lang="shell">Number of correctly classified images: 9364 of 10000 <span class="o">(</span>0.9364% accuracy<span class="o">)</span></code></pre></figure> <h2 id="conclusion">Conclusion</h2> <p>Congratulations! If you have made it all the way through these four parts, I hope you now have a much better understanding of neural nets and how they work. It goes without saying that there is still tons more to learn; even about vanilla neural nets like the ones we have been working with. These include learning rate decay, regularization, alternative activation functions, and much more!</p> <p>In future posts, I intend to build upon the basic knowledge we have acquired in this series to explore other exciting machine learning methods, such as GANs, capsule networks, and various NLP techniques. Stay tuned, and thanks a lot for reading!</p> </article> <br /><br /> <footer> <div class="inner-footer"> <p><b>Questions? Comments? Corrections?</b></p> <br /> <p>Whatever it may be, don't hesitate to let me know. You can get in touch on <a href="http://twitter.com/augustwester" target="_blank">Twitter</a> or via <a href="mailto:august.wester@gmail.com">email</a>.</p> </div> </footer> </div> </main> </div> </div> <script> function toggleSidebar() { let content = document.getElementById("content"); let sidebar = document.getElementById("sidebar"); let overlay = document.getElementById("overlay"); let hamburger = document.getElementById("hamburger"); if (content.classList.contains("translate-right")) { content.classList.remove("translate-right"); sidebar.classList.remove("translate-right"); content.style.pointerEvents = "auto"; overlay.style.cursor = "auto"; document.body.style.overflow = "visible"; overlay.onmouseup = undefined; } else { content.classList.add("translate-right"); content.style.pointerEvents = "none"; overlay.style.cursor = "pointer"; sidebar.classList.add("translate-right"); content.style.pointerEvents = "none"; document.body.style.overflow = "hidden"; overlay.onmouseup = function() { toggleSidebar(); } } } </script> <script type="text/javascript"> var config = [{left:"€€", right:"€€", display:true}, {left: "€", right:"€", display:false}]; renderMathInElement(document.body, {delimiters: config}); </script> <script> (function(i,s,o,g,r,a,m){i["GoogleAnalyticsObject"]=r;i[r]=i[r]||function(){ (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o), m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m) })(window,document,"script","https://www.google-analytics.com/analytics.js","ga"); ga("create", "UA-89251189-1", "auto"); ga("send", "pageview"); </script> </body> </html>
