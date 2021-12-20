@@ -5,8 +5,8 @@
     <description>Striving for intuitive explanations of machine learning algorithms.</description>
     <link>http://sigmoidprime.com///</link>
     <atom:link href="http://sigmoidprime.com///feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Mon, 20 Dec 2021 17:54:15 +0100</pubDate>
-    <lastBuildDate>Mon, 20 Dec 2021 17:54:15 +0100</lastBuildDate>
+    <pubDate>Mon, 20 Dec 2021 18:01:18 +0100</pubDate>
+    <lastBuildDate>Mon, 20 Dec 2021 18:01:18 +0100</lastBuildDate>
     <generator>Jekyll v3.3.0</generator>
     
       <item>
@@ -138,7 +138,7 @@ dream_noise.save(&quot;dream_noise.jpg&quot;)
       <item>
         <title>The Inner Workings of Convolutional Nets</title>
         <description>
-&lt;p&gt;Of all the stunning advancements in deep learning made during the last 10 years, the progress in the field of computer vision is perhaps the most striking. At the heart of this progress is a model known as a convolutional neural network – or “CNN” for short – which resembles the structure of the brain’s visual cortex and has become a staple of almost all computer vision systems today.&lt;/p&gt;
+&lt;p&gt;Of all the stunning advancements in deep learning made in the last 10 years, the progress in the field of computer vision is perhaps the most striking. At the heart of this progress is a model known as a convolutional neural network – or “CNN” for short – which resembles the structure of the brain’s visual cortex and has become a staple of almost all computer vision systems today.&lt;/p&gt;
 
 &lt;p&gt;In this post, we will begin by exploring the structure and operations of convolutional nets including kernels, stride, zero-padding, pooling, and more. We will also look at simple regularization techniques that improve a model’s generalization. Finally, we will create and train our own CNN using Keras on an image set known as &lt;a href=&quot;https://www.cs.toronto.edu/~kriz/cifar.html&quot;&gt;CIFAR-10&lt;/a&gt;, achieving around 85% accuracy.&lt;/p&gt;
 
@@ -407,7 +407,7 @@ l + \lambda \sum_{w \in W} w^2
       <item>
         <title>How to Build (and Understand) a Neural Network Pt. 4: Backpropagation</title>
         <description>
-&lt;p&gt;In this final post of the series, we will see how to apply &lt;strong&gt;backpropagation&lt;/strong&gt; to the neural net we built in the last chapter. Backpropagation will allow our network to incrementally improve itself as it gets exposed to new data, which will ultimately enable it to classify the MNIST test set with close to 95% accuracy.&lt;/p&gt;
+&lt;p&gt;In this final post of the series, we will see how to apply &lt;strong&gt;backpropagation&lt;/strong&gt; to the neural net we built in the last chapter. This will allow our network to incrementally improve itself as it gets exposed to new data, which will ultimately enable it to classify the MNIST test set with close to 95% accuracy.&lt;/p&gt;
 
 &lt;p&gt;Recall how we optimized our logistic regression model in &lt;a href=&quot;http://sigmoidprime.com/how-to-build-a-neural-network-pt2&quot;&gt;Pt. 2&lt;/a&gt; by minimizing a loss function using gradient descent? Since backpropagation relies heavily on gradient descent, the intuition behind it bears repeating.&lt;/p&gt;
 
@@ -1045,7 +1045,7 @@ x \cdot y = 0
       <item>
         <title>How to Build (and Understand) a Neural Network Pt. 2: Logistic Regression</title>
         <description>
-&lt;p&gt;In the &lt;a href=&quot;http://sigmoidprime.com/post/how-to-build-a-neural-network-pt-1/&quot;&gt;previous post&lt;/a&gt;, we saw how the perceptron algorithm automatically figured out how to distinguish between the classes of two different types of data samples. This time, we will explore the ideas behind another algorithm — &lt;strong&gt;logistic regression&lt;/strong&gt; — to see how and why it plays a central role in many neural network architectures. We will also demonstrate how it can be used to model slightly more complex and interesting data than the Iris dataset from Pt. 1.&lt;/p&gt;
+&lt;p&gt;In the &lt;a href=&quot;http://sigmoidprime.com/post/how-to-build-a-neural-network-pt-1/&quot;&gt;previous post&lt;/a&gt;, we saw how the perceptron algorithm automatically discovered how to distinguish data points belonging to two different classes. This time, we will explore the ideas behind another algorithm — &lt;strong&gt;logistic regression&lt;/strong&gt; — to see how and why it plays a central role in many neural network architectures. We will also demonstrate how it can be used to model slightly more complex and interesting data than the Iris dataset.&lt;/p&gt;
 
 &lt;h2 id=&quot;predicting-university-admissions&quot;&gt;Predicting university admissions&lt;/h2&gt;
 
