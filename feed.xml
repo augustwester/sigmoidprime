@@ -5,14 +5,14 @@
     <description>Striving for intuitive explanations of machine learning algorithms.</description>
     <link>http://sigmoidprime.com///</link>
     <atom:link href="http://sigmoidprime.com///feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Mon, 20 Dec 2021 18:11:50 +0100</pubDate>
-    <lastBuildDate>Mon, 20 Dec 2021 18:11:50 +0100</lastBuildDate>
+    <pubDate>Tue, 21 Dec 2021 01:57:48 +0100</pubDate>
+    <lastBuildDate>Tue, 21 Dec 2021 01:57:48 +0100</lastBuildDate>
     <generator>Jekyll v3.3.0</generator>
     
       <item>
         <title>DeepDream</title>
         <description>
-&lt;p&gt;Trained neural networks are notoriously opaque. They consist of millions — if not billions — of parameters, and when they fail, explaining why is not always easy. This has prompted researchers to invent novel techniques that reveal to us why neural networks behave the way they do. One such technique is &lt;a href=&quot;https://ai.googleblog.com/2015/06/inceptionism-going-deeper-into-neural.html&quot;&gt;DeepDream&lt;/a&gt;, which, besides being a useful research tool, is also really fun!&lt;/p&gt;
+&lt;p&gt;Trained neural networks are notoriously opaque. They consist of millions — if not billions — of parameters, and when they fail, explaining why is not always easy. This has prompted researchers to invent novel techniques that reveal to us why neural networks behave the way they do. One such technique is &lt;a href=&quot;https://ai.googleblog.com/2015/06/inceptionism-going-deeper-into-neural.html&quot;&gt;DeepDream&lt;/a&gt;, which besides being a useful research tool is also really fun!&lt;/p&gt;
 
 &lt;p&gt;Published in 2015 by Google research scientist &lt;a href=&quot;https://twitter.com/zzznah&quot;&gt;Alex Mordvintsev&lt;/a&gt;, DeepDream is a wonderfully simple technique designed to expose the abstract patterns hidden within the interconnections of trained neural networks. Not long after its publication, DeepDream’s psychedelic imagery quickly infiltrated social media and stoked a public fascination with the strange world of neural nets.&lt;/p&gt;
 
