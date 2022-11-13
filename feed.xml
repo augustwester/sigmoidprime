@@ -5,8 +5,8 @@
     <description>a machine learning blog</description>
     <link>http://sigmoidprime.com///</link>
     <atom:link href="http://sigmoidprime.com///feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Sun, 13 Nov 2022 16:47:36 +0100</pubDate>
-    <lastBuildDate>Sun, 13 Nov 2022 16:47:36 +0100</lastBuildDate>
+    <pubDate>Sun, 13 Nov 2022 20:14:16 +0100</pubDate>
+    <lastBuildDate>Sun, 13 Nov 2022 20:14:16 +0100</lastBuildDate>
     <generator>Jekyll v3.3.0</generator>
     
       <item>
@@ -19,7 +19,7 @@
 
 &lt;p&gt;GFlowNets were proposed in 2021 by Emmanuel and Yoshua Bengio (and collaborators) at Mila &lt;sup id=&quot;fnref:1&quot;&gt;&lt;a href=&quot;#fn:1&quot; class=&quot;footnote&quot;&gt;1&lt;/a&gt;&lt;/sup&gt; and attempt to solve two problems simultaneously: The first problem is that of sampling discrete and composite objects $x$ (i.e. any object which can be built by adding up elements in a sequence of discrete steps). For instance, graphs and molecules are examples of such objects, since they can be sampled by adding nodes/atoms and edges/bonds to the object one step at a time.&lt;/p&gt;
 
-&lt;p&gt;The second problem is that of sampling such objects in proportion to a given non-negative reward or “energy” function $R(x)$. They key phrase here is “in proportion to.” Usually, models are trained to maximize a given reward function, thus converging around one or a few high-reward samples. In contrast, a GFlowNet is trained such that the probability $p(x)$ of sampling an object $x \in \mathcal{X}$ matches that of the normalized reward, i.e.&lt;/p&gt;
+&lt;p&gt;The second problem is that of sampling such objects in proportion to a given non-negative reward or “energy” function $R(x)$. The key phrase here is “in proportion to.” Usually, models are trained to maximize a given reward function, thus converging around one or a few high-reward samples. In contrast, a GFlowNet is trained such that the probability $p(x)$ of sampling an object $x \in \mathcal{X}$ matches that of the normalized reward, i.e.&lt;/p&gt;
 
 &lt;p&gt;€€p(x) = \frac{R(x)}{\sum_{x’ \in \mathcal{X}} R(x’)}.€€&lt;/p&gt;
 
