@@ -2,11 +2,11 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>sigmoid prime</title>
-    <description>Striving for intuitive explanations of machine learning algorithms.</description>
+    <description>a machine learning blog</description>
     <link>http://sigmoidprime.com///</link>
     <atom:link href="http://sigmoidprime.com///feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Tue, 21 Dec 2021 01:57:48 +0100</pubDate>
-    <lastBuildDate>Tue, 21 Dec 2021 01:57:48 +0100</lastBuildDate>
+    <pubDate>Sun, 13 Nov 2022 15:14:33 +0100</pubDate>
+    <lastBuildDate>Sun, 13 Nov 2022 15:14:33 +0100</lastBuildDate>
     <generator>Jekyll v3.3.0</generator>
     
       <item>
@@ -34,7 +34,7 @@
 
 &lt;p class=&quot;subtext&quot;&gt;Select a layer and click play. Darker colors represent higher output values.&lt;/p&gt;
 
-&lt;p&gt;More formally, assume that €x_n€ is the input image for iteration €n€ of the algorithm, and €y€ is the L2 norm of the corresponding output of an arbitrary hidden layer of a &lt;a href=&quot;/post/the-inner-workings-of-convolutional-nets&quot;&gt;CNN&lt;/a&gt;. To maximize €y€, we obtain €\frac{\partial y}{\partial x_n}€ and update the input image using the update rule €x_{n+1} := x_n + \alpha \frac{\partial y}{\partial x_n}€ where €\alpha€ is some predetermined step size. This process is also known as &lt;strong&gt;gradient ascent&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;More formally, assume that $x_n$ is the input image for iteration $n$ of the algorithm, and $y$ is the L2 norm of the corresponding output of an arbitrary hidden layer of a &lt;a href=&quot;/post/the-inner-workings-of-convolutional-nets&quot;&gt;CNN&lt;/a&gt;. To maximize $y$, we obtain $\frac{\partial y}{\partial x_n}$ and update the input image using the update rule $x_{n+1} := x_n + \alpha \frac{\partial y}{\partial x_n}$ where $\alpha$ is some predetermined step size. This process is also known as &lt;strong&gt;gradient ascent&lt;/strong&gt;.&lt;/p&gt;
 
 &lt;p&gt;At a high level, that is all there is to it. However, if we implement this exactly as described, the patterns that appear will occur at a low level of resolution across the image and will often suffer from high-frequency artifacts. While there is nothing inherently wrong with this, we can make use of a few tricks to give our images that extra “pop.”&lt;/p&gt;
 
@@ -50,7 +50,7 @@
 
 &lt;p&gt;Upscaling the changes in this way ensures that the patterns become bigger and more defined, which usually leads to a more intriguing result. You will in other words notice that adjusting the number of octaves is an effective way of managing the size of the patterns in the final image.&lt;/p&gt;
 
-&lt;p&gt;The final thing we need to take care of is the occurrence of high-frequency artifacts that reduce the “smoothness” of our images. One way to combat this is by using what the authors of DeepDream call “jitter,” which is simply randomized application of the &lt;code class=&quot;highlighter-rouge&quot;&gt;np.roll&lt;/code&gt; function. This means that the image is shifted along the €x€ and €y€ axis while maintaining its original dimensions. The animation below illustrates the combined application of octaves and jitter.&lt;/p&gt;
+&lt;p&gt;The final thing we need to take care of is the occurrence of high-frequency artifacts that reduce the “smoothness” of our images. One way to combat this is by using what the authors of DeepDream call “jitter,” which is simply randomized application of the &lt;code class=&quot;highlighter-rouge&quot;&gt;np.roll&lt;/code&gt; function. This means that the image is shifted along the $x$ and $y$ axis while maintaining its original dimensions. The animation below illustrates the combined application of octaves and jitter.&lt;/p&gt;
 
 &lt;iframe src=&quot;/assets/posts/6/octaves-jitter/jitter.html&quot; width=&quot;100%&quot; height=&quot;400px&quot; scrolling=&quot;no&quot; style=&quot;border:none;&quot;&gt;&lt;/iframe&gt;
 
@@ -144,7 +144,7 @@ dream_noise.save(&quot;dream_noise.jpg&quot;)
 
 &lt;h2 id=&quot;cifar-10&quot;&gt;CIFAR-10&lt;/h2&gt;
 
-&lt;p&gt;The CIFAR-10 dataset contains 60,000 €32 \times 32€ images, 50,000 of which are training images. Each image belongs to one of the following 10 classes:&lt;/p&gt;
+&lt;p&gt;The CIFAR-10 dataset contains 60,000 $32 \times 32$ images, 50,000 of which are training images. Each image belongs to one of the following 10 classes:&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;/assets/posts/5/cifar-10.svg&quot; width=&quot;800px&quot; /&gt;&lt;/p&gt;
 
@@ -152,19 +152,19 @@ dream_noise.save(&quot;dream_noise.jpg&quot;)
 
 &lt;h2 id=&quot;what-is-a-convolutional-net&quot;&gt;What is a convolutional net?&lt;/h2&gt;
 
-&lt;p&gt;If you followed my series on &lt;a href=&quot;http://sigmoidprime.com/post/how-to-build-a-neural-network-pt-1/&quot;&gt;How to Build (and Understand) a Neural Network&lt;/a&gt;, you will remember that a “fully connected” or “dense” neural network takes as input one or more data samples, each represented by a flat €n€-dimensional vector. While this is fine for relatively simple problems like MNIST, the one-dimensional structure of the input presents a serious limitation to the kinds of patterns a dense network can discover in the data.&lt;/p&gt;
+&lt;p&gt;If you followed my series on &lt;a href=&quot;http://sigmoidprime.com/post/how-to-build-a-neural-network-pt-1/&quot;&gt;How to Build (and Understand) a Neural Network&lt;/a&gt;, you will remember that a “fully connected” or “dense” neural network takes as input one or more data samples, each represented by a flat $n$-dimensional vector. While this is fine for relatively simple problems like MNIST, the one-dimensional structure of the input presents a serious limitation to the kinds of patterns a dense network can discover in the data.&lt;/p&gt;
 
 &lt;p&gt;For instance, take a moment to consider the problem of object detection in images using a dense neural network. In order to distinguish between objects – say an apple and a banana – a network needs to incorporate some sort of “shape detection”  from which it can draw its distinction. But given the flatness of its input, a dense network has no concept of vertical versus horizontal, and it would thus be blind to a crucial property of its input; namely its multidimensionality.&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;/assets/posts/5/flattened_fruits.svg&quot; width=&quot;800px&quot; /&gt;&lt;/p&gt;
 
-&lt;p class=&quot;subtext&quot;&gt;Flattened €8 \times 8€ images of a banana, apple, orange, kiwi, and pear. This is what a dense network sees.&lt;/p&gt;
+&lt;p class=&quot;subtext&quot;&gt;Flattened $8 \times 8$ images of a banana, apple, orange, kiwi, and pear. This is what a dense network sees.&lt;/p&gt;
 
 &lt;p&gt;This is where convolutional neural nets come into the picture (no pun intended). A CNN is a specialized type of neural network that vastly outperforms dense networks in image recognition tasks, and they do this by first preserving the dimensionality of their input.&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;/assets/posts/5/fruits.svg&quot; width=&quot;800px&quot; /&gt;&lt;/p&gt;
 
-&lt;p class=&quot;subtext&quot;&gt;Unflattened €8 \times 8€ images of a banana, apple, orange, kiwi, and pear. This is what a convolutional neural network sees.&lt;/p&gt;
+&lt;p class=&quot;subtext&quot;&gt;Unflattened $8 \times 8$ images of a banana, apple, orange, kiwi, and pear. This is what a convolutional neural network sees.&lt;/p&gt;
 
 &lt;p&gt;Another key property of CNNs, and the one responsible for their name, is the use of convolutions in place of regular matrix multiplications. Let’s see what this means.&lt;/p&gt;
 
@@ -182,21 +182,21 @@ dream_noise.save(&quot;dream_noise.jpg&quot;)
 
 &lt;p&gt;In a dense network, the weight between a pair of input and output neurons is never shared with another pair of input and output neurons. In a CNN, this is not so. Here, you use a fixed set of weights called a &lt;strong&gt;kernel&lt;/strong&gt;, and slide it over the entire input. This property is called &lt;strong&gt;weight sharing&lt;/strong&gt;, and is one of the primary reasons that CNNs outperform dense networks in accuracy as well as memory efficiency.&lt;/p&gt;
 
-&lt;p&gt;To illustrate how the use of sparse connectivity and weight sharing reduces memory consumption compared to a dense network working on the same data, assume we used a dense network to process RGB images of size €512 \times 512€ pixels. A single image would then be represented by a €512 \times 512 \times 3€ matrix, which, when flattened, would produce a vector of dimension €786.432€. Assuming the first hidden layer in our network had 100 neurons, the first weight matrix alone would have €786.432 \times 100 = 78.643.200€ elements!&lt;/p&gt;
+&lt;p&gt;To illustrate how the use of sparse connectivity and weight sharing reduces memory consumption compared to a dense network working on the same data, assume we used a dense network to process RGB images of size $512 \times 512$ pixels. A single image would then be represented by a $512 \times 512 \times 3$ matrix, which, when flattened, would produce a vector of dimension $786.432$. Assuming the first hidden layer in our network had 100 neurons, the first weight matrix alone would have $786.432 \times 100 = 78.643.200$ elements!&lt;/p&gt;
 
-&lt;p&gt;Conversely, a convolutional net &lt;em&gt;operating on the same flattened data&lt;/em&gt; and with 100 units of output after its first convolution would only require €786.333€ individual weights between the first and second layer (a reduction of 100x). This is because the size of the output equals €m - k + 1€ where €m€ is the size of the input and €k€ is the size of the kernel. Can you see why by looking at the illustration above?&lt;/p&gt;
+&lt;p&gt;Conversely, a convolutional net &lt;em&gt;operating on the same flattened data&lt;/em&gt; and with 100 units of output after its first convolution would only require $786.333$ individual weights between the first and second layer (a reduction of 100x). This is because the size of the output equals $m - k + 1$ where $m$ is the size of the input and $k$ is the size of the kernel. Can you see why by looking at the illustration above?&lt;/p&gt;
 
 &lt;h2 id=&quot;kernels&quot;&gt;Kernels&lt;/h2&gt;
 
-&lt;p&gt;So far, we have talked about the properties of convolutional networks in the context of flat data. Exploring how they operate on higher dimensional data will no doubt make things a bit more interesting. To do that, let us first try to visualize the operations of a CNN with a €3 \times 3€ kernel on a downsampled €8 \times 8€ image from the CIFAR-10 dataset.&lt;/p&gt;
+&lt;p&gt;So far, we have talked about the properties of convolutional networks in the context of flat data. Exploring how they operate on higher dimensional data will no doubt make things a bit more interesting. To do that, let us first try to visualize the operations of a CNN with a $3 \times 3$ kernel on a downsampled $8 \times 8$ image from the CIFAR-10 dataset.&lt;/p&gt;
 
 &lt;iframe src=&quot;/assets/posts/5/1kernel.html&quot; width=&quot;100%&quot; height=&quot;605&quot; scrolling=&quot;no&quot; style=&quot;border:none;&quot;&gt;&lt;/iframe&gt;
 
-&lt;p&gt;There are a few things to bear in mind here. First, while the illustration shows the image as a two-dimensional structure, it is in fact three-dimensional given that it has a width, a height, and a depth in the form of an RGB channel. This means that the kernel itself is actually a €3 \times 3 \times 3€ matrix. Each distinct output – illustrated by the gray and black pixels – is computed in the following way:&lt;/p&gt;
+&lt;p&gt;There are a few things to bear in mind here. First, while the illustration shows the image as a two-dimensional structure, it is in fact three-dimensional given that it has a width, a height, and a depth in the form of an RGB channel. This means that the kernel itself is actually a $3 \times 3 \times 3$ matrix. Each distinct output – illustrated by the gray and black pixels – is computed in the following way:&lt;/p&gt;
 
-&lt;p&gt;The €3 \times 3 \times 3€ kernel is multiplied element-wise with whatever €3 \times 3 \times 3€ region of the input is below it (sometimes called the &lt;strong&gt;receptive field&lt;/strong&gt;). The result of this operation is a new matrix of the same shape, and the sum of all the elements in this matrix is the output at one particular location. This means that, as opposed to the input and the kernel, the output of a convolution is always two-dimensional (hence my attempt to illustrate the output using grayscale colors).&lt;/p&gt;
+&lt;p&gt;The $3 \times 3 \times 3$ kernel is multiplied element-wise with whatever $3 \times 3 \times 3$ region of the input is below it (sometimes called the &lt;strong&gt;receptive field&lt;/strong&gt;). The result of this operation is a new matrix of the same shape, and the sum of all the elements in this matrix is the output at one particular location. This means that, as opposed to the input and the kernel, the output of a convolution is always two-dimensional (hence my attempt to illustrate the output using grayscale colors).&lt;/p&gt;
 
-&lt;p&gt;More formally, the scalar output €z€ at one location is the sum of all elements in the entrywise product of the current receptive field €R€ and the kernel €K€:&lt;/p&gt;
+&lt;p&gt;More formally, the scalar output $z$ at one location is the sum of all elements in the entrywise product of the current receptive field $R$ and the kernel $K$:&lt;/p&gt;
 
 &lt;p&gt;€€
 H = R \odot K
@@ -208,7 +208,7 @@ H = R \odot K
 z = \sum_{l=1}^d \sum_{i=1}^{k} \sum_{j=1}^{k} h_{i,j,l}
 €€&lt;/p&gt;
 
-&lt;p class=&quot;subtext&quot;&gt;Sum of all elements in the entrywise product. €k€ is the width and height of the kernel and receptive field, while €d€ is the depth.&lt;/p&gt;
+&lt;p class=&quot;subtext&quot;&gt;Sum of all elements in the entrywise product. $k$ is the width and height of the kernel and receptive field, while $d$ is the depth.&lt;/p&gt;
 
 &lt;p&gt;A second thing to notice is how the use of weight sharing produces the sense of the kernel sliding over the image. The discrete applications of the same kernel across the entire input results in an important and characteristic property of convolutional nets called &lt;strong&gt;translational invariance&lt;/strong&gt;.&lt;/p&gt;
 
@@ -220,23 +220,23 @@ z = \sum_{l=1}^d \sum_{i=1}^{k} \sum_{j=1}^{k} h_{i,j,l}
 
 &lt;iframe src=&quot;/assets/posts/5/3kernels.html&quot; width=&quot;100%&quot; height=&quot;605&quot; scrolling=&quot;no&quot; style=&quot;border:none;&quot;&gt;&lt;/iframe&gt;
 
-&lt;p&gt;If there are €n€ kernels of size €k \times k \times d€, the output produced by convolving over an input of size €m \times m \times d€ will be €(m - k + 1) \times (m - k + 1) \times n€. In the above case, this comes out to €6 \times 6 \times 3€, which, in this particular example, can be roughly interpreted as a €6 \times 6€ RGB image. This image would then be fed as input to the subsequent convolutional layer in the network.&lt;/p&gt;
+&lt;p&gt;If there are $n$ kernels of size $k \times k \times d$, the output produced by convolving over an input of size $m \times m \times d$ will be $(m - k + 1) \times (m - k + 1) \times n$. In the above case, this comes out to $6 \times 6 \times 3$, which, in this particular example, can be roughly interpreted as a $6 \times 6$ RGB image. This image would then be fed as input to the subsequent convolutional layer in the network.&lt;/p&gt;
 
 &lt;h2 id=&quot;stride&quot;&gt;Stride&lt;/h2&gt;
 
-&lt;p&gt;Another hyperparameter, aside from the size and number of kernels, is &lt;strong&gt;stride&lt;/strong&gt;. In the illustrations shown so far, we have used a stride of €1€, meaning that the kernels sweep across the image in steps of one pixel at a time. To decrease – or even eliminate – the overlap of receptive fields that results from this, we can increase the stride, and force the kernel to take bigger steps along the €x€ and €y€ axes of the input. With stride now in the picture, we need to update the formula for the output size €z€ to:&lt;/p&gt;
+&lt;p&gt;Another hyperparameter, aside from the size and number of kernels, is &lt;strong&gt;stride&lt;/strong&gt;. In the illustrations shown so far, we have used a stride of $1$, meaning that the kernels sweep across the image in steps of one pixel at a time. To decrease – or even eliminate – the overlap of receptive fields that results from this, we can increase the stride, and force the kernel to take bigger steps along the $x$ and $y$ axes of the input. With stride now in the picture, we need to update the formula for the output size $z$ to:&lt;/p&gt;
 
 &lt;p&gt;€€
 z = \frac{m - k}{s} + 1
 €€&lt;/p&gt;
 
-&lt;p class=&quot;subtext&quot;&gt;Where €s=\text{stride}€.&lt;/p&gt;
+&lt;p class=&quot;subtext&quot;&gt;Where $s=\text{stride}$.&lt;/p&gt;
 
 &lt;p&gt;One thing to notice is that increasing the stride always decreases the size of the output along the width and height dimensions. This sometimes proves practical in situations where we want to downscale the computational burden on subsequent layers.&lt;/p&gt;
 
 &lt;h2 id=&quot;zero-padding&quot;&gt;Zero-padding&lt;/h2&gt;
 
-&lt;p&gt;One problem we are currently facing is that a convolution with a kernel larger than €1 \times 1€ &lt;em&gt;always&lt;/em&gt; produces an output smaller than the input. The reason why this is a problem is that it puts an upper bound on the number of layers we can have in our network. To solve this, we use &lt;strong&gt;zero-padding&lt;/strong&gt;, which is simply making the input volume bigger by padding it with zeros along the borders.&lt;/p&gt;
+&lt;p&gt;One problem we are currently facing is that a convolution with a kernel larger than $1 \times 1$ &lt;em&gt;always&lt;/em&gt; produces an output smaller than the input. The reason why this is a problem is that it puts an upper bound on the number of layers we can have in our network. To solve this, we use &lt;strong&gt;zero-padding&lt;/strong&gt;, which is simply making the input volume bigger by padding it with zeros along the borders.&lt;/p&gt;
 
 &lt;p&gt;The final formula for the output size thus becomes:&lt;/p&gt;
 
@@ -244,15 +244,15 @@ z = \frac{m - k}{s} + 1
 z = \frac{(m + 2p) - k}{s} + 1
 €€&lt;/p&gt;
 
-&lt;p class=&quot;subtext&quot;&gt;Where €p=\text{zero-padding}€.&lt;/p&gt;
+&lt;p class=&quot;subtext&quot;&gt;Where $p=\text{zero-padding}$.&lt;/p&gt;
 
-&lt;p&gt;Now, as long as we know the size of the input €m€ and kernel €k€ as well as the stride €s€, we can always rearrange the above expression to find a €p€ which produces an output of the desired size €z€.&lt;/p&gt;
+&lt;p&gt;Now, as long as we know the size of the input $m$ and kernel $k$ as well as the stride $s$, we can always rearrange the above expression to find a $p$ which produces an output of the desired size $z$.&lt;/p&gt;
 
-&lt;p&gt;It is important to note that since the input can only be padded with a whole number of pixels, €p€ must always be an integer. Naturally, this restriction also holds for stride and kernel size.&lt;/p&gt;
+&lt;p&gt;It is important to note that since the input can only be padded with a whole number of pixels, $p$ must always be an integer. Naturally, this restriction also holds for stride and kernel size.&lt;/p&gt;
 
 &lt;h2 id=&quot;relu&quot;&gt;ReLU&lt;/h2&gt;
 
-&lt;p&gt;Just like in a dense network, once a €z \times z \times n€ output matrix has been computed, each element of the matrix is passed – element wise – through a nonlinear activation function.&lt;/p&gt;
+&lt;p&gt;Just like in a dense network, once a $z \times z \times n$ output matrix has been computed, each element of the matrix is passed – element wise – through a nonlinear activation function.&lt;/p&gt;
 
 &lt;p&gt;In the previous series of posts, we used the sigmoid function as our activation function. This time, we will instead use the &lt;a href=&quot;https://en.wikipedia.org/wiki/Rectifier_(neural_networks)&quot;&gt;ReLU function&lt;/a&gt;, which is even simpler, and has been shown to work better than its s-shaped counterpart for a wide range of deep learning tasks.&lt;/p&gt;
 
@@ -264,11 +264,11 @@ f(x) = \max(x, 0)
 
 &lt;p&gt;At this point, we have touched on two of the three main components of a convolutional network layer: the convolution itself (with all its associated hyperparameters) and the activation function. The third component, &lt;strong&gt;pooling&lt;/strong&gt;, simplifies the output for the subsequent layer in the network by reducing it to a kind of summary of the actual activations. This step is not strictly necessary, but it is very commonly applied, since it reduces computational load &lt;em&gt;and&lt;/em&gt; improves accuracy.&lt;/p&gt;
 
-&lt;p&gt;There are multiple variations of pooling; the most common being &lt;strong&gt;max pooling&lt;/strong&gt;, which reduces the size of the input by accentuating the strong activations and attenuating the weaker ones. Similar to sliding a kernel over an image, max pooling takes as input a volume of size €m \times m \times n€ and produces an output of size €\frac{m - k}{s} + 1 \times \frac{m - k}{s} + 1 \times n€ where €k€ is the size of the &lt;strong&gt;pooling window&lt;/strong&gt; and €s€ is the stride. Unlike a kernel however, the pooling window is not a matrix, but simply the region of the input used in each pooling step. This step is very simple: For a window size of €2 \times 2€, output the largest number in the €2 \times 2€ receptive field and discard the others. Note that the pooling window is two-dimensional, and is distinctly applied at each depth layer, meaning that the pooling layer always preserves dimensionality.&lt;/p&gt;
+&lt;p&gt;There are multiple variations of pooling; the most common being &lt;strong&gt;max pooling&lt;/strong&gt;, which reduces the size of the input by accentuating the strong activations and attenuating the weaker ones. Similar to sliding a kernel over an image, max pooling takes as input a volume of size $m \times m \times n$ and produces an output of size $\frac{m - k}{s} + 1 \times \frac{m - k}{s} + 1 \times n$ where $k$ is the size of the &lt;strong&gt;pooling window&lt;/strong&gt; and $s$ is the stride. Unlike a kernel however, the pooling window is not a matrix, but simply the region of the input used in each pooling step. This step is very simple: For a window size of $2 \times 2$, output the largest number in the $2 \times 2$ receptive field and discard the others. Note that the pooling window is two-dimensional, and is distinctly applied at each depth layer, meaning that the pooling layer always preserves dimensionality.&lt;/p&gt;
 
 &lt;h2 id=&quot;classification&quot;&gt;Classification&lt;/h2&gt;
 
-&lt;p&gt;At this point, you might be wondering how we move from convolutional layers to classification. After all, classification ultimately involves a flat vector of probabilities calculated by taking into account the entire input. This is something sparse connectivity doesn’t provide. You &lt;em&gt;could&lt;/em&gt; technically use €n=\text{number of classes}€ kernels of the same size as the input  and run the results through softmax. But why not just flatten the output of the last convolutional layer, and then use &lt;em&gt;that&lt;/em&gt; as input to a simple dense network whose output layer provides us with our classification? (&lt;a href=&quot;http://sigmoidprime.com/post/how-to-build-a-neural-network-pt-4/&quot;&gt;Backpropagation&lt;/a&gt; will still work great; we simply push the gradients through to the convolutional network instead of stopping at the dense network’s input layer.)&lt;/p&gt;
+&lt;p&gt;At this point, you might be wondering how we move from convolutional layers to classification. After all, classification ultimately involves a flat vector of probabilities calculated by taking into account the entire input. This is something sparse connectivity doesn’t provide. You &lt;em&gt;could&lt;/em&gt; technically use $n=\text{number of classes}$ kernels of the same size as the input  and run the results through softmax. But why not just flatten the output of the last convolutional layer, and then use &lt;em&gt;that&lt;/em&gt; as input to a simple dense network whose output layer provides us with our classification? (&lt;a href=&quot;http://sigmoidprime.com/post/how-to-build-a-neural-network-pt-4/&quot;&gt;Backpropagation&lt;/a&gt; will still work great; we simply push the gradients through to the convolutional network instead of stopping at the dense network’s input layer.)&lt;/p&gt;
 
 &lt;p&gt;This architecture is a staple of most CNNs, and for good reason. The convolutional layers are responsible for feature detection, while the dense layers are tasked with discovering which activations correspond to which classes; a decidedly simpler but equally important task.&lt;/p&gt;
 
@@ -359,13 +359,13 @@ f(x) = \max(x, 0)
 
 &lt;p&gt;Batch normalization simply refers to normalizing the activations of a layer, such that it has a mean of 0 and a standard deviation of 1. While this increases the number of operations performed by the network (and thus slows down the forward and backward passes), it actually speeds up learning and results in an overall decrease in convergence time. You can read more about the advantages of batch normalization &lt;a href=&quot;https://towardsdatascience.com/batch-normalization-8a2e585775c9&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
 
-&lt;p&gt;Kernel regularization refers to adding the individual weights of a kernel to a network’s loss function. This is a very common regularization technique, which prevents overfitting when configured appropriately. If we let €l€ be the value of a loss function for a particular mini batch with no kernel regularization, the value of the loss function &lt;em&gt;with&lt;/em&gt; kernel regularization would then be&lt;/p&gt;
+&lt;p&gt;Kernel regularization refers to adding the individual weights of a kernel to a network’s loss function. This is a very common regularization technique, which prevents overfitting when configured appropriately. If we let $l$ be the value of a loss function for a particular mini batch with no kernel regularization, the value of the loss function &lt;em&gt;with&lt;/em&gt; kernel regularization would then be&lt;/p&gt;
 
 &lt;p&gt;€€
 l + \lambda \sum_{w \in W} w^2
 €€&lt;/p&gt;
 
-&lt;p&gt;where €W€ equals all weights in all kernels with L2 regularization enabled. The €\lambda€ coefficient determines the power of the regularization. Tune it up enough and your model will surely end up underfitting; tune it down and it will be prone to overfitting. In this case, €\lambda = 0.0001€, which seems to work pretty well. (As you can probably tell, configuring these parameters is not a hard science, and one often has to try out different values to see what works best in a given situation.)&lt;/p&gt;
+&lt;p&gt;where $W$ equals all weights in all kernels with L2 regularization enabled. The $\lambda$ coefficient determines the power of the regularization. Tune it up enough and your model will surely end up underfitting; tune it down and it will be prone to overfitting. In this case, $\lambda = 0.0001$, which seems to work pretty well. (As you can probably tell, configuring these parameters is not a hard science, and one often has to try out different values to see what works best in a given situation.)&lt;/p&gt;
 
 &lt;h2 id=&quot;data-augmentation-in-keras&quot;&gt;Data augmentation in Keras&lt;/h2&gt;
 
@@ -413,7 +413,7 @@ l + \lambda \sum_{w \in W} w^2
 
 &lt;p&gt;&lt;img src=&quot;/assets/posts/4/animated.gif&quot; width=&quot;850&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;As we saw in &lt;a href=&quot;http://sigmoidprime.com/how-to-build-a-neural-network-pt2&quot;&gt;Pt. 2&lt;/a&gt;, a loss function produces a quantitative measure of the classification accuracy of our model. Given that our model only consists of our weights and biases, it is helpful to imagine a landscape with peaks and valleys (like the one above), where navigating along the €x€ and €y€ axes corresponds to changing our parameters, and where the change in elevation along the €z€ axis corresponds to the resulting change in our loss function. As our model becomes increasingly accurate, the average output of the loss function decreases. When navigating the landscape, this is why we try our best to &lt;em&gt;descend&lt;/em&gt; toward the deepest valleys.&lt;/p&gt;
+&lt;p&gt;As we saw in &lt;a href=&quot;http://sigmoidprime.com/how-to-build-a-neural-network-pt2&quot;&gt;Pt. 2&lt;/a&gt;, a loss function produces a quantitative measure of the classification accuracy of our model. Given that our model only consists of our weights and biases, it is helpful to imagine a landscape with peaks and valleys (like the one above), where navigating along the $x$ and $y$ axes corresponds to changing our parameters, and where the change in elevation along the $z$ axis corresponds to the resulting change in our loss function. As our model becomes increasingly accurate, the average output of the loss function decreases. When navigating the landscape, this is why we try our best to &lt;em&gt;descend&lt;/em&gt; toward the deepest valleys.&lt;/p&gt;
 
 &lt;p&gt;Keep in mind that this only serves as a helpful mental image, and not an accurate representation of what is actually going on. In reality, our model will have thousands of parameters, and the peaks and valleys will thus be embedded in very high-dimensional spaces that are impossible to visualize.&lt;/p&gt;
 
@@ -421,7 +421,7 @@ l + \lambda \sum_{w \in W} w^2
 
 &lt;p&gt;As we explored in the previous post, the objective of a learning algorithm for a neural network is to find a configuration of weights and biases that transform the input data into a probability distribution over all of the classes the input sample can belong to.&lt;/p&gt;
 
-&lt;p&gt;If we zoom in on what happens to a single sample €a^{(1)}€ as it passes through a network with €l€ layers, we can represent its journey like this:&lt;/p&gt;
+&lt;p&gt;If we zoom in on what happens to a single sample $a^{(1)}$ as it passes through a network with $l$ layers, we can represent its journey like this:&lt;/p&gt;
 
 &lt;p&gt;€€
 a^{(2)} = \sigma(\Theta^{(1)}a^{(1)}+b^{(1)})
@@ -445,13 +445,13 @@ a^{(3)} = \sigma(\Theta^{(2)}a^{(2)}+b^{(2)})
 f(g(2x))
 €€&lt;/p&gt;
 
-&lt;p&gt;If we want to know how the value of €x€ influences the value of €f€, the chain rule tells us that we have to derive the outside function and then incrementally multiply by the derivatives of the nested functions like so:&lt;/p&gt;
+&lt;p&gt;If we want to know how the value of $x$ influences the value of $f$, the chain rule tells us that we have to derive the outside function and then incrementally multiply by the derivatives of the nested functions like so:&lt;/p&gt;
 
 &lt;p&gt;€€
 \frac{\partial f}{\partial x} = \frac{\partial f}{\partial g} \cdot \frac{\partial g}{\partial 2x} \cdot \frac{\partial 2x}{\partial x}
 €€&lt;/p&gt;
 
-&lt;p&gt;What this expression signifies is actually quite remarkable. It tells us &lt;em&gt;exactly&lt;/em&gt; how changing the value of €x€ affects the value of €f€, even though €x€ is buried inside multiple nested functions. This is crucial knowledge when the time comes to navigate the landscape of the loss function.&lt;/p&gt;
+&lt;p&gt;What this expression signifies is actually quite remarkable. It tells us &lt;em&gt;exactly&lt;/em&gt; how changing the value of $x$ affects the value of $f$, even though $x$ is buried inside multiple nested functions. This is crucial knowledge when the time comes to navigate the landscape of the loss function.&lt;/p&gt;
 
 &lt;h2 id=&quot;a-small-update-to-the-cross-entropy-loss-function&quot;&gt;A small update to the cross-entropy loss function&lt;/h2&gt;
 
@@ -461,21 +461,21 @@ f(g(2x))
 \frac{1}{m} \sum\limits_{j=1}^{m} \sum\limits_{i=1}^{n} - y_{i,j} \log(\hat{y}_{i,j}) - (1 - y_{i,j}) \log(1 - \hat{y}_{i,j})
 €€&lt;/p&gt;
 
-&lt;p&gt;Where in &lt;a href=&quot;http://sigmoidprime.com/how-to-build-a-neural-network-pt2&quot;&gt;Pt. 2&lt;/a&gt;, we only had a single output for each sample, now we have 10 (each output represents the probability of the input image being a digit from 0-9), so instead of merely summing over €m€ samples, we also sum over the €n€ outputs for each sample.&lt;/p&gt;
+&lt;p&gt;Where in &lt;a href=&quot;http://sigmoidprime.com/how-to-build-a-neural-network-pt2&quot;&gt;Pt. 2&lt;/a&gt;, we only had a single output for each sample, now we have 10 (each output represents the probability of the input image being a digit from 0-9), so instead of merely summing over $m$ samples, we also sum over the $n$ outputs for each sample.&lt;/p&gt;
 
 &lt;h2 id=&quot;backpropagating-our-way-through-a-three-layered-network&quot;&gt;Backpropagating our way through a three-layered network&lt;/h2&gt;
 
-&lt;p&gt;In the following, we will explore the mechanics of backpropagation through a three-layered neural network (a network with one input layer, one hidden layer, and one output layer) and for a mini-batch €A^{(1)}€ of 75 samples. The entire forward pass of such a network (including evaluation of the cross-entropy loss function €C€) can be expressed like this:&lt;/p&gt;
+&lt;p&gt;In the following, we will explore the mechanics of backpropagation through a three-layered neural network (a network with one input layer, one hidden layer, and one output layer) and for a mini-batch $A^{(1)}$ of 75 samples. The entire forward pass of such a network (including evaluation of the cross-entropy loss function $C$) can be expressed like this:&lt;/p&gt;
 
 &lt;p&gt;€€
 C(\hat{Y}, Y) = C(\text{softmax}(\Theta^{(2)}\sigma(\Theta^{(1)}A^{(1)}+b^{(1)}) + b^{(2)}), Y)
 €€&lt;/p&gt;
 
-&lt;p&gt;With our neural net represented as functions nested inside other functions, we’re now poised to figure out how changing the parameters €\Theta^{(1)}€, €\Theta^{(2)}€, €b^{(1)}€, and €b^{(2)}€ influences the loss €C€. To do this, we first need to find €\frac{\partial C}{\partial b^{(2)}}€ and €\frac{\partial C}{\partial \Theta^{(2)}}€, and this is where the chain rule comes into the picture.&lt;/p&gt;
+&lt;p&gt;With our neural net represented as functions nested inside other functions, we’re now poised to figure out how changing the parameters $\Theta^{(1)}$, $\Theta^{(2)}$, $b^{(1)}$, and $b^{(2)}$ influences the loss $C$. To do this, we first need to find $\frac{\partial C}{\partial b^{(2)}}$ and $\frac{\partial C}{\partial \Theta^{(2)}}$, and this is where the chain rule comes into the picture.&lt;/p&gt;
 
-&lt;p&gt;Notice that since our parameters are not represented as scalars but as vectors and matrices, we will be using the gradient notation €\nabla_{\hat{Y}}C€ instead of €\frac{\partial C}{\partial \hat{Y}}€.&lt;/p&gt;
+&lt;p&gt;Notice that since our parameters are not represented as scalars but as vectors and matrices, we will be using the gradient notation $\nabla_{\hat{Y}}C$ instead of $\frac{\partial C}{\partial \hat{Y}}$.&lt;/p&gt;
 
-&lt;p&gt;When we apply the chain rule to find the gradient of €C€ w.r.t. €b^{(2)}€ and €\Theta^{(2)}€, we get the following:&lt;/p&gt;
+&lt;p&gt;When we apply the chain rule to find the gradient of $C$ w.r.t. $b^{(2)}$ and $\Theta^{(2)}$, we get the following:&lt;/p&gt;
 
 &lt;p&gt;€€
 \nabla_{b^{(2)}}C =
@@ -491,14 +491,14 @@ C(\hat{Y}, Y) = C(\text{softmax}(\Theta^{(2)}\sigma(\Theta^{(1)}A^{(1)}+b^{(1)})
 &lt;p&gt;This expression demands a bit of explanation:&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;€\odot€ signifies “element-wise multiplication”. That is, if you have two matrices of equal dimensions, you multiply their corresponding elements, resulting in a new, identically shaped matrix.&lt;/li&gt;
-  &lt;li&gt;€Z^{(2)}€ is our shorthand expression for the weighted input to the output layer. This would be a €10 \times 1€ matrix given a single sample as input to the network, and a €10 \times 75€ matrix given a mini-batch of 75 samples.&lt;/li&gt;
-  &lt;li&gt;Superscript €\text{T}€ means &lt;strong&gt;transposition&lt;/strong&gt;. When you transpose a matrix, you turn its row vectors into column vectors and vice-versa. Thus, a transposed €5 \times 10€ matrix is a €10 \times 5€ matrix.&lt;/li&gt;
+  &lt;li&gt;$\odot$ signifies “element-wise multiplication”. That is, if you have two matrices of equal dimensions, you multiply their corresponding elements, resulting in a new, identically shaped matrix.&lt;/li&gt;
+  &lt;li&gt;$Z^{(2)}$ is our shorthand expression for the weighted input to the output layer. This would be a $10 \times 1$ matrix given a single sample as input to the network, and a $10 \times 75$ matrix given a mini-batch of 75 samples.&lt;/li&gt;
+  &lt;li&gt;Superscript $\text{T}$ means &lt;strong&gt;transposition&lt;/strong&gt;. When you transpose a matrix, you turn its row vectors into column vectors and vice-versa. Thus, a transposed $5 \times 10$ matrix is a $10 \times 5$ matrix.&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;With that out of the way, let us walk through the expression one step at a time: First we do element-wise multiplication between €\nabla_{\hat{Y}}C€ and €\nabla_{Z^{(2)}} \hat{Y}€. Since the shape of both of these matrices is €10 \times 75€, the result is a new €10 \times 75€ matrix containing the products of their corresponding elements. To get the average of €{\nabla_{b^{(2)}}}C€, we collapse it into a €10 \times 1€ vector by summing along all 10 rows. The resulting €10 \times 1€ vector is then divided by 75 in order to give us the average gradient across all 75 samples in the mini-batch.&lt;/p&gt;
+&lt;p&gt;With that out of the way, let us walk through the expression one step at a time: First we do element-wise multiplication between $\nabla_{\hat{Y}}C$ and $\nabla_{Z^{(2)}} \hat{Y}$. Since the shape of both of these matrices is $10 \times 75$, the result is a new $10 \times 75$ matrix containing the products of their corresponding elements. To get the average of ${\nabla_{b^{(2)}}}C$, we collapse it into a $10 \times 1$ vector by summing along all 10 rows. The resulting $10 \times 1$ vector is then divided by 75 in order to give us the average gradient across all 75 samples in the mini-batch.&lt;/p&gt;
 
-&lt;p&gt;Given that €\nabla_{\Theta^{(2)}}Z^{(2)}€ contains the partial derivatives w.r.t. each weight in €\Theta^{(2)}€, €\nabla_{\Theta^{(2)}}Z^{(2)}€ must be equal to the activations of the hidden layer €A^{(2)}€. If we assume that the hidden layer has three neurons, €\nabla_{\Theta^{(2)}}Z^{(2)}€ must therefore be of shape €3 \times 75€. Multiplying €{\nabla_{b^{(2)}}}C€ by the transpose of €\nabla_{\Theta^{(2)}}Z^{(2)}€ yields a €10 \times 3€ matrix that matches the shape of €\Theta^{(2)}€. Note that had we not transposed €\nabla_{\Theta^{(2)}}Z^{(2)}€, we wouldn’t have been able to multiply the two matrices, since their original shapes don’t match up.&lt;/p&gt;
+&lt;p&gt;Given that $\nabla_{\Theta^{(2)}}Z^{(2)}$ contains the partial derivatives w.r.t. each weight in $\Theta^{(2)}$, $\nabla_{\Theta^{(2)}}Z^{(2)}$ must be equal to the activations of the hidden layer $A^{(2)}$. If we assume that the hidden layer has three neurons, $\nabla_{\Theta^{(2)}}Z^{(2)}$ must therefore be of shape $3 \times 75$. Multiplying ${\nabla_{b^{(2)}}}C$ by the transpose of $\nabla_{\Theta^{(2)}}Z^{(2)}$ yields a $10 \times 3$ matrix that matches the shape of $\Theta^{(2)}$. Note that had we not transposed $\nabla_{\Theta^{(2)}}Z^{(2)}$, we wouldn’t have been able to multiply the two matrices, since their original shapes don’t match up.&lt;/p&gt;
 
 &lt;p&gt;Matrix multiplication can be quite tricky to wrap one’s head around, so don’t sweat it if you are a bit perplexed. Just know that, had we been dealing with scalars, the equivalent expressions would look like this:&lt;/p&gt;
 
@@ -509,17 +509,17 @@ C(\hat{Y}, Y) = C(\text{softmax}(\Theta^{(2)}\sigma(\Theta^{(1)}A^{(1)}+b^{(1)})
 \frac{\partial C}{\partial \Theta^{(2)}} = \frac{\partial C}{\partial \hat{y}} \cdot \frac{\partial \hat{y}}{\partial z^{(2)}} \cdot \frac{\partial z^{(2)}}{\partial \Theta^{(2)}}
 €€&lt;/p&gt;
 
-&lt;p&gt;We now have the derivatives of €C€ w.r.t. each individual weight in €\Theta^{(2)}€. However, these are the &lt;em&gt;combined&lt;/em&gt; gradients of all 75 samples in our mini-batch. To get some truly useful values, we simply have to divide by 75. This way, we again get the &lt;em&gt;average&lt;/em&gt; of our 75 individual gradients, and we will thus minimize the loss function in a way that satisfies the greatest possible number of samples. Neat!&lt;/p&gt;
+&lt;p&gt;We now have the derivatives of $C$ w.r.t. each individual weight in $\Theta^{(2)}$. However, these are the &lt;em&gt;combined&lt;/em&gt; gradients of all 75 samples in our mini-batch. To get some truly useful values, we simply have to divide by 75. This way, we again get the &lt;em&gt;average&lt;/em&gt; of our 75 individual gradients, and we will thus minimize the loss function in a way that satisfies the greatest possible number of samples. Neat!&lt;/p&gt;
 
-&lt;p&gt;One more thing regarding the above expression: When you do element-wise multiplication between €\nabla_{\hat{Y}}C€ and €\nabla_{Z^{(2)}} \hat{Y}€, you discover something wonderful: It turns out that it simplifies to €\hat{Y}-Y€.&lt;/p&gt;
+&lt;p&gt;One more thing regarding the above expression: When you do element-wise multiplication between $\nabla_{\hat{Y}}C$ and $\nabla_{Z^{(2)}} \hat{Y}$, you discover something wonderful: It turns out that it simplifies to $\hat{Y}-Y$.&lt;/p&gt;
 
-&lt;p&gt;Knowing all of this, the final expression for €\nabla_{\Theta^{(2)}}C€ for a mini-batch of €m€ samples can now be expressed as:&lt;/p&gt;
+&lt;p&gt;Knowing all of this, the final expression for $\nabla_{\Theta^{(2)}}C$ for a mini-batch of $m$ samples can now be expressed as:&lt;/p&gt;
 
 &lt;p&gt;€€
 \nabla_{\Theta^{(2)}}C = \frac{1}{m}((\hat{Y}-Y) \times (A^{(2)})^{\text{T}})
 €€&lt;/p&gt;
 
-&lt;p&gt;Our hypothetical network has one hidden layer, which means it has two sets of weights and biases. We will therefore need to find €\nabla_{\Theta^{(1)}}C€ and €\nabla_{b^{(1)}}C€ as well. Since derivations like these can become quite tedious, I will skip most of them going forward. If you want, you can try and do them yourself — it’s a good exercise!&lt;/p&gt;
+&lt;p&gt;Our hypothetical network has one hidden layer, which means it has two sets of weights and biases. We will therefore need to find $\nabla_{\Theta^{(1)}}C$ and $\nabla_{b^{(1)}}C$ as well. Since derivations like these can become quite tedious, I will skip most of them going forward. If you want, you can try and do them yourself — it’s a good exercise!&lt;/p&gt;
 
 &lt;p&gt;Once you have found the gradients for all weights and biases, it is time to update their values. In &lt;a href=&quot;http://sigmoidprime.com/how-to-build-a-neural-network-pt2&quot;&gt;Pt. 2&lt;/a&gt;, we updated our parameters using the following update rule:&lt;/p&gt;
 
@@ -527,7 +527,7 @@ C(\hat{Y}, Y) = C(\text{softmax}(\Theta^{(2)}\sigma(\Theta^{(1)}A^{(1)}+b^{(1)})
 \Theta^{(i)}:=\Theta^{(i)}-\nabla_{\Theta^{(i)}}C
 €€&lt;/p&gt;
 
-&lt;p&gt;This time, we are going to do &lt;em&gt;almost&lt;/em&gt; the same; the slight twist being that I am going to introduce a &lt;strong&gt;learning rate&lt;/strong&gt;. As the name implies, a learning rate (denoted €\alpha€) determines the rate with which our model learns, and is simply a coefficient on the gradient. While a learning rate sounds like something you would want to crank all the way up, this immediately creates a problem.&lt;/p&gt;
+&lt;p&gt;This time, we are going to do &lt;em&gt;almost&lt;/em&gt; the same; the slight twist being that I am going to introduce a &lt;strong&gt;learning rate&lt;/strong&gt;. As the name implies, a learning rate (denoted $\alpha$) determines the rate with which our model learns, and is simply a coefficient on the gradient. While a learning rate sounds like something you would want to crank all the way up, this immediately creates a problem.&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;/assets/posts/4/learning_rates.gif&quot; width=&quot;800&quot; /&gt;&lt;/p&gt;
 
@@ -587,7 +587,7 @@ b^{(i)} := b^{(i)} - 0.002 \cdot \nabla_{b^{(i)}}C
     &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;sigmoid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;1.0&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;1.0&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;exp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
     &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;softmax&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;exp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sum&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;exp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;axis&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
-&lt;p&gt;First, we will add a method &lt;code class=&quot;highlighter-rouge&quot;&gt;sigmoid_prime&lt;/code&gt; to &lt;code class=&quot;highlighter-rouge&quot;&gt;NeuralNetwork&lt;/code&gt;. This will be the derivative of the sigmoid activation function €\frac{\partial \sigma}{\partial z}€.&lt;/p&gt;
+&lt;p&gt;First, we will add a method &lt;code class=&quot;highlighter-rouge&quot;&gt;sigmoid_prime&lt;/code&gt; to &lt;code class=&quot;highlighter-rouge&quot;&gt;NeuralNetwork&lt;/code&gt;. This will be the derivative of the sigmoid activation function $\frac{\partial \sigma}{\partial z}$.&lt;/p&gt;
 
 &lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;sigmoid_prime&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sigmoid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sigmoid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
@@ -609,7 +609,7 @@ b^{(i)} := b^{(i)} - 0.002 \cdot \nabla_{b^{(i)}}C
 
 &lt;ol&gt;
   &lt;li&gt;We initialize two lists – &lt;code class=&quot;highlighter-rouge&quot;&gt;weight_gradients&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;bias_gradients&lt;/code&gt; — which we will use to hold the gradient matrices for our weights and biases.&lt;/li&gt;
-  &lt;li&gt;We calculate &lt;code class=&quot;highlighter-rouge&quot;&gt;bias_gradient&lt;/code&gt;, which initially holds a €10 \times 75€ matrix containing the gradients w.r.t. the output layer’s biases for all 75 samples in our mini-batch.&lt;/li&gt;
+  &lt;li&gt;We calculate &lt;code class=&quot;highlighter-rouge&quot;&gt;bias_gradient&lt;/code&gt;, which initially holds a $10 \times 75$ matrix containing the gradients w.r.t. the output layer’s biases for all 75 samples in our mini-batch.&lt;/li&gt;
   &lt;li&gt;We iterate from the output layer towards the input layer (hence &lt;code class=&quot;highlighter-rouge&quot;&gt;reversed()&lt;/code&gt;), deriving the weight gradients at each step of the way (note that &lt;code class=&quot;highlighter-rouge&quot;&gt;.T&lt;/code&gt; transposes a numpy matrix). We also update the value of &lt;code class=&quot;highlighter-rouge&quot;&gt;bias_gradient&lt;/code&gt; to the gradient w.r.t. the biases in the preceding layer, so we can use this value in the next iteration.&lt;/li&gt;
   &lt;li&gt;Since the gradients have been added in reverse order, we return the numpy representation of the reversed &lt;code class=&quot;highlighter-rouge&quot;&gt;weight_gradients&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;bias_gradients&lt;/code&gt; lists.&lt;/li&gt;
 &lt;/ol&gt;
@@ -784,9 +784,9 @@ loss after Epoch &lt;span class=&quot;c&quot;&gt;#5: 0.243978653084&lt;/span&gt;
 
 &lt;p&gt;&lt;img src=&quot;/assets/posts/3/mnist.png&quot; width=&quot;350&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;In a traditional neural network (like the one we are building today), we don’t preserve the dimensionality of the images by representing them as matrices. Instead we choose to &lt;strong&gt;unroll&lt;/strong&gt; each one of them into a flat 784-dimensional vector €x€. This is in contrast to &lt;a href=&quot;http://cs231n.github.io/convolutional-networks/&quot;&gt;convolutional neural networks&lt;/a&gt; that are specifically optimized for computer vision, and need to preserve the spatial locality of every pixel.&lt;/p&gt;
+&lt;p&gt;In a traditional neural network (like the one we are building today), we don’t preserve the dimensionality of the images by representing them as matrices. Instead we choose to &lt;strong&gt;unroll&lt;/strong&gt; each one of them into a flat 784-dimensional vector $x$. This is in contrast to &lt;a href=&quot;http://cs231n.github.io/convolutional-networks/&quot;&gt;convolutional neural networks&lt;/a&gt; that are specifically optimized for computer vision, and need to preserve the spatial locality of every pixel.&lt;/p&gt;
 
-&lt;p&gt;It is intuitive to think of €x€ as a regular image with only visual qualities. However, as machine learning practitioners, we need to accustom ourselves to thinking about our data in the way that our algorithms see it; namely as a collection of numbers.&lt;/p&gt;
+&lt;p&gt;It is intuitive to think of $x$ as a regular image with only visual qualities. However, as machine learning practitioners, we need to accustom ourselves to thinking about our data in the way that our algorithms see it; namely as a collection of numbers.&lt;/p&gt;
 
 &lt;p&gt;When an image is viewed as a 784-dimensional vector, we can think of it as occupying a point in 784-dimensional space. When we do this, we find that images that are visually (&lt;em&gt;not&lt;/em&gt; conceptually) similar group together and form clusters. In the case of MNIST, this means that each digit has its own cluster in the 784-dimensional space that the images inhabit.&lt;/p&gt;
 
@@ -806,11 +806,11 @@ loss after Epoch &lt;span class=&quot;c&quot;&gt;#5: 0.243978653084&lt;/span&gt;
 
 &lt;p&gt;Since we are looking to classify each sample as being a digit between 0-9, we will have 10 output neurons at the end of the network.&lt;/p&gt;
 
-&lt;p&gt;With 75 samples each containing 784 features, we can represent our mini-batch as a €784 \times 75€ matrix. Each column will thus contain the pixel values for a single image, while the rows will contain the grayscale value for the same particular pixel across our 75 different images. Since all 784 features are connected through their own “synapse” to all three hidden neurons, the weights between the input layer and the hidden layer can be represented as a €3 \times 784€ matrix.&lt;/p&gt;
+&lt;p&gt;With 75 samples each containing 784 features, we can represent our mini-batch as a $784 \times 75$ matrix. Each column will thus contain the pixel values for a single image, while the rows will contain the grayscale value for the same particular pixel across our 75 different images. Since all 784 features are connected through their own “synapse” to all three hidden neurons, the weights between the input layer and the hidden layer can be represented as a $3 \times 784$ matrix.&lt;/p&gt;
 
 &lt;p&gt;&lt;em&gt;To follow along from here, make sure that you are familiar with &lt;a href=&quot;https://www.youtube.com/embed/kT4Mp9EdVqs&quot;&gt;matrix multiplication&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;
 
-&lt;p&gt;Using a single matrix multiplication, we can represent the multiplication of all €784 \times 75€ features with their corresponding weight &lt;em&gt;as well as&lt;/em&gt; each hidden neuron’s summation of its weighted input. With the columns representing samples, our input matrix €X€ looks like this:&lt;/p&gt;
+&lt;p&gt;Using a single matrix multiplication, we can represent the multiplication of all $784 \times 75$ features with their corresponding weight &lt;em&gt;as well as&lt;/em&gt; each hidden neuron’s summation of its weighted input. With the columns representing samples, our input matrix $X$ looks like this:&lt;/p&gt;
 
 &lt;p&gt;€€
 \begin{bmatrix}
@@ -822,7 +822,7 @@ x_{784,1} &amp;amp; x_{784,2} &amp;amp; \cdots &amp;amp; x_{784,75}
 \end{bmatrix}
 €€&lt;/p&gt;
 
-&lt;p&gt;In our first weight matrix €\Theta^{(1)}€, the rows represent the weights that lead to each particular hidden neuron. With three hidden neurons, this gives us a €3 \times 784€ matrix:&lt;/p&gt;
+&lt;p&gt;In our first weight matrix $\Theta^{(1)}$, the rows represent the weights that lead to each particular hidden neuron. With three hidden neurons, this gives us a $3 \times 784$ matrix:&lt;/p&gt;
 
 &lt;p&gt;€€
 \begin{bmatrix}
@@ -834,7 +834,7 @@ x_{784,1} &amp;amp; x_{784,2} &amp;amp; \cdots &amp;amp; x_{784,75}
 \end{bmatrix}
 €€&lt;/p&gt;
 
-&lt;p&gt;When we multiply €\Theta^{(1)}€ and €X€, we get the matrix below. (Note that subscript €*€ either signifies entire rows or entire columns, such that €\theta_{i *}€ means “the entire €i€th row of €\Theta€”, and €\theta_{* j}€ means “the entire €j€th column of €\Theta€”.)&lt;/p&gt;
+&lt;p&gt;When we multiply $\Theta^{(1)}$ and $X$, we get the matrix below. (Note that subscript $*$ either signifies entire rows or entire columns, such that $\theta_{i *}$ means “the entire $i$th row of $\Theta$”, and $\theta_{* j}$ means “the entire $j$th column of $\Theta$”.)&lt;/p&gt;
 
 &lt;p&gt;€€
 \Theta^{(1)}X=\begin{bmatrix}
@@ -846,11 +846,11 @@ x_{784,1} &amp;amp; x_{784,2} &amp;amp; \cdots &amp;amp; x_{784,75}
 \end{bmatrix}
 €€&lt;/p&gt;
 
-&lt;p&gt;Our matrix of samples €X€ contains 75 column vectors €x_{* i}€, while our matrix of weights €\Theta^{(1)}€ contains 3 row vectors €\theta_{j *}€. When we multiply these, every column vector (sample) in €X€ is &lt;a href=&quot;https://www.youtube.com/watch?v=WNuIhXo39_k&amp;amp;t=20s&quot;&gt;dotted&lt;/a&gt; with every row vector in €\Theta^{(1)}€. This yields a new €3 \times 75€ matrix that contains the sum of the weighted inputs for all three hidden neurons and for all 75 samples.&lt;/p&gt;
+&lt;p&gt;Our matrix of samples $X$ contains 75 column vectors $x_{* i}$, while our matrix of weights $\Theta^{(1)}$ contains 3 row vectors $\theta_{j *}$. When we multiply these, every column vector (sample) in $X$ is &lt;a href=&quot;https://www.youtube.com/watch?v=WNuIhXo39_k&amp;amp;t=20s&quot;&gt;dotted&lt;/a&gt; with every row vector in $\Theta^{(1)}$. This yields a new $3 \times 75$ matrix that contains the sum of the weighted inputs for all three hidden neurons and for all 75 samples.&lt;/p&gt;
 
-&lt;p&gt;An easy way to remember the dynamics of matrix multiplication is that a matrix of dimensions €A \times B€ multiplied with a matrix of dimensions €B \times D€ results in a matrix of dimensions €A \times D€. Thus, when we multiply a €3 \times 784€ matrix with a €784 \times 75€ matrix, we get a €3 \times 75€ matrix.&lt;/p&gt;
+&lt;p&gt;An easy way to remember the dynamics of matrix multiplication is that a matrix of dimensions $A \times B$ multiplied with a matrix of dimensions $B \times D$ results in a matrix of dimensions $A \times D$. Thus, when we multiply a $3 \times 784$ matrix with a $784 \times 75$ matrix, we get a $3 \times 75$ matrix.&lt;/p&gt;
 
-&lt;p&gt;For practical reasons that we will see later, our biases are kept in their own self-contained vector. Since each hidden neuron has its own bias, the bias vector for the hidden layer €b^{(1)}€ has dimensions €3 \times 1€. To proceed with the forward pass, we add €b^{(1)}€ to each column vector in our €3 \times 75€ matrix. This yields a new matrix €Z^{(1)}€.&lt;/p&gt;
+&lt;p&gt;For practical reasons that we will see later, our biases are kept in their own self-contained vector. Since each hidden neuron has its own bias, the bias vector for the hidden layer $b^{(1)}$ has dimensions $3 \times 1$. To proceed with the forward pass, we add $b^{(1)}$ to each column vector in our $3 \times 75$ matrix. This yields a new matrix $Z^{(1)}$.&lt;/p&gt;
 
 &lt;p&gt;Now that we have a matrix containing the sum of the weighted inputs for all three hidden neurons and for all 75 samples, we need to pass it through a nonlinear activation function (we will see why this is later). Just as in &lt;a href=&quot;http://sigmoidprime.com/post/how-to-build-a-neural-network-pt-2/&quot;&gt;Pt. 2&lt;/a&gt;, we will be using the logistic sigmoid function:&lt;/p&gt;
 
@@ -858,13 +858,13 @@ x_{784,1} &amp;amp; x_{784,2} &amp;amp; \cdots &amp;amp; x_{784,75}
 \sigma(z) = \frac{1}{1+\exp(-z)}
 €€&lt;/p&gt;
 
-&lt;p&gt;Once we apply the sigmoid function element-wise to the sums of the weighted inputs, we have the full set of activations from the hidden layer in the form of a matrix €A€. Like €Z^{(1)}€, €A€ has dimensions €3 \times 75€. In order to send the activations on through the network, they need to be multiplied with the second set of weights €\Theta^{(2)}€ (this is the one between the hidden layer and the output layer). Because we have three hidden neurons and 10 output neurons, the dimensions of the second weight matrix will be €10 \times 3€.&lt;/p&gt;
+&lt;p&gt;Once we apply the sigmoid function element-wise to the sums of the weighted inputs, we have the full set of activations from the hidden layer in the form of a matrix $A$. Like $Z^{(1)}$, $A$ has dimensions $3 \times 75$. In order to send the activations on through the network, they need to be multiplied with the second set of weights $\Theta^{(2)}$ (this is the one between the hidden layer and the output layer). Because we have three hidden neurons and 10 output neurons, the dimensions of the second weight matrix will be $10 \times 3$.&lt;/p&gt;
 
-&lt;!-- We have now run into a small problem. We need to multiply our matrix of activations €A€ with our second weight matrix €\Theta^{(2)}€, but their shapes (€3 \times 75€ and €3 \times 10€) don't match up. Fortunately, we can simply **transpose** our activation matrix, turning its row vectors into column vectors and vice versa. €A^{\text{T}}€ thus has dimensions €75 \times 3€. --&gt;
+&lt;!-- We have now run into a small problem. We need to multiply our matrix of activations $A$ with our second weight matrix $\Theta^{(2)}$, but their shapes ($3 \times 75$ and $3 \times 10$) don't match up. Fortunately, we can simply **transpose** our activation matrix, turning its row vectors into column vectors and vice versa. $A^{\text{T}}$ thus has dimensions $75 \times 3$. --&gt;
 
-&lt;p&gt;Now we can multiply our €10 \times 3€ weight matrix with the €3 \times 75€ activations. This gives us a new €10 \times 75€ matrix. Adding the 10-dimensional bias vector €b^{(2)}€ to each of the 75 column vectors yields a matrix containing the sums of the weighted inputs €Z^{(2)}€ for the output layer.&lt;/p&gt;
+&lt;p&gt;Now we can multiply our $10 \times 3$ weight matrix with the $3 \times 75$ activations. This gives us a new $10 \times 75$ matrix. Adding the 10-dimensional bias vector $b^{(2)}$ to each of the 75 column vectors yields a matrix containing the sums of the weighted inputs $Z^{(2)}$ for the output layer.&lt;/p&gt;
 
-&lt;p&gt;At this point, we are almost finished. Now we just need to convert the sums of the weighted inputs to the output layer €Z^{(2)}€ into the actual output of the network €\hat{Y}€. It might be tempting to apply the sigmoid function again, but doing so would end up posing a problem.&lt;/p&gt;
+&lt;p&gt;At this point, we are almost finished. Now we just need to convert the sums of the weighted inputs to the output layer $Z^{(2)}$ into the actual output of the network $\hat{Y}$. It might be tempting to apply the sigmoid function again, but doing so would end up posing a problem.&lt;/p&gt;
 
 &lt;p&gt;You may remember from previously that we interpreted the output of the sigmoid function as the probability of a sample belonging to one of two classes. In a neural network with multiple output neurons however, if we apply the sigmoid function at the output layer, the output of each neuron will be independent from all the others. This would produce an undesirable consequence; namely that we would be unable to interpret the output of the network as a probability distribution.&lt;/p&gt;
 
@@ -878,11 +878,11 @@ x_{784,1} &amp;amp; x_{784,2} &amp;amp; \cdots &amp;amp; x_{784,75}
 \frac{\exp({z_{i,j})}}{\sum\limits_{k=1}^{n}\exp(z_{k,j})}
 €€&lt;/p&gt;
 
-&lt;p&gt;Here, €z_{i, j}€ is the summed input to output neuron €i€ for sample €j€. With 10 output neurons and 75 samples, €i€ would thus range from 1 to 10, and €j€ from 1 to 75. €n€ is the number of outputs for each sample, and is therefore equal to the number of output neurons.&lt;/p&gt;
+&lt;p&gt;Here, $z_{i, j}$ is the summed input to output neuron $i$ for sample $j$. With 10 output neurons and 75 samples, $i$ would thus range from 1 to 10, and $j$ from 1 to 75. $n$ is the number of outputs for each sample, and is therefore equal to the number of output neurons.&lt;/p&gt;
 
 &lt;p&gt;Can you tell what the function does by looking at the expression?&lt;/p&gt;
 
-&lt;p&gt;By placing €\exp(z_{i,j})€ in the numerator and €\sum\limits_{k=1}^{n}\exp(z_{k,j})€ in the denominator, we ensure that the output of the network for each sample always sums to 1. Now, when the network outputs vectors of numbers, we can interpret the output as a probability distribution. This allows us to then choose to classify the sample as belonging to whatever class the output neuron with the highest probability represents.&lt;/p&gt;
+&lt;p&gt;By placing $\exp(z_{i,j})$ in the numerator and $\sum\limits_{k=1}^{n}\exp(z_{k,j})$ in the denominator, we ensure that the output of the network for each sample always sums to 1. Now, when the network outputs vectors of numbers, we can interpret the output as a probability distribution. This allows us to then choose to classify the sample as belonging to whatever class the output neuron with the highest probability represents.&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;/assets/posts/3/right_output_2.png&quot; width=&quot;240&quot; /&gt;&lt;/p&gt;
 
@@ -892,27 +892,27 @@ x_{784,1} &amp;amp; x_{784,2} &amp;amp; \cdots &amp;amp; x_{784,75}
 
 &lt;p&gt;Now that we have seen &lt;em&gt;what&lt;/em&gt; a neural network does, it is time to answer the question of &lt;em&gt;why&lt;/em&gt; it works. &lt;a href=&quot;http://colah.github.io/posts/2014-03-NN-Manifolds-Topology/&quot;&gt;As explained by Chris Olah&lt;/a&gt;, the process can be separated into three distinct steps: &lt;strong&gt;linear transformations&lt;/strong&gt;, &lt;strong&gt;translations&lt;/strong&gt;, and applications of a &lt;strong&gt;nonlinearity&lt;/strong&gt;.&lt;/p&gt;
 
-&lt;p&gt;&lt;strong&gt;Linear transformations and translations&lt;/strong&gt;: A linear transformation scales, skews, or rotates a coordinate space by redefining the directions and amplitudes of its &lt;strong&gt;basis vectors&lt;/strong&gt;. In the case of a 2D coordinate space, the only two basis vectors  — €\bar{x}€ and €\bar{y}€ — are defined as €\begin{bmatrix}1 \cr 0 \end{bmatrix}€ and €\begin{bmatrix}0 \cr 1 \end{bmatrix}€ respectively. While they may not look like much, €\bar{x}€ and €\bar{y}€ fully define their own coordinate space. To see why, let us first join them into a matrix:&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Linear transformations and translations&lt;/strong&gt;: A linear transformation scales, skews, or rotates a coordinate space by redefining the directions and amplitudes of its &lt;strong&gt;basis vectors&lt;/strong&gt;. In the case of a 2D coordinate space, the only two basis vectors  — $\bar{x}$ and $\bar{y}$ — are defined as $\begin{bmatrix}1 \cr 0 \end{bmatrix}$ and $\begin{bmatrix}0 \cr 1 \end{bmatrix}$ respectively. While they may not look like much, $\bar{x}$ and $\bar{y}$ fully define their own coordinate space. To see why, let us first join them into a matrix:&lt;/p&gt;
 
 &lt;p&gt;€€
 \begin{bmatrix}1 &amp;amp; 0 \cr 0 &amp;amp; 1 \end{bmatrix}
 €€&lt;/p&gt;
 
-&lt;p&gt;Then, let us take an arbitrary point €\begin{bmatrix}x \cr y \end{bmatrix}€ and multiply it by our matrix:&lt;/p&gt;
+&lt;p&gt;Then, let us take an arbitrary point $\begin{bmatrix}x \cr y \end{bmatrix}$ and multiply it by our matrix:&lt;/p&gt;
 
 &lt;p&gt;€€
 \begin{bmatrix}1 &amp;amp; 0 \cr 0 &amp;amp; 1 \end{bmatrix} \begin{bmatrix}x \cr y \end{bmatrix} = \begin{bmatrix}1x+0y \cr 0x+1y \end{bmatrix} = \begin{bmatrix}x \cr y \end{bmatrix}
 €€&lt;/p&gt;
 
-&lt;p&gt;Using matrix-vector multiplication, we just showed that in a coordinate space with these basis vectors, the point €\begin{bmatrix}x \cr y \end{bmatrix}€ remains unchanged.&lt;/p&gt;
+&lt;p&gt;Using matrix-vector multiplication, we just showed that in a coordinate space with these basis vectors, the point $\begin{bmatrix}x \cr y \end{bmatrix}$ remains unchanged.&lt;/p&gt;
 
-&lt;p&gt;Now let’s see what happens when we double €\bar{x}€:&lt;/p&gt;
+&lt;p&gt;Now let’s see what happens when we double $\bar{x}$:&lt;/p&gt;
 
 &lt;p&gt;€€
 \begin{bmatrix}2 &amp;amp; 0 \cr 0 &amp;amp; 1 \end{bmatrix} \begin{bmatrix}x \cr y \end{bmatrix}  = \begin{bmatrix}2x+0y \cr 0x+1y \end{bmatrix} = \begin{bmatrix}2x \cr y \end{bmatrix}
 €€&lt;/p&gt;
 
-&lt;p&gt;Here, the original point €\begin{bmatrix}x \cr y \end{bmatrix}€ gets moved to €\begin{bmatrix}2x \cr y \end{bmatrix}€ when we apply the transformation. Since this is true of all points, we can visualize this as a transformation of the space itself:&lt;/p&gt;
+&lt;p&gt;Here, the original point $\begin{bmatrix}x \cr y \end{bmatrix}$ gets moved to $\begin{bmatrix}2x \cr y \end{bmatrix}$ when we apply the transformation. Since this is true of all points, we can visualize this as a transformation of the space itself:&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;/assets/posts/3/animated.gif&quot; width=&quot;800&quot; /&gt;&lt;/p&gt;
 
@@ -922,11 +922,11 @@ x_{784,1} &amp;amp; x_{784,2} &amp;amp; \cdots &amp;amp; x_{784,75}
 \begin{bmatrix}2 &amp;amp; 0 \cr 1 &amp;amp; 1 \end{bmatrix} \begin{bmatrix}x \cr y \end{bmatrix}  = \begin{bmatrix}2x+0y \cr 1x+1y \end{bmatrix} = \begin{bmatrix}2x \cr x+y \end{bmatrix}
 €€&lt;/p&gt;
 
-&lt;p&gt;This transformation — known as a &lt;a href=&quot;https://en.wikipedia.org/wiki/Shear_mapping&quot;&gt;shear&lt;/a&gt; — has the effect that every time we increase €x€ by 1, we also increase €y€ by 1. Let’s visualize this to gain some intuition:&lt;/p&gt;
+&lt;p&gt;This transformation — known as a &lt;a href=&quot;https://en.wikipedia.org/wiki/Shear_mapping&quot;&gt;shear&lt;/a&gt; — has the effect that every time we increase $x$ by 1, we also increase $y$ by 1. Let’s visualize this to gain some intuition:&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;/assets/posts/3/animated2.gif&quot; width=&quot;500&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;Now it is easier to see what is happening. As soon as we begin increasing €x€, not only are we moving to the right, but also upwards. In this transformed space, it is impossible to change €x€ without also changing €y€. A change in €y€, however, does not affect €x€, since the &lt;em&gt;y&lt;/em&gt;-axis remains orthogonal to the original &lt;em&gt;x&lt;/em&gt;-axis.&lt;/p&gt;
+&lt;p&gt;Now it is easier to see what is happening. As soon as we begin increasing $x$, not only are we moving to the right, but also upwards. In this transformed space, it is impossible to change $x$ without also changing $y$. A change in $y$, however, does not affect $x$, since the &lt;em&gt;y&lt;/em&gt;-axis remains orthogonal to the original &lt;em&gt;x&lt;/em&gt;-axis.&lt;/p&gt;
 
 &lt;p&gt;&lt;strong&gt;When we pass data into a neural network, this kind of transformation is what happens during the weight multiplication.&lt;/strong&gt; One thing to note, however, is that the number of hidden neurons in each layer might be smaller or larger than the number of neurons in the layer that preceded it. This results in the dimensionality of the data either getting reduced or expanded as it passes through the network. If there are more neurons in the first hidden layer than in the input layer, this causes the dimensionality of the data to be expanded. Likewise, if there are less hidden neurons than input neurons, the dimensionality will be reduced.&lt;/p&gt;
 
@@ -934,7 +934,7 @@ x_{784,1} &amp;amp; x_{784,2} &amp;amp; \cdots &amp;amp; x_{784,75}
 
 &lt;p&gt;&lt;img src=&quot;/assets/posts/3/translation.gif&quot; width=&quot;500&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;Here, we first transform the space, and then translate it by €\begin{bmatrix}3 \cr 2 \end{bmatrix}€. Note that unless we keep the original space in the background, translations can be hard to visualize while properly keeping the space in view. I will therefore ignore them in future visualizations.&lt;/p&gt;
+&lt;p&gt;Here, we first transform the space, and then translate it by $\begin{bmatrix}3 \cr 2 \end{bmatrix}$. Note that unless we keep the original space in the background, translations can be hard to visualize while properly keeping the space in view. I will therefore ignore them in future visualizations.&lt;/p&gt;
 
 &lt;p&gt;Finally — and perhaps most significantly — is the effect of applying a nonlinear activation function (like the logistic sigmoid function). This takes all the points of the space and applies the function to each of the point’s components individually.&lt;/p&gt;
 
@@ -953,7 +953,7 @@ x_{784,1} &amp;amp; x_{784,2} &amp;amp; \cdots &amp;amp; x_{784,75}
 
 &lt;p&gt;As you can see, the shape of a space transformed by a sigmoid function is highly dependent on the space to which it is applied. This is why the weights and biases are so important; they do the groundwork that lets the activation function bend the data in the most optimal way.&lt;/p&gt;
 
-&lt;p&gt;But what is “the most optimal way?” To answer this question, we need to turn our eyes to the output layer. As we touched on in &lt;a href=&quot;http://sigmoidprime.com/post/how-to-build-a-neural-network-pt-1/&quot;&gt;Pt. 1&lt;/a&gt;, the equation for a hyperplane can be expressed as the variables (€{x_1, \cdots, x_n}€) that, when multiplied by their corresponding coefficient (€{y_1, \cdots, y_n}€), sums to 0:&lt;/p&gt;
+&lt;p&gt;But what is “the most optimal way?” To answer this question, we need to turn our eyes to the output layer. As we touched on in &lt;a href=&quot;http://sigmoidprime.com/post/how-to-build-a-neural-network-pt-1/&quot;&gt;Pt. 1&lt;/a&gt;, the equation for a hyperplane can be expressed as the variables (${x_1, \cdots, x_n}$) that, when multiplied by their corresponding coefficient (${y_1, \cdots, y_n}$), sums to 0:&lt;/p&gt;
 
 &lt;p&gt;€€
 x_1y_1 + x_2y_2 + \cdots + x_ny_n=0
@@ -1062,7 +1062,7 @@ x \cdot y = 0
 
 &lt;p&gt;So, however counterintuitive it may seem at first, we don’t want overfitting. However, a simple linear (or slightly curved) decision boundary would also inevitably entail some level of uncertainty about our classification. Wouldn’t it be better if we could estimate the &lt;em&gt;probability&lt;/em&gt; of an applicant being admitted rather than a black and white binary prediction?&lt;/p&gt;
 
-&lt;p&gt;This is what separates &lt;em&gt;regression&lt;/em&gt; from &lt;em&gt;classification&lt;/em&gt;. When we do classification, we &lt;em&gt;predict&lt;/em&gt; that some sample €x^{(i)}€ belongs to some class €y^{(i)}€. Regression, on the other hand, deals with &lt;em&gt;estimating&lt;/em&gt; some real number value related to €x^{(i)}€. One example of regression would be if we tried to estimate tomorrow’s value of the S&amp;amp;P 500. Similarly, trying to estimate the probability that an applicant will be admitted to a university is also a regression problem.&lt;/p&gt;
+&lt;p&gt;This is what separates &lt;em&gt;regression&lt;/em&gt; from &lt;em&gt;classification&lt;/em&gt;. When we do classification, we &lt;em&gt;predict&lt;/em&gt; that some sample $x^{(i)}$ belongs to some class $y^{(i)}$. Regression, on the other hand, deals with &lt;em&gt;estimating&lt;/em&gt; some real number value related to $x^{(i)}$. One example of regression would be if we tried to estimate tomorrow’s value of the S&amp;amp;P 500. Similarly, trying to estimate the probability that an applicant will be admitted to a university is also a regression problem.&lt;/p&gt;
 
 &lt;h2 id=&quot;the-sigmoid-function&quot;&gt;The sigmoid function&lt;/h2&gt;
 
@@ -1071,7 +1071,7 @@ x \cdot y = 0
 &lt;div id=&quot;quad&quot; class=&quot;plot&quot;&gt;&lt;/div&gt;
 &lt;script type=&quot;text/javascript&quot;&gt;functionPlot({target:&quot;#quad&quot;,xAxis:{domain:[-7,7]},yAxis:{domain:[0,1]},grid:true,disableZoom:true,width:500,height:300,data:[{fn:&quot;1/(1+exp(-x))&quot;}]})&lt;/script&gt;
 
-&lt;p&gt;The function itself — which we will denote as €\sigma€ — can be expressed mathematically as:&lt;/p&gt;
+&lt;p&gt;The function itself — which we will denote as $\sigma$ — can be expressed mathematically as:&lt;/p&gt;
 
 &lt;p&gt;€€
 \sigma(z) = \frac{1}{1 + \exp(-z)}
@@ -1079,11 +1079,11 @@ x \cdot y = 0
 
 &lt;p class=&quot;subtext&quot;&gt;Can you see from the equation why the function looks the way it does?&lt;/p&gt;
 
-&lt;p&gt;Besides its pretty shape, there is one thing in particular to note about the sigmoid function: No matter how big or small the value of €z€ becomes, the function always outputs a real number between 0 and 1. This is handy, since it enables us to think of €\sigma€ as outputting a probability, where €\sigma = 0.5€ when €z = 0€, and €\sigma = 1€ as €z\rightarrow\infty€. The output of €\sigma€ will thus be our estimate of the probability that an applicant will be admitted to the university.&lt;/p&gt;
+&lt;p&gt;Besides its pretty shape, there is one thing in particular to note about the sigmoid function: No matter how big or small the value of $z$ becomes, the function always outputs a real number between 0 and 1. This is handy, since it enables us to think of $\sigma$ as outputting a probability, where $\sigma = 0.5$ when $z = 0$, and $\sigma = 1$ as $z\rightarrow\infty$. The output of $\sigma$ will thus be our estimate of the probability that an applicant will be admitted to the university.&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;/assets/posts/2/lr-db.png&quot; width=&quot;800px&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;This is a contour plot showing the “decision boundary” of a model that has been trained on our dataset with logistic regression. Even though the boundary is still linear, it has now  become more nuanced with the dark blue region indicating near certainty that €x^{(i)}€ is admitted (€\hat{y}^{(i)}\approx1€), and the dark red region indicating the opposite (€\hat{y}^{(i)}\approx0€). This is pretty nice since it reveals when our model is faced with uncertainty.&lt;/p&gt;
+&lt;p&gt;This is a contour plot showing the “decision boundary” of a model that has been trained on our dataset with logistic regression. Even though the boundary is still linear, it has now  become more nuanced with the dark blue region indicating near certainty that $x^{(i)}$ is admitted ($\hat{y}^{(i)}\approx1$), and the dark red region indicating the opposite ($\hat{y}^{(i)}\approx0$). This is pretty nice since it reveals when our model is faced with uncertainty.&lt;/p&gt;
 
 &lt;h2 id=&quot;defining-our-model&quot;&gt;Defining our model&lt;/h2&gt;
 
@@ -1093,7 +1093,7 @@ x \cdot y = 0
 \theta_1x_1 + \theta_2x_2 \cdots +\theta_nx_n + b
 €€&lt;/p&gt;
 
-&lt;p&gt;where €\theta€ was an €n€-dimensional vector of weights, and €x€ was an €n€-dimensional vector of features. We also saw how we could simplify this expression by adding €b€ as an element €\theta_0€ to the vector €\theta€, and by ensuring that its corresponding element in the vector €x€ was always 1:&lt;/p&gt;
+&lt;p&gt;where $\theta$ was an $n$-dimensional vector of weights, and $x$ was an $n$-dimensional vector of features. We also saw how we could simplify this expression by adding $b$ as an element $\theta_0$ to the vector $\theta$, and by ensuring that its corresponding element in the vector $x$ was always 1:&lt;/p&gt;
 
 &lt;p&gt;€€
 \theta \cdot x = \begin{Bmatrix}\theta_0 \cr \theta_1 \cr \theta_2 \cr \vdots \cr \theta_n\end{Bmatrix}
@@ -1101,15 +1101,15 @@ x \cdot y = 0
 \begin{Bmatrix}1 \cr x_1 \cr x_2\cr \vdots \cr x_n \end{Bmatrix}= \theta_0 + \theta_1x_1 + \cdots + \theta_nx_n
 €€&lt;/p&gt;
 
-&lt;p&gt;In logistic regression, we do exactly the same. However, instead of stopping here, we feed the result of the dot product between €\theta€ and €x€ to the sigmoid function €\sigma€. Concretely, this means that given a vector €x€ containing an applicant’s exam-scores, the probability that they will be admitted to the university is calculated as:&lt;/p&gt;
+&lt;p&gt;In logistic regression, we do exactly the same. However, instead of stopping here, we feed the result of the dot product between $\theta$ and $x$ to the sigmoid function $\sigma$. Concretely, this means that given a vector $x$ containing an applicant’s exam-scores, the probability that they will be admitted to the university is calculated as:&lt;/p&gt;
 
 &lt;p&gt;€€
 \sigma(\theta \cdot x) = \frac{1}{1+\exp(-(\theta \cdot x))}
 €€&lt;/p&gt;
 
-&lt;p&gt;The fact that we run the input data through the same linear function as the perceptron algorithm is the reason why the decision boundary remains linear. The nuance of the contour plot above is simply the result of passing the output of our linear function as a parameter to €\sigma€.&lt;/p&gt;
+&lt;p&gt;The fact that we run the input data through the same linear function as the perceptron algorithm is the reason why the decision boundary remains linear. The nuance of the contour plot above is simply the result of passing the output of our linear function as a parameter to $\sigma$.&lt;/p&gt;
 
-&lt;p&gt;When we first initialize our logistic regression model, our parameters €\theta€ will again have random values between 0 and 1. As a result, the probabilities outputted by €\sigma€ will be way off the intended values in the beginning. To improve our parameters, we need a learning algorithm.&lt;/p&gt;
+&lt;p&gt;When we first initialize our logistic regression model, our parameters $\theta$ will again have random values between 0 and 1. As a result, the probabilities outputted by $\sigma$ will be way off the intended values in the beginning. To improve our parameters, we need a learning algorithm.&lt;/p&gt;
 
 &lt;h2 id=&quot;quantifying-errors-using-loss-functions&quot;&gt;Quantifying errors using loss functions&lt;/h2&gt;
 
@@ -1121,9 +1121,9 @@ x \cdot y = 0
 \frac{1}{m}\sum\limits_{i=1}^{m}-y^{(i)} \log(\hat{y}^{(i)}) - (1-y^{(i)}) \log(1-\hat{y}^{(i)})
 €€&lt;/p&gt;
 
-&lt;p class=&quot;subtext&quot;&gt;€(i)€ is the index of sample €i€, €y^{(i)}€ is the corresponding target value, and €\hat{y}^{(i)}€ is our probability estimate. €m€ is the total number of samples. Multiplying by €\frac{1}{m}€ gives us the mean loss.&lt;/p&gt;
+&lt;p class=&quot;subtext&quot;&gt;$(i)$ is the index of sample $i$, $y^{(i)}$ is the corresponding target value, and $\hat{y}^{(i)}$ is our probability estimate. $m$ is the total number of samples. Multiplying by $\frac{1}{m}$ gives us the mean loss.&lt;/p&gt;
 
-&lt;p&gt;Suppose we take a sample €x^{(i)}€ from our dataset with a target value €y^{(i)}€ of 1 (Admitted). When we begin training our model, it estimates the probability of €x^{(i)}€ being admitted at, say, 0.36 (a pretty bad estimate). Plugging these values into the loss function, we get:&lt;/p&gt;
+&lt;p&gt;Suppose we take a sample $x^{(i)}$ from our dataset with a target value $y^{(i)}$ of 1 (Admitted). When we begin training our model, it estimates the probability of $x^{(i)}$ being admitted at, say, 0.36 (a pretty bad estimate). Plugging these values into the loss function, we get:&lt;/p&gt;
 
 &lt;p&gt;€€
 -1 \cdot \log(0.36) - 0 \cdot \log(1-0.36)
@@ -1131,7 +1131,7 @@ x \cdot y = 0
 
 &lt;p class=&quot;subtext&quot;&gt;I have omitted the fraction and the summation, since we are only looking at the error of a single sample.&lt;/p&gt;
 
-&lt;p&gt;Because €y^{(i)}=1€, the second term in the expression falls away, and all we are left with is:&lt;/p&gt;
+&lt;p&gt;Because $y^{(i)}=1$, the second term in the expression falls away, and all we are left with is:&lt;/p&gt;
 
 &lt;p&gt;€€
 -1 \cdot \log(0.36) \approx 0.44
@@ -1149,25 +1149,25 @@ x \cdot y = 0
 -1 \cdot \log(1-0.36) \approx 0.19
 €€&lt;/p&gt;
 
-&lt;p&gt;Notice how the loss was higher when €y^{(i)}=1€. This is exactly what we want, since our estimate of 0.36 is farther from 1 than from 0.&lt;/p&gt;
+&lt;p&gt;Notice how the loss was higher when $y^{(i)}=1$. This is exactly what we want, since our estimate of 0.36 is farther from 1 than from 0.&lt;/p&gt;
 
-&lt;p&gt;We know for a fact that each of our samples €x^{(i)}€ has a target value €y^{(i)}€ of either 0 or 1. It is never in between. This is nice, because it tells us that the loss for each sample can only be expressed as either €-1 \cdot \log(\hat{y}^{(i)})€ or €-1 \cdot \log(1-\hat{y}^{(i)})€. Let’s plot the two functions:&lt;/p&gt;
+&lt;p&gt;We know for a fact that each of our samples $x^{(i)}$ has a target value $y^{(i)}$ of either 0 or 1. It is never in between. This is nice, because it tells us that the loss for each sample can only be expressed as either $-1 \cdot \log(\hat{y}^{(i)})$ or $-1 \cdot \log(1-\hat{y}^{(i)})$. Let’s plot the two functions:&lt;/p&gt;
 
 &lt;div id=&quot;log1&quot; class=&quot;plot&quot;&gt;&lt;/div&gt;
 &lt;script type=&quot;text/javascript&quot;&gt;functionPlot({target:&quot;#log1&quot;,xAxis:{domain:[0,1]},yAxis:{domain:[0,5]},grid:true,disableZoom:true,width:500,height:300,data:[{fn:&quot;-1*log(x)&quot;,derivative:{fn:&quot;-1/x&quot;, updateOnMouseMove:true}}]})&lt;/script&gt;
 
-&lt;p class=&quot;subtext&quot;&gt;€-1 \cdot \log(\hat{y}^{(i)})€&lt;/p&gt;
+&lt;p class=&quot;subtext&quot;&gt;$-1 \cdot \log(\hat{y}^{(i)})$&lt;/p&gt;
 
 &lt;div id=&quot;log2&quot; class=&quot;plot&quot;&gt;&lt;/div&gt;
 &lt;script type=&quot;text/javascript&quot;&gt;functionPlot({target:&quot;#log2&quot;,xAxis:{domain:[0,1]},yAxis:{domain:[0,5]},grid:true,disableZoom:true,width:500,height:300,data:[{fn:&quot;-1*log(1-x)&quot;,derivative:{fn:&quot;1/(1-x)&quot;, updateOnMouseMove:true}}]})&lt;/script&gt;
 
-&lt;p class=&quot;subtext&quot;&gt;€-1 \cdot \log(1-\hat{y}^{(i)})€&lt;/p&gt;
+&lt;p class=&quot;subtext&quot;&gt;$-1 \cdot \log(1-\hat{y}^{(i)})$&lt;/p&gt;
 
 &lt;p&gt;Two very useful features are evident from these plots:&lt;/p&gt;
 
 &lt;ol&gt;
   &lt;li&gt;Both functions are continuous and therefore differentiable.&lt;/li&gt;
-  &lt;li&gt;The functions are 0 when the estimated probability €\hat{y}^{(i)}€ is equal to the target value €y^{(i)}€, and they both approach infinity as €\hat{y}^{(i)}€ moves in the opposite direction.&lt;/li&gt;
+  &lt;li&gt;The functions are 0 when the estimated probability $\hat{y}^{(i)}$ is equal to the target value $y^{(i)}$, and they both approach infinity as $\hat{y}^{(i)}$ moves in the opposite direction.&lt;/li&gt;
 &lt;/ol&gt;
 
 &lt;p&gt;To see why this is useful, we need to talk about a beautiful and extremely powerful idea known as &lt;strong&gt;gradient descent&lt;/strong&gt;.&lt;/p&gt;
@@ -1176,13 +1176,13 @@ x \cdot y = 0
 
 &lt;p&gt;We just saw how we could quantify the error of our model’s probability estimates by using a loss function. The beauty of a loss function is that it can be effectively minimized with the help of some relatively straightforward calculus. (If your calculus is shaky, I suggest you take a &lt;a href=&quot;https://www.youtube.com/watch?v=EKvHQc3QEow&amp;amp;list=PL19E79A0638C8D449&quot;&gt;crash course with Sal&lt;/a&gt; until you are comfortable with derivates — it is really not that bad.)&lt;/p&gt;
 
-&lt;p&gt;Recall that we calculate the probability of a sample €x^{(i)}€ being admitted as:&lt;/p&gt;
+&lt;p&gt;Recall that we calculate the probability of a sample $x^{(i)}$ being admitted as:&lt;/p&gt;
 
 &lt;p&gt;€€
 \sigma(\theta \cdot x^{(i)}) = \frac{1}{1+\exp(-\theta \cdot x^{(i)})}
 €€&lt;/p&gt;
 
-&lt;p&gt;This means that €\sigma(\theta \cdot x^{(i)})=\hat{y}^{(i)}€. For clarity, let’s try to represent our complicated-looking-but-really-very-simple loss function by referring to our probability estimate this way.&lt;/p&gt;
+&lt;p&gt;This means that $\sigma(\theta \cdot x^{(i)})=\hat{y}^{(i)}$. For clarity, let’s try to represent our complicated-looking-but-really-very-simple loss function by referring to our probability estimate this way.&lt;/p&gt;
 
 &lt;p&gt;€€
 \frac{1}{m}\sum\limits_{i=1}^{m}-y^{(i)} \log(\hat{y}^{(i)}) - (1-y^{(i)}) \log(1-\hat{y}^{(i)})
@@ -1194,17 +1194,17 @@ x \cdot y = 0
 \frac{1}{m}\sum\limits_{i=1}^{m}-y^{(i)} \log(\sigma(\theta \cdot x^{(i)})) - (1-y^{(i)}) \log(1-\sigma(\theta \cdot x^{(i)}))
 €€&lt;/p&gt;
 
-&lt;p&gt;In the previous section, I mentioned that the loss function above is differentiable. I did not mention that the sigmoid function is as well. This is significant because — and this is where it gets cool — by having all the layers of our algorithm be differentiable, we can calculate the derivates of the loss function with respect to our parameters €\theta€! Let that sink in for a while.&lt;/p&gt;
+&lt;p&gt;In the previous section, I mentioned that the loss function above is differentiable. I did not mention that the sigmoid function is as well. This is significant because — and this is where it gets cool — by having all the layers of our algorithm be differentiable, we can calculate the derivates of the loss function with respect to our parameters $\theta$! Let that sink in for a while.&lt;/p&gt;
 
-&lt;p&gt;What this means is that we can measure &lt;em&gt;exactly&lt;/em&gt; how a change in our parameters €\theta€ affects a change in our loss function. When you think about it, this is unbelievably cool. In theory, you could filter €x^{(i)}€ through thousands of layers of manipulations, and as long as they are all differentiable, you can calculate how each individual one of them is affecting the final loss (and thus how to change them in order to improve your model). In fact, this is &lt;em&gt;exactly&lt;/em&gt; how any neural network improves itself when exposed to new data. We will explore this technique in more detail in Pt 4.&lt;/p&gt;
+&lt;p&gt;What this means is that we can measure &lt;em&gt;exactly&lt;/em&gt; how a change in our parameters $\theta$ affects a change in our loss function. When you think about it, this is unbelievably cool. In theory, you could filter $x^{(i)}$ through thousands of layers of manipulations, and as long as they are all differentiable, you can calculate how each individual one of them is affecting the final loss (and thus how to change them in order to improve your model). In fact, this is &lt;em&gt;exactly&lt;/em&gt; how any neural network improves itself when exposed to new data. We will explore this technique in more detail in Pt 4.&lt;/p&gt;
 
-&lt;p&gt;The partial derivative of our loss function (which I will henceforth refer to as €C€) w.r.t. a single parameter €\theta_j€ looks like this:&lt;/p&gt;
+&lt;p&gt;The partial derivative of our loss function (which I will henceforth refer to as $C$) w.r.t. a single parameter $\theta_j$ looks like this:&lt;/p&gt;
 
 &lt;p&gt;€€
 \frac{\partial C}{\partial \theta_j}=(\sigma(\theta \cdot x^{(i)})-y^{(i)})x_j^{(i)}
 €€&lt;/p&gt;
 
-&lt;p class=&quot;subtext&quot;&gt;€j€ refers to the €j€th feature of sample €i€. If you are curious about the steps behind the derivation, check out the top-rated answer &lt;a href=&quot;http://math.stackexchange.com/questions/477207/derivative-of-loss-function-for-logistic-regression?newreg=193313544a574729babc17a42602a428&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p class=&quot;subtext&quot;&gt;$j$ refers to the $j$th feature of sample $i$. If you are curious about the steps behind the derivation, check out the top-rated answer &lt;a href=&quot;http://math.stackexchange.com/questions/477207/derivative-of-loss-function-for-logistic-regression?newreg=193313544a574729babc17a42602a428&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;A better way of writing this is to use the gradient expression:&lt;/p&gt;
 
@@ -1212,31 +1212,31 @@ x \cdot y = 0
 \nabla_\theta C = (\sigma(\theta \cdot x^{(i)})-y^{(i)})x^{(i)}
 €€&lt;/p&gt;
 
-&lt;p class=&quot;subtext&quot;&gt;Note that €(\sigma(\theta \cdot x^{(i)})-y^{(i)})€ is a scalar, while €x^{(i)}€ is a vector.&lt;/p&gt;
+&lt;p class=&quot;subtext&quot;&gt;Note that $(\sigma(\theta \cdot x^{(i)})-y^{(i)})$ is a scalar, while $x^{(i)}$ is a vector.&lt;/p&gt;
 
-&lt;p&gt;A gradient (denoted by the symbol €\nabla€) is no more than a collection of partial derivatives. In this particular example, we have three parameters: the bias €\theta_0€ and the weights €\theta_1€ and €\theta_2€. Since we have three parameters and want to know how each one of them influences the loss €C€, we end up with three different derivatives. The gradient will therefore be a three-dimensional vector containing the derivatives for our three parameters.&lt;/p&gt;
+&lt;p&gt;A gradient (denoted by the symbol $\nabla$) is no more than a collection of partial derivatives. In this particular example, we have three parameters: the bias $\theta_0$ and the weights $\theta_1$ and $\theta_2$. Since we have three parameters and want to know how each one of them influences the loss $C$, we end up with three different derivatives. The gradient will therefore be a three-dimensional vector containing the derivatives for our three parameters.&lt;/p&gt;
 
 &lt;p&gt;You probably remember from high school that a positive derivative means that we are moving “uphill” while a negative derivative means that we are moving “downhill”. Thus, if we get a positive derivative for one of our parameters, we want the value of that particular parameter to move in the opposite direction (since moving uphill is equivalent to increasing our loss).&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;/assets/posts/2/gradient-descent.png&quot; width=&quot;480&quot; /&gt;&lt;/p&gt;
 
-&lt;p class=&quot;subtext&quot;&gt;A contrived example showing how we want €\theta€ to move in the direction that minimizes the loss. Here, €\theta€ would be a two-dimensional vector.&lt;/p&gt;
+&lt;p class=&quot;subtext&quot;&gt;A contrived example showing how we want $\theta$ to move in the direction that minimizes the loss. Here, $\theta$ would be a two-dimensional vector.&lt;/p&gt;
 
-&lt;p&gt;But hold on. The above definition of our gradient only deals with a single sample! We &lt;em&gt;could&lt;/em&gt; choose to “walk downhill” with the help of this gradient alone, but by doing that, we would only be walking down the loss function &lt;em&gt;for this particular sample&lt;/em&gt;. To get a gradient that will improve our parameters with respect to &lt;em&gt;all&lt;/em&gt; €n€ samples, we have to find the mean gradient like so:&lt;/p&gt;
+&lt;p&gt;But hold on. The above definition of our gradient only deals with a single sample! We &lt;em&gt;could&lt;/em&gt; choose to “walk downhill” with the help of this gradient alone, but by doing that, we would only be walking down the loss function &lt;em&gt;for this particular sample&lt;/em&gt;. To get a gradient that will improve our parameters with respect to &lt;em&gt;all&lt;/em&gt; $n$ samples, we have to find the mean gradient like so:&lt;/p&gt;
 
 &lt;p&gt;€€
 \nabla_\theta C = \frac{1}{m}\sum\limits_{i=1}^{m}(\sigma(\theta \cdot x^{(i)})-y^{(i)})x^{(i)}
 €€&lt;/p&gt;
 
-&lt;p&gt;That is more like it. When we perform this calculation, we get a gradient containing the mean — or distillation if you will — of all of the partial derivatives w.r.t. €\theta€ in our training set. One way to think of this is that each derivative gets to vote on which way is downhill. When we use the mean of all the votes, we move in the direction that causes a drop in the loss for the majority of our samples.&lt;/p&gt;
+&lt;p&gt;That is more like it. When we perform this calculation, we get a gradient containing the mean — or distillation if you will — of all of the partial derivatives w.r.t. $\theta$ in our training set. One way to think of this is that each derivative gets to vote on which way is downhill. When we use the mean of all the votes, we move in the direction that causes a drop in the loss for the majority of our samples.&lt;/p&gt;
 
-&lt;p&gt;As mentioned, if the derivative for a particular parameter €\theta_j€ is positive, we want to decrease the value of €\theta_j€. Likewise, if €\theta_j€ has a negative derivative, we want to increase the value of €\theta_j€. For now, the increments by which we change €\theta_j€’s current value will simply be the same as the value of the derivatives. The following update rule describes exactly this procedure.&lt;/p&gt;
+&lt;p&gt;As mentioned, if the derivative for a particular parameter $\theta_j$ is positive, we want to decrease the value of $\theta_j$. Likewise, if $\theta_j$ has a negative derivative, we want to increase the value of $\theta_j$. For now, the increments by which we change $\theta_j$’s current value will simply be the same as the value of the derivatives. The following update rule describes exactly this procedure.&lt;/p&gt;
 
 &lt;p&gt;€€
 \theta := \theta -\nabla_\theta C
 €€&lt;/p&gt;
 
-&lt;p&gt;Because of the minus sign, negative derivatives will cause the value of €\theta_j€ to increase, and positive values will cause €\theta_j€ to decrease. Exactly what we want! If we do this for enough iterations (aka. &lt;strong&gt;epochs&lt;/strong&gt;), our algorithm should converge on the parameters that cause the total loss to be as small as possible. Let’s see if this works by applying what we have learned in code.&lt;/p&gt;
+&lt;p&gt;Because of the minus sign, negative derivatives will cause the value of $\theta_j$ to increase, and positive values will cause $\theta_j$ to decrease. Exactly what we want! If we do this for enough iterations (aka. &lt;strong&gt;epochs&lt;/strong&gt;), our algorithm should converge on the parameters that cause the total loss to be as small as possible. Let’s see if this works by applying what we have learned in code.&lt;/p&gt;
 
 &lt;h2 id=&quot;creating-a-logistic-regression-model-in-python&quot;&gt;Creating a logistic regression model in Python&lt;/h2&gt;
 
@@ -1273,13 +1273,13 @@ x \cdot y = 0
 
 &lt;p&gt;We haven’t yet implemented all of the referenced methods, but if you analyze &lt;code class=&quot;highlighter-rouge&quot;&gt;fit&lt;/code&gt;, you will see that — except for the &lt;code class=&quot;highlighter-rouge&quot;&gt;standardize&lt;/code&gt; part — we have covered the theory behind everything that is happening. So, before we proceed, what does &lt;code class=&quot;highlighter-rouge&quot;&gt;standardize&lt;/code&gt; do?&lt;/p&gt;
 
-&lt;p&gt;&lt;a href=&quot;http://sebastianraschka.com/Articles/2014_about_feature_scaling.html#about-standardization&quot;&gt;Standardization&lt;/a&gt; is done using the following formula, and forces the features of a dataset to follow a normal distribution with mean €\mu=0€ and standard deviation €\sigma=1€ (not to be confused with the sigmoid function, which we also denoted as €\sigma€).&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;http://sebastianraschka.com/Articles/2014_about_feature_scaling.html#about-standardization&quot;&gt;Standardization&lt;/a&gt; is done using the following formula, and forces the features of a dataset to follow a normal distribution with mean $\mu=0$ and standard deviation $\sigma=1$ (not to be confused with the sigmoid function, which we also denoted as $\sigma$).&lt;/p&gt;
 
 &lt;p&gt;€€
 \frac{x_j^{(i)}-\mu}{\sigma}
 €€&lt;/p&gt;
 
-&lt;p&gt;Performing this trick on our particular dataset squishes the features of our first sample from around &lt;code class=&quot;highlighter-rouge&quot;&gt;34.62&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;78.02&lt;/code&gt; down to about &lt;code class=&quot;highlighter-rouge&quot;&gt;-1.60&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;0.63&lt;/code&gt; respectively. We need to do this, because the dot product €\theta \cdot x^{(i)}€ has to be pretty small in order to avoid &lt;strong&gt;saturation&lt;/strong&gt;. Saturation happens when we plug large values into the sigmoid function. This returns a number extremely close to 1, and we thus run the risk of numerical overflow and &lt;a href=&quot;https://www.quora.com/What-is-the-vanishing-gradient-problem/answer/Nikhil-Garg?srid=06OE&quot;&gt;vanishing gradients&lt;/a&gt;. To avoid this, we use standardization to scale our features down to have zero-mean while still maintaining the ratios between the features.&lt;/p&gt;
+&lt;p&gt;Performing this trick on our particular dataset squishes the features of our first sample from around &lt;code class=&quot;highlighter-rouge&quot;&gt;34.62&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;78.02&lt;/code&gt; down to about &lt;code class=&quot;highlighter-rouge&quot;&gt;-1.60&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;0.63&lt;/code&gt; respectively. We need to do this, because the dot product $\theta \cdot x^{(i)}$ has to be pretty small in order to avoid &lt;strong&gt;saturation&lt;/strong&gt;. Saturation happens when we plug large values into the sigmoid function. This returns a number extremely close to 1, and we thus run the risk of numerical overflow and &lt;a href=&quot;https://www.quora.com/What-is-the-vanishing-gradient-problem/answer/Nikhil-Garg?srid=06OE&quot;&gt;vanishing gradients&lt;/a&gt;. To avoid this, we use standardization to scale our features down to have zero-mean while still maintaining the ratios between the features.&lt;/p&gt;
 
 &lt;p&gt;We will now add the partial derivative of the loss function with respect to our parameters:&lt;/p&gt;
 
@@ -1369,7 +1369,7 @@ x \cdot y = 0
 &lt;p&gt;The following steps outline how to create a model with this capability.&lt;/p&gt;
 
 &lt;ol&gt;
-  &lt;li&gt;We initialize a number of &lt;strong&gt;parameters&lt;/strong&gt; with random values between 0 and 1. If each of our samples has €n€ features, we initialize €n+1€ parameters. Out of these €n+1€ parameters,  there will be €n€ &lt;strong&gt;weights&lt;/strong&gt;, and one so-called &lt;strong&gt;bias&lt;/strong&gt;. There will &lt;em&gt;always&lt;/em&gt; be an equal number of weights and features. I will get to the point of the parameters in a minute, but for the moment, you can think of them as the knobs and dials of our model, which our algorithm uses to improve its performance.&lt;/li&gt;
+  &lt;li&gt;We initialize a number of &lt;strong&gt;parameters&lt;/strong&gt; with random values between 0 and 1. If each of our samples has $n$ features, we initialize $n+1$ parameters. Out of these $n+1$ parameters,  there will be $n$ &lt;strong&gt;weights&lt;/strong&gt;, and one so-called &lt;strong&gt;bias&lt;/strong&gt;. There will &lt;em&gt;always&lt;/em&gt; be an equal number of weights and features. I will get to the point of the parameters in a minute, but for the moment, you can think of them as the knobs and dials of our model, which our algorithm uses to improve its performance.&lt;/li&gt;
   &lt;li&gt;Having initialized our parameters, we now feed &lt;strong&gt;training data&lt;/strong&gt; to our (currently random, and thus highly inaccurate) model one sample at a time. The model takes the features of a sample as input, and multiplies each feature by the model’s corresponding weight. This yields our &lt;strong&gt;weighted features&lt;/strong&gt;.&lt;/li&gt;
   &lt;li&gt;Next, we calculate the sum of the weighted features and add the bias. At this point, all we are left with is a number. If this number is less than zero, we classify the sample as belonging to the setosa family; if the number is greater than zero, we classify the sample as being of type versicolor.&lt;/li&gt;
   &lt;li&gt;Last but not least, if our prediction is wrong, we update our parameters. If our prediction is right, we do nothing, and move on to the next sample.&lt;/li&gt;
@@ -1383,25 +1383,25 @@ x \cdot y = 0
 
 &lt;p&gt;The animation above illustrates an example of a 2D plane separating setosa and versicolor points in 3D space. Our parameters define the plane — also known as the &lt;strong&gt;decision boundary&lt;/strong&gt; — and when these are multiplied by the coordinates of a point (the features), the result will be positive if the point is located above the plane, and negative when located below the plane. This is the core idea that makes our algorithm possible. Our job is to find a set of parameters that separate the classes perfectly (like the one above).&lt;/p&gt;
 
-&lt;p&gt;The four features of every sample will be represented by a four-dimensional vector €x€. The vector €\theta€ will be a four-dimensional vector containing the weights. If €b€ is the bias, we can mathematically represent our model like this:&lt;/p&gt;
+&lt;p&gt;The four features of every sample will be represented by a four-dimensional vector $x$. The vector $\theta$ will be a four-dimensional vector containing the weights. If $b$ is the bias, we can mathematically represent our model like this:&lt;/p&gt;
 
 &lt;p&gt;€€
 \theta_1x_1 + \theta_2x_2 + \theta_3x_3 + \theta_4x_4 + b
 €€&lt;/p&gt;
 
-&lt;p&gt;With four coordinates (€x_1€ to €x_4€), this expression defines a cube in 4D space rather than a plane in 3D space like the one shown in the animation. Impossible to visualize, yes, but that doesn’t change a thing. Pretty cool, right?&lt;/p&gt;
+&lt;p&gt;With four coordinates ($x_1$ to $x_4$), this expression defines a cube in 4D space rather than a plane in 3D space like the one shown in the animation. Impossible to visualize, yes, but that doesn’t change a thing. Pretty cool, right?&lt;/p&gt;
 
-&lt;p&gt;&lt;em&gt;A brief note about terminology: We can refer to a line in 2D space, a plane in 3D space, a cube in 4D space, and so on by the same name: hyperplane. More generally, a hyperplane is simply a space of dimension €n-1€ in an enclosing space of dimension €n€. As we will see, this will be a convenient term as we expand our algorithms to higher dimensions.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;A brief note about terminology: We can refer to a line in 2D space, a plane in 3D space, a cube in 4D space, and so on by the same name: hyperplane. More generally, a hyperplane is simply a space of dimension $n-1$ in an enclosing space of dimension $n$. As we will see, this will be a convenient term as we expand our algorithms to higher dimensions.&lt;/em&gt;&lt;/p&gt;
 
-&lt;p&gt;It is worth repeating that – for 3D space – when this expression is positive, the point €x€ is located above the plane, and when the expression is negative, €x€ is located beneath the plane. The plane itself is defined by the parameters €\theta€ and €b€, where €\theta€ is responsible for “tilting” the plane, and €b€ either pushes or pulls the plane up or down in the coordinate space. Note that all of this holds true for higher dimensional hyperplanes as well.&lt;/p&gt;
+&lt;p&gt;It is worth repeating that – for 3D space – when this expression is positive, the point $x$ is located above the plane, and when the expression is negative, $x$ is located beneath the plane. The plane itself is defined by the parameters $\theta$ and $b$, where $\theta$ is responsible for “tilting” the plane, and $b$ either pushes or pulls the plane up or down in the coordinate space. Note that all of this holds true for higher dimensional hyperplanes as well.&lt;/p&gt;
 
-&lt;p&gt;Keep in mind that our weights and features are represented as vectors. This allows us to rewrite the above expression by taking the &lt;a href=&quot;https://www.youtube.com/watch?v=WNuIhXo39_k&quot;&gt;dot product&lt;/a&gt; of €x€ and €\theta€, and then adding €b€ to the resulting scalar:&lt;/p&gt;
+&lt;p&gt;Keep in mind that our weights and features are represented as vectors. This allows us to rewrite the above expression by taking the &lt;a href=&quot;https://www.youtube.com/watch?v=WNuIhXo39_k&quot;&gt;dot product&lt;/a&gt; of $x$ and $\theta$, and then adding $b$ to the resulting scalar:&lt;/p&gt;
 
 &lt;p&gt;€€
 (x \cdot \theta) + b
 €€&lt;/p&gt;
 
-&lt;p&gt;To make things even more concise, we will add another element €x_0€ to our vector €x€ and make sure that it is always equal to 1. We will also add a corresponding weight €\theta_0€ to our vector €\theta€. This allows us to treat the bias (now represented as €\theta_0€) as part of our vector operations, so we can simplify the above expression even further:&lt;/p&gt;
+&lt;p&gt;To make things even more concise, we will add another element $x_0$ to our vector $x$ and make sure that it is always equal to 1. We will also add a corresponding weight $\theta_0$ to our vector $\theta$. This allows us to treat the bias (now represented as $\theta_0$) as part of our vector operations, so we can simplify the above expression even further:&lt;/p&gt;
 
 &lt;p&gt;€€
 x \cdot \theta
@@ -1423,9 +1423,9 @@ x \cdot \theta
 \sigma(z)=\begin{cases} 1 &amp;amp; {\small z &amp;gt; 0,} \cr 0 &amp;amp; \text{otherwise} \end{cases}
 €€&lt;/p&gt;
 
-&lt;p&gt;If it isn’t immediately obvious from this definition, the heaviside step function takes a scalar input €z€ and returns 1 if €z€ is positive, and 0 if €z€ is nonpositive. The sole purpose of the heaviside step function is to classify points below the decision boundary as 0, and points above the decision boundary as 1. The output will thus be our prediction of the Iris type.&lt;/p&gt;
+&lt;p&gt;If it isn’t immediately obvious from this definition, the heaviside step function takes a scalar input $z$ and returns 1 if $z$ is positive, and 0 if $z$ is nonpositive. The sole purpose of the heaviside step function is to classify points below the decision boundary as 0, and points above the decision boundary as 1. The output will thus be our prediction of the Iris type.&lt;/p&gt;
 
-&lt;p&gt;For each sample, the output €\hat{y}€ of our model will be:&lt;/p&gt;
+&lt;p&gt;For each sample, the output $\hat{y}$ of our model will be:&lt;/p&gt;
 
 &lt;p&gt;€€
 \hat{y} = \sigma(x \cdot \theta)
@@ -1437,25 +1437,25 @@ x \cdot \theta
 \Delta \theta_i = (y^{(j)} - \hat{y}^{(j)})x_i^{(j)}
 €€&lt;/p&gt;
 
-&lt;p class=&quot;subtext&quot;&gt;€j€ represents the €j€th sample, and €i€ represents the €i€th feature. €y^{(j)}€ is the true label.&lt;/p&gt;
+&lt;p class=&quot;subtext&quot;&gt;$j$ represents the $j$th sample, and $i$ represents the $i$th feature. $y^{(j)}$ is the true label.&lt;/p&gt;
 
 &lt;p&gt;If you are not used to mathematical notation, this may seem a little intimidating. Not to worry; it is easy to see what is happening here by looking at an example.&lt;/p&gt;
 
-&lt;p&gt;Let’s assume that, during training, the model erroneously interprets setosa features for versicolor features. The heaviside step function would then output a 1 when it should have given us a 0. In this case, €\Delta \theta_i€ would be:&lt;/p&gt;
+&lt;p&gt;Let’s assume that, during training, the model erroneously interprets setosa features for versicolor features. The heaviside step function would then output a 1 when it should have given us a 0. In this case, $\Delta \theta_i$ would be:&lt;/p&gt;
 
 &lt;p&gt;€€
 \Delta \theta_i = (0 - 1)x_i^{(j)}
 €€&lt;/p&gt;
 
-&lt;p&gt;If €x_i^{(j)}€ were, say, the petal length of our misclassified sample with a value of 1.9, the equation would look like this:&lt;/p&gt;
+&lt;p&gt;If $x_i^{(j)}$ were, say, the petal length of our misclassified sample with a value of 1.9, the equation would look like this:&lt;/p&gt;
 
 &lt;p&gt;€€
 \Delta \theta_i = (-1) \cdot 1.9 = -1.9
 €€&lt;/p&gt;
 
-&lt;p&gt;We would then subtract 1.9 from €\theta_i€’s current value.&lt;/p&gt;
+&lt;p&gt;We would then subtract 1.9 from $\theta_i$’s current value.&lt;/p&gt;
 
-&lt;p&gt;To see why we subtract, remember that the output of the model was 1 when it should have been 0. This means that the result of the dot product €(x \cdot \theta)€ was positive when it should have been negative, and therefore that the parameters are currently adjusted too high. Had we predicted a 0 when the true label was 1, the value of €\theta_i€ would have been increased by 1.9.&lt;/p&gt;
+&lt;p&gt;To see why we subtract, remember that the output of the model was 1 when it should have been 0. This means that the result of the dot product $(x \cdot \theta)$ was positive when it should have been negative, and therefore that the parameters are currently adjusted too high. Had we predicted a 0 when the true label was 1, the value of $\theta_i$ would have been increased by 1.9.&lt;/p&gt;
 
 &lt;p&gt;This same learning algorithm holds for the bias. However, since the bias’ corresponding “feature” is 1, this leaves us with:&lt;/p&gt;
 
@@ -1502,7 +1502,7 @@ x \cdot \theta
 
 &lt;p&gt;We will use the training samples to train the model, and our test samples to verify whether the model generalizes and correctly predicts the classes of unseen samples. A 50/50 split between training and test samples is not very common (usually it is 60/40 or 70/30 with the majority going to the training samples), but it should suffice for this example.&lt;/p&gt;
 
-&lt;p&gt;Note that all training samples are now stored within a 50x5 matrix €X€. If you are unfamiliar with matrices, they can simply be thought of as containers of multiple vectors. Thus, the 50x5 matrix contains 50 samples/vectors, and each of those vectors contains four features &lt;em&gt;and&lt;/em&gt; a bias. In other words, our matrix €X€ contains 50 €x€s.&lt;/p&gt;
+&lt;p&gt;Note that all training samples are now stored within a 50x5 matrix $X$. If you are unfamiliar with matrices, they can simply be thought of as containers of multiple vectors. Thus, the 50x5 matrix contains 50 samples/vectors, and each of those vectors contains four features &lt;em&gt;and&lt;/em&gt; a bias. In other words, our matrix $X$ contains 50 $x$s.&lt;/p&gt;
 
 &lt;p&gt;Now that we have our data organized and ready, it is time to code the actual perceptron. Let’s start by creating a &lt;code class=&quot;highlighter-rouge&quot;&gt;Perceptron&lt;/code&gt; class with a &lt;code class=&quot;highlighter-rouge&quot;&gt;fit&lt;/code&gt; method that takes three parameters: &lt;code class=&quot;highlighter-rouge&quot;&gt;X&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;y&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;epochs&lt;/code&gt;. &lt;code class=&quot;highlighter-rouge&quot;&gt;X&lt;/code&gt; will be our matrix of features, &lt;code class=&quot;highlighter-rouge&quot;&gt;y&lt;/code&gt; will be a vector containing the corresponding target values, and &lt;code class=&quot;highlighter-rouge&quot;&gt;epochs&lt;/code&gt; will be an integer specifying how many times to loop over the training data. If we didn’t specify the number of epochs, we would only have 50 iterations to update our parameters, which probably wouldn’t be enough for them to converge on the most optimal values.&lt;/p&gt;
 
@@ -1550,7 +1550,7 @@ x \cdot \theta
 &lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;gp&quot;&gt;$ &lt;/span&gt;python perceptron.py
 Accuracy: 1.000000&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
-&lt;p&gt;Because the data is linearly separable, the algorithm found the optimal values for €\theta€, and is now able to correctly classify all 50 test samples. Had the data not been linearly separable, it would have been a &lt;em&gt;whole&lt;/em&gt; other story.&lt;/p&gt;
+&lt;p&gt;Because the data is linearly separable, the algorithm found the optimal values for $\theta$, and is now able to correctly classify all 50 test samples. Had the data not been linearly separable, it would have been a &lt;em&gt;whole&lt;/em&gt; other story.&lt;/p&gt;
 
 &lt;p&gt;In the &lt;a href=&quot;http://sigmoidprime.com/post/how-to-build-a-neural-network-pt-2&quot;&gt;next post&lt;/a&gt;, we will cover some slightly more complex terrain in order to see how we can get closer to modelling data that is not linearly separable.&lt;/p&gt;
 </description>

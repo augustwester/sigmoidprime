@@ -4,10 +4,11 @@
  * representation instead of the LaTeX source code.  (Full selections will
  * still produce the LaTeX source code.)
  */
-.katex, .katex-display {
-    user-select: all;
-    -moz-user-select: all;
+.katex,
+.katex-display {
     -webkit-user-select: all;
-    -ms-user-select: all;
+       -moz-user-select: all;
+        -ms-user-select: all;
+            user-select: all;
 }
 
