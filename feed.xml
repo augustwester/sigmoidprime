@@ -5,8 +5,8 @@
     <description>a blog on machine learning and related technologies</description>
     <link>http://sigmoidprime.com///</link>
     <atom:link href="http://sigmoidprime.com///feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Wed, 16 Nov 2022 22:08:02 +0100</pubDate>
-    <lastBuildDate>Wed, 16 Nov 2022 22:08:02 +0100</lastBuildDate>
+    <pubDate>Mon, 28 Nov 2022 11:58:43 +0100</pubDate>
+    <lastBuildDate>Mon, 28 Nov 2022 11:58:43 +0100</lastBuildDate>
     <generator>Jekyll v3.3.0</generator>
     
       <item>
@@ -45,7 +45,7 @@
 
 &lt;p&gt;each one transitioning to either of $s_1,…,s_6$ or terminating at $s_0$. Since there are 25 possible DAGs, the state space is $s_0,…,s_{24}$. (In general, not all states need to correspond to valid objects. When $s_i$ represents an invalid object, $\mathcal{A}(s_i)$ will simply not contain the $\text{terminate}$ action. This is useful in cases where the model needs to “pass through” an invalid object to reach a valid one.) We can visualize a small part of the state-action space in the following way:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/posts/gflownets/statespace.png&quot; width=&quot;75%&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/posts/gflownets/statespace.png&quot; width=&quot;75%&quot; alt=&quot;The transition between states in a GFlowNet&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;Here I have restricted the space to include only the states and actions resulting from initially choosing $X \rightarrow Y$ or $Y \rightarrow Z$ and leading to the DAG with edges $(X \rightarrow Y, Y \rightarrow Z, X \rightarrow Z)$. It is clear from the diagram that there can be multiple action sequences leading to the same state. An action sequence can also be thought of as a &lt;em&gt;trajectory&lt;/em&gt; $\tau$, such that $\tau = (s_0 \rightarrow \cdots \rightarrow s_T \rightarrow s_f)$ contains the history of how the final object $s_T$ was constructed step-by-step. You will also notice a special state $s_f$. This state is known as the &lt;em&gt;sink&lt;/em&gt; and is reached whenever sampling terminates. The sink is not part of the model as such but—as we will see below—is helpful in formalizing a training objective.&lt;/p&gt;
 
@@ -266,7 +266,7 @@ P_F(s’ \mid s)F(s) = P_B(s \mid s’)F(s’) \tag{2}
 
 &lt;p&gt;Published in 2015 by Google research scientist &lt;a href=&quot;https://twitter.com/zzznah&quot;&gt;Alex Mordvintsev&lt;/a&gt;, DeepDream is a wonderfully simple technique designed to expose the abstract patterns hidden within the interconnections of trained neural networks. Not long after its publication, DeepDream’s psychedelic imagery quickly infiltrated social media and stoked a public fascination with the strange world of neural nets.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/posts/6/seattle.jpeg&quot; width=&quot;100%&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/posts/6/seattle.jpeg&quot; width=&quot;100%&quot; alt=&quot;A psychedelic view of the Seattle skyline&quot; /&gt;&lt;/p&gt;
 
 &lt;p class=&quot;subtext&quot;&gt;Credit: &lt;a href=&quot;https://twitter.com/zzznah/status/1123963384133767169&quot;&gt;Alex Mordvintsev&lt;/a&gt;&lt;/p&gt;
 
@@ -308,7 +308,7 @@ P_F(s’ \mid s)F(s) = P_B(s \mid s’)F(s’) \tag{2}
 
 &lt;p&gt;Below is a side-by-side comparison of images optimized using either none, some, or all of the techniques mentioned here.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/posts/6/side-by-side.png&quot; width=&quot;100%&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/posts/6/side-by-side.png&quot; width=&quot;100%&quot; alt=&quot;Four portraits of Vincent van Gogh, each optimized using different configurations of DeepDream&quot; /&gt;&lt;/p&gt;
 
 &lt;p class=&quot;subtext&quot;&gt;(1) original, (2) only gradient normalization, (3) gradient normalization and octaves, (4) gradient normalization, octaves, and jitter.&lt;/p&gt;
 
@@ -324,7 +324,7 @@ P_F(s’ \mid s)F(s) = P_B(s \mid s’)F(s’) \tag{2}
 
 &lt;p&gt;Personally, I find that the most effective (and beautiful) way of optimizing random noise is by progressively zooming into the image while running gradient ascent for a fixed number of steps in each frame. Rather than optimizing for whole layers, optimizing for specific channels usually gives the best results. Below are a few examples.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/posts/6/series2.png&quot; width=&quot;100%&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/posts/6/series2.png&quot; width=&quot;100%&quot; alt=&quot;A variety of colorful patterns&quot; /&gt;&lt;/p&gt;
 
 &lt;p class=&quot;subtext&quot;&gt;Optimizing for random channels in the Inception-v3 model’s &lt;code class=&quot;highlighter-rouge&quot;&gt;Mixed_5&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;Mixed_6&lt;/code&gt; layers, starting with random noise and using progressive zoom.&lt;/p&gt;
 
@@ -396,7 +396,7 @@ dream_noise.save(&quot;dream_noise.jpg&quot;)
 
 &lt;p&gt;The CIFAR-10 dataset contains 60,000 $32 \times 32$ images, 50,000 of which are training images. Each image belongs to one of the following 10 classes:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/posts/5/cifar-10.svg&quot; width=&quot;800px&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/posts/5/cifar-10.svg&quot; width=&quot;800px&quot; alt=&quot;A selection of photos from the CIFAR-10 dataset&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;All classes are mutually exclusive and are allotted an equal number of images.&lt;/p&gt;
 
@@ -406,13 +406,13 @@ dream_noise.save(&quot;dream_noise.jpg&quot;)
 
 &lt;p&gt;For instance, take a moment to consider the problem of object detection in images using a dense neural network. In order to distinguish between objects – say an apple and a banana – a network needs to incorporate some sort of “shape detection”  from which it can draw its distinction. But given the flatness of its input, a dense network has no concept of vertical versus horizontal, and it would thus be blind to a crucial property of its input; namely its multidimensionality.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/posts/5/flattened_fruits.svg&quot; width=&quot;800px&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/posts/5/flattened_fruits.svg&quot; width=&quot;800px&quot; alt=&quot;Flattened (1D) versions of five images from the CIFAR-10 dataset&quot; /&gt;&lt;/p&gt;
 
 &lt;p class=&quot;subtext&quot;&gt;Flattened $8 \times 8$ images of a banana, apple, orange, kiwi, and pear. This is what a dense network sees.&lt;/p&gt;
 
 &lt;p&gt;This is where convolutional neural nets come into the picture (no pun intended). A CNN is a specialized type of neural network that vastly outperforms dense networks in image recognition tasks, and they do this by first preserving the dimensionality of their input.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/posts/5/fruits.svg&quot; width=&quot;800px&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/posts/5/fruits.svg&quot; width=&quot;800px&quot; alt=&quot;Unflattened (2D) versions of the images from above&quot; /&gt;&lt;/p&gt;
 
 &lt;p class=&quot;subtext&quot;&gt;Unflattened $8 \times 8$ images of a banana, apple, orange, kiwi, and pear. This is what a convolutional neural network sees.&lt;/p&gt;
 
@@ -421,12 +421,12 @@ dream_noise.save(&quot;dream_noise.jpg&quot;)
 &lt;p&gt;Recall that a dense network has &lt;strong&gt;full connectivity&lt;/strong&gt;, meaning that all of its hidden neurons are dependent on all neurons in the preceding layer. What convolution does is it introduces &lt;strong&gt;sparse connectivity&lt;/strong&gt;, meaning that each hidden neuron is now only dependent on a fixed subset of the neurons in the preceding layer. The difference can be seen in the following illustration.&lt;/p&gt;
 
 &lt;div class=&quot;imgwcaption&quot;&gt;
-    &lt;img src=&quot;/assets/posts/5/fc.gif&quot; /&gt;
+    &lt;img src=&quot;/assets/posts/5/fc.gif&quot; alt=&quot;Illustration of full connectivity&quot; /&gt;
     &lt;p&gt;&lt;b&gt;Full connectivity&lt;/b&gt;. Each neuron receives input from all neurons in the preceding layer.&lt;/p&gt;
 &lt;/div&gt;
 
 &lt;div class=&quot;imgwcaption&quot;&gt;
-    &lt;img src=&quot;/assets/posts/5/sc.gif&quot; /&gt;
+    &lt;img src=&quot;/assets/posts/5/sc.gif&quot; alt=&quot;Illustration of sparse connectivity&quot; /&gt;
     &lt;p&gt;&lt;b&gt;Sparse connectivity&lt;/b&gt;. Each neuron receives input from a fixed subset of neurons in the preceding layer.&lt;/p&gt;
 &lt;/div&gt;
 
@@ -661,7 +661,7 @@ l + \lambda \sum_{w \in W} w^2
 
 &lt;p&gt;Recall how we optimized our logistic regression model in &lt;a href=&quot;http://sigmoidprime.com/how-to-build-a-neural-network-pt2&quot;&gt;Pt. 2&lt;/a&gt; by minimizing a loss function using gradient descent? Since backpropagation relies heavily on gradient descent, the intuition behind it bears repeating.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/posts/4/animated.gif&quot; width=&quot;850&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/posts/4/animated.gif&quot; width=&quot;850&quot; alt=&quot;A function in 3D with peaks and valleys&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;As we saw in &lt;a href=&quot;http://sigmoidprime.com/how-to-build-a-neural-network-pt2&quot;&gt;Pt. 2&lt;/a&gt;, a loss function produces a quantitative measure of the classification accuracy of our model. Given that our model only consists of our weights and biases, it is helpful to imagine a landscape with peaks and valleys (like the one above), where navigating along the $x$ and $y$ axes corresponds to changing our parameters, and where the change in elevation along the $z$ axis corresponds to the resulting change in our loss function. As our model becomes increasingly accurate, the average output of the loss function decreases. When navigating the landscape, this is why we try our best to &lt;em&gt;descend&lt;/em&gt; toward the deepest valleys.&lt;/p&gt;
 
@@ -779,7 +779,7 @@ C(\hat{Y}, Y) = C(\text{softmax}(\Theta^{(2)}\sigma(\Theta^{(1)}A^{(1)}+b^{(1)})
 
 &lt;p&gt;This time, we are going to do &lt;em&gt;almost&lt;/em&gt; the same; the slight twist being that I am going to introduce a &lt;strong&gt;learning rate&lt;/strong&gt;. As the name implies, a learning rate (denoted $\alpha$) determines the rate with which our model learns, and is simply a coefficient on the gradient. While a learning rate sounds like something you would want to crank all the way up, this immediately creates a problem.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/posts/4/learning_rates.gif&quot; width=&quot;800&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/posts/4/learning_rates.gif&quot; width=&quot;800&quot; alt=&quot;High learning vs. low learning rate&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;As shown above, a learning rate which is too large (illustrated on the right) can cause an algorithm to overshoot the minimum of its loss function. This happens because increasing the learning rate tells our parameters to take bigger and bigger steps when moving across the landscape. Since the steps are proportional to the slope of the function at any given point, a large learning rate can cause a runaway effect (as shown above). At the same time however, you want the learning rate to be large enough to approach the minimum at as rapid a pace as possible. Finding a good balance can be difficult, which is why techniques such as learning rate decay (that are outside the scope of this post) have been invented. In this example, we will simply be using a constant learning rate of 0.002. Our update rules will thus look like this:&lt;/p&gt;
 
@@ -1012,9 +1012,9 @@ loss after Epoch &lt;span class=&quot;c&quot;&gt;#5: 0.243978653084&lt;/span&gt;
 &lt;p&gt;By now, we have covered a whole lot of material. We have talked about decision boundaries, loss functions, and gradient descent, and we have built our own linear models using the perceptron and logistic regression algorithms. In this penultimate post of the series, we will analyze the first half of a neural network — the &lt;strong&gt;forward pass&lt;/strong&gt; — and we will use linear algebra to explore a visual interpretation of what happens to our data as it flows through a neural net.&lt;/p&gt;
 
 &lt;h2 id=&quot;a-birds-eye-view&quot;&gt;A bird’s-eye view&lt;/h2&gt;
-&lt;p&gt;This diagram shows a three-layered neural network composed of an &lt;strong&gt;input layer&lt;/strong&gt; (green), two &lt;strong&gt;hidden layers&lt;/strong&gt; (purple), and an &lt;strong&gt;output layer&lt;/strong&gt; (red).&lt;/p&gt;
+&lt;p&gt;This diagram shows a neural network composed of an &lt;strong&gt;input layer&lt;/strong&gt; (green), two &lt;strong&gt;hidden layers&lt;/strong&gt; (purple), and an &lt;strong&gt;output layer&lt;/strong&gt; (red).&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/posts/3/nn_2.png&quot; width=&quot;450&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/posts/3/nn_2.png&quot; width=&quot;450&quot; alt=&quot;A small neural network&quot; /&gt;&lt;/p&gt;
 
 &lt;ul&gt;
   &lt;li&gt;&lt;strong&gt;Input layer:&lt;/strong&gt; The input layer doesn’t do much at all; it merely represents the input of raw data to the network. The input is always a numerical representation of a piece of data (e.g. a grayscale value between 0 and 1 representing the intensity of a pixel in an image).&lt;/li&gt;
@@ -1032,7 +1032,7 @@ loss after Epoch &lt;span class=&quot;c&quot;&gt;#5: 0.243978653084&lt;/span&gt;
 
 &lt;p&gt;The most well-known dataset in the machine learning community (perhaps only rivalled by Iris) is called &lt;a href=&quot;http://yann.lecun.com/exdb/mnist/&quot;&gt;MNIST&lt;/a&gt;. MNIST contains 70,000 grayscale images of handwritten digits from 0-9. 60,000 of these are training samples, while the remaining 10,000 are test samples. Each image is 28x28 pixels, giving us 784 pixels per image. Because the images are all grayscale, each pixel can be represented as a floating point value between 0 and 1.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/posts/3/mnist.png&quot; width=&quot;350&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/posts/3/mnist.png&quot; width=&quot;350&quot; alt=&quot;A set of small, handwritten digits from the MNIST dataset&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;In a traditional neural network (like the one we are building today), we don’t preserve the dimensionality of the images by representing them as matrices. Instead we choose to &lt;strong&gt;unroll&lt;/strong&gt; each one of them into a flat 784-dimensional vector $x$. This is in contrast to &lt;a href=&quot;http://cs231n.github.io/convolutional-networks/&quot;&gt;convolutional neural networks&lt;/a&gt; that are specifically optimized for computer vision, and need to preserve the spatial locality of every pixel.&lt;/p&gt;
 
@@ -1040,7 +1040,7 @@ loss after Epoch &lt;span class=&quot;c&quot;&gt;#5: 0.243978653084&lt;/span&gt;
 
 &lt;p&gt;When an image is viewed as a 784-dimensional vector, we can think of it as occupying a point in 784-dimensional space. When we do this, we find that images that are visually (&lt;em&gt;not&lt;/em&gt; conceptually) similar group together and form clusters. In the case of MNIST, this means that each digit has its own cluster in the 784-dimensional space that the images inhabit.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/posts/3/tsnemnist.png&quot; width=&quot;800&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/posts/3/tsnemnist.png&quot; width=&quot;800&quot; alt=&quot;30,000 MNIST images reduced from 784 dimensions to two dimensions&quot; /&gt;&lt;/p&gt;
 
 &lt;p class=&quot;subtext&quot;&gt;30,000 MNIST images reduced from 784 dimensions to two dimensions using &lt;a href=&quot;http://distill.pub/2016/misread-tsne/&quot;&gt;t-SNE&lt;/a&gt;&lt;/p&gt;
 
@@ -1118,7 +1118,7 @@ x_{784,1} &amp;amp; x_{784,2} &amp;amp; \cdots &amp;amp; x_{784,75}
 
 &lt;p&gt;You may remember from previously that we interpreted the output of the sigmoid function as the probability of a sample belonging to one of two classes. In a neural network with multiple output neurons however, if we apply the sigmoid function at the output layer, the output of each neuron will be independent from all the others. This would produce an undesirable consequence; namely that we would be unable to interpret the output of the network as a probability distribution.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/posts/3/wrong_output_2.png&quot; width=&quot;250&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/posts/3/wrong_output_2.png&quot; width=&quot;250&quot; alt=&quot;The outputs of a neural network not summing to 1&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;To avoid this problem, we will instead be using a function known as the &lt;strong&gt;softmax function&lt;/strong&gt;, which will only be applied at the output layer.&lt;/p&gt;
 
@@ -1134,7 +1134,7 @@ x_{784,1} &amp;amp; x_{784,2} &amp;amp; \cdots &amp;amp; x_{784,75}
 
 &lt;p&gt;By placing $\exp(z_{i,j})$ in the numerator and $\sum\limits_{k=1}^{n}\exp(z_{k,j})$ in the denominator, we ensure that the output of the network for each sample always sums to 1. Now, when the network outputs vectors of numbers, we can interpret the output as a probability distribution. This allows us to then choose to classify the sample as belonging to whatever class the output neuron with the highest probability represents.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/posts/3/right_output_2.png&quot; width=&quot;240&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/posts/3/right_output_2.png&quot; width=&quot;240&quot; alt=&quot;The outputs of a neural network summing to 1&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;This marks the end of the forward pass. Now to some intuition!&lt;/p&gt;
 
@@ -1164,7 +1164,7 @@ x_{784,1} &amp;amp; x_{784,2} &amp;amp; \cdots &amp;amp; x_{784,75}
 
 &lt;p&gt;Here, the original point $\begin{bmatrix}x \cr y \end{bmatrix}$ gets moved to $\begin{bmatrix}2x \cr y \end{bmatrix}$ when we apply the transformation. Since this is true of all points, we can visualize this as a transformation of the space itself:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/posts/3/animated.gif&quot; width=&quot;800&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/posts/3/animated.gif&quot; width=&quot;800&quot; alt=&quot;A coordinate system being stretched horizontally&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;Pretty straightforward, right? Now, let’s do something a little more interesting. Instead of merely shrinking or stretching the axes, let’s try to make them codependent. For instance, we could define a transformation like this:&lt;/p&gt;
 
@@ -1174,7 +1174,7 @@ x_{784,1} &amp;amp; x_{784,2} &amp;amp; \cdots &amp;amp; x_{784,75}
 
 &lt;p&gt;This transformation — known as a &lt;a href=&quot;https://en.wikipedia.org/wiki/Shear_mapping&quot;&gt;shear&lt;/a&gt; — has the effect that every time we increase $x$ by 1, we also increase $y$ by 1. Let’s visualize this to gain some intuition:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/posts/3/animated2.gif&quot; width=&quot;500&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/posts/3/animated2.gif&quot; width=&quot;500&quot; alt=&quot;A coordinate system being stretched in an angle&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;Now it is easier to see what is happening. As soon as we begin increasing $x$, not only are we moving to the right, but also upwards. In this transformed space, it is impossible to change $x$ without also changing $y$. A change in $y$, however, does not affect $x$, since the &lt;em&gt;y&lt;/em&gt;-axis remains orthogonal to the original &lt;em&gt;x&lt;/em&gt;-axis.&lt;/p&gt;
 
@@ -1182,7 +1182,7 @@ x_{784,1} &amp;amp; x_{784,2} &amp;amp; \cdots &amp;amp; x_{784,75}
 
 &lt;p&gt;Adding a unique bias to each hidden or output neuron has the effect of &lt;strong&gt;translating&lt;/strong&gt; the space; that is, pushing or pulling our data in different directions for each dimension. Again, let’s see what this looks like:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/posts/3/translation.gif&quot; width=&quot;500&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/posts/3/translation.gif&quot; width=&quot;500&quot; alt=&quot;A coordinate system being stretched in an angle and translated away from its origin&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;Here, we first transform the space, and then translate it by $\begin{bmatrix}3 \cr 2 \end{bmatrix}$. Note that unless we keep the original space in the background, translations can be hard to visualize while properly keeping the space in view. I will therefore ignore them in future visualizations.&lt;/p&gt;
 
@@ -1191,13 +1191,13 @@ x_{784,1} &amp;amp; x_{784,2} &amp;amp; \cdots &amp;amp; x_{784,75}
 &lt;p&gt;The “nonlinear” part is important here. As opposed to linear transformations like the ones we just saw, nonlinear transformations are able to warp space in very dynamic and elastic ways. As shown below, this can make for some quite beautiful visualizations.&lt;/p&gt;
 
 &lt;div style=&quot;width:inherit;height:auto;display:block;&quot;&gt;
-&lt;img src=&quot;/assets/posts/3/nonlinear_1.gif&quot; style=&quot;width:25%;float:left;&quot; /&gt;
-&lt;img src=&quot;/assets/posts/3/nonlinear_2.gif&quot; style=&quot;width:25%;float:left;margin-left:12.5%;&quot; /&gt;
-&lt;img src=&quot;/assets/posts/3/nonlinear_3.gif&quot; style=&quot;width:25%;float:right;&quot; /&gt;
+&lt;img src=&quot;/assets/posts/3/nonlinear_1.gif&quot; style=&quot;width:25%;float:left;&quot; alt=&quot;An arbitrary transformation of a coordinate system&quot; /&gt;
+&lt;img src=&quot;/assets/posts/3/nonlinear_2.gif&quot; style=&quot;width:25%;float:left;margin-left:12.5%;&quot; alt=&quot;An arbitrary transformation of a coordinate system&quot; /&gt;
+&lt;img src=&quot;/assets/posts/3/nonlinear_3.gif&quot; style=&quot;width:25%;float:right;&quot; alt=&quot;An arbitrary transformation of a coordinate system&quot; /&gt;
 &lt;div style=&quot;clear:both;&quot;&gt;&lt;/div&gt;
-&lt;img src=&quot;/assets/posts/3/nonlinear_4.gif&quot; style=&quot;width:25%;float:left;&quot; /&gt;
-&lt;img src=&quot;/assets/posts/3/nonlinear_5.gif&quot; style=&quot;width:25%;float:left;margin-left:12.5%;&quot; /&gt;
-&lt;img src=&quot;/assets/posts/3/nonlinear_6.gif&quot; style=&quot;width:25%;float:right;&quot; /&gt;
+&lt;img src=&quot;/assets/posts/3/nonlinear_4.gif&quot; style=&quot;width:25%;float:left;&quot; alt=&quot;An arbitrary transformation of a coordinate system&quot; /&gt;
+&lt;img src=&quot;/assets/posts/3/nonlinear_5.gif&quot; style=&quot;width:25%;float:left;margin-left:12.5%;&quot; alt=&quot;An arbitrary transformation of a coordinate system&quot; /&gt;
+&lt;img src=&quot;/assets/posts/3/nonlinear_6.gif&quot; style=&quot;width:25%;float:right;&quot; alt=&quot;An arbitrary transformation of a coordinate system&quot; /&gt;
 &lt;div style=&quot;clear:both;&quot;&gt;&lt;/div&gt;
 &lt;/div&gt;
 
@@ -1221,7 +1221,7 @@ x \cdot y = 0
 
 &lt;p&gt;This tells us something really interesting: In order for the output layer to distinguish between different classes, it needs to be able to separate them with a straight line just as in Pt. 1 and Pt. 2. However, where the perceptron and logistic regression algorithms could only handle data that was linearly separable from the get-go, a neural net takes its input data and transforms it into becoming linearly separable if it isn’t already!&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/posts/3/nn_visualization.gif&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/posts/3/nn_visualization.gif&quot; width=&quot;600&quot; alt=&quot;A neural network makes data linearly separable by transforming space&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;This is the same dataset as the one we used in the previous post. Unlike our logistic regression algorithm however, a neural net is able to perfectly distinguish between the classes because the output layer only sees the space in which they are linearly separable.&lt;/p&gt;
 
@@ -1306,9 +1306,9 @@ x \cdot y = 0
 
 &lt;p&gt;This dataset is a little more complex than the Iris dataset in that it cannot be perfectly separated by a straight line. In fact, if we wanted to separate the two classes at 100% accuracy, it would require a very complex decision boundary similar to this one:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/posts/2/complex-decision-boundary.png&quot; width=&quot;800&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/posts/2/complex-decision-boundary.png&quot; width=&quot;800&quot; alt=&quot;A complex decision boundary&quot; /&gt;&lt;/p&gt;
 
-&lt;p&gt;To achieve this kind of decision boundary would be marvellous, right? Well; actually it wouldn’t. Decision boundaries like this are a prototypical example of &lt;strong&gt;overfitting&lt;/strong&gt;. Overfitting means that our model has adjusted itself too much to our data, and is therefore unlikely to perform well when asked to classify samples it has never seen before. Instead, what we want is a decision boundary that follows the principle of &lt;a href=&quot;https://en.wikipedia.org/wiki/Occam's_razor&quot;&gt;Occam’s Razor&lt;/a&gt;: It needs to define the boundary according to the simplest overall trends in the data by disregarding the fluctuations of random noise.&lt;/p&gt;
+&lt;p&gt;To achieve this kind of decision boundary would be marvelous, right? Well; actually it wouldn’t. Decision boundaries like this are a prototypical example of &lt;strong&gt;overfitting&lt;/strong&gt;. Overfitting means that our model has adjusted itself too much to our data, and is therefore unlikely to perform well when asked to classify samples it has never seen before. Instead, what we want is a decision boundary that follows the principle of &lt;a href=&quot;https://en.wikipedia.org/wiki/Occam's_razor&quot;&gt;Occam’s Razor&lt;/a&gt;: It needs to define the boundary according to the simplest overall trends in the data by disregarding the fluctuations of random noise.&lt;/p&gt;
 
 &lt;p&gt;So, however counterintuitive it may seem at first, we don’t want overfitting. However, a simple linear (or slightly curved) decision boundary would also inevitably entail some level of uncertainty about our classification. Wouldn’t it be better if we could estimate the &lt;em&gt;probability&lt;/em&gt; of an applicant being admitted rather than a black and white binary prediction?&lt;/p&gt;
 
@@ -1331,7 +1331,7 @@ x \cdot y = 0
 
 &lt;p&gt;Besides its pretty shape, there is one thing in particular to note about the sigmoid function: No matter how big or small the value of $z$ becomes, the function always outputs a real number between 0 and 1. This is handy, since it enables us to think of $\sigma$ as outputting a probability, where $\sigma = 0.5$ when $z = 0$, and $\sigma = 1$ as $z\rightarrow\infty$. The output of $\sigma$ will thus be our estimate of the probability that an applicant will be admitted to the university.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/posts/2/lr-db.png&quot; width=&quot;800px&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/posts/2/lr-db.png&quot; width=&quot;800px&quot; alt=&quot;A plot showing a gradient of confidence on either side of a decision boundary&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;This is a contour plot showing the “decision boundary” of a model that has been trained on our dataset with logistic regression. Even though the boundary is still linear, it has now  become more nuanced with the dark blue region indicating near certainty that $x^{(i)}$ is admitted ($\hat{y}^{(i)}\approx1$), and the dark red region indicating the opposite ($\hat{y}^{(i)}\approx0$). This is pretty nice since it reveals when our model is faced with uncertainty.&lt;/p&gt;
 
@@ -1468,7 +1468,7 @@ x \cdot y = 0
 
 &lt;p&gt;You probably remember from high school that a positive derivative means that we are moving “uphill” while a negative derivative means that we are moving “downhill”. Thus, if we get a positive derivative for one of our parameters, we want the value of that particular parameter to move in the opposite direction (since moving uphill is equivalent to increasing our loss).&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/posts/2/gradient-descent.png&quot; width=&quot;480&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/posts/2/gradient-descent.png&quot; width=&quot;480&quot; alt=&quot;Convex loss function&quot; /&gt;&lt;/p&gt;
 
 &lt;p class=&quot;subtext&quot;&gt;A contrived example showing how we want $\theta$ to move in the direction that minimizes the loss. Here, $\theta$ would be a two-dimensional vector.&lt;/p&gt;
 
@@ -1629,7 +1629,7 @@ x \cdot y = 0
 
 &lt;h2 id=&quot;the-math&quot;&gt;The math&lt;/h2&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/posts/1/linear-separation.gif&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/posts/1/linear-separation.gif&quot; alt=&quot;A linear decision boundary separating points belonging to two different classes.&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;The animation above illustrates an example of a 2D plane separating setosa and versicolor points in 3D space. Our parameters define the plane — also known as the &lt;strong&gt;decision boundary&lt;/strong&gt; — and when these are multiplied by the coordinates of a point (the features), the result will be positive if the point is located above the plane, and negative when located below the plane. This is the core idea that makes our algorithm possible. Our job is to find a set of parameters that separate the classes perfectly (like the one above).&lt;/p&gt;
 
