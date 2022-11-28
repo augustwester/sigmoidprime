@@ -5,8 +5,8 @@
     <description>a blog on machine learning and related technologies</description>
     <link>http://sigmoidprime.com///</link>
     <atom:link href="http://sigmoidprime.com///feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Mon, 28 Nov 2022 11:58:43 +0100</pubDate>
-    <lastBuildDate>Mon, 28 Nov 2022 11:58:43 +0100</lastBuildDate>
+    <pubDate>Mon, 28 Nov 2022 12:08:20 +0100</pubDate>
+    <lastBuildDate>Mon, 28 Nov 2022 12:08:20 +0100</lastBuildDate>
     <generator>Jekyll v3.3.0</generator>
     
       <item>
@@ -45,7 +45,7 @@
 
 &lt;p&gt;each one transitioning to either of $s_1,…,s_6$ or terminating at $s_0$. Since there are 25 possible DAGs, the state space is $s_0,…,s_{24}$. (In general, not all states need to correspond to valid objects. When $s_i$ represents an invalid object, $\mathcal{A}(s_i)$ will simply not contain the $\text{terminate}$ action. This is useful in cases where the model needs to “pass through” an invalid object to reach a valid one.) We can visualize a small part of the state-action space in the following way:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/posts/gflownets/statespace.png&quot; width=&quot;75%&quot; alt=&quot;The transition between states in a GFlowNet&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/posts/gflownets/statespace.png&quot; width=&quot;75%&quot; alt=&quot;Transitions between states in a GFlowNet&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;Here I have restricted the space to include only the states and actions resulting from initially choosing $X \rightarrow Y$ or $Y \rightarrow Z$ and leading to the DAG with edges $(X \rightarrow Y, Y \rightarrow Z, X \rightarrow Z)$. It is clear from the diagram that there can be multiple action sequences leading to the same state. An action sequence can also be thought of as a &lt;em&gt;trajectory&lt;/em&gt; $\tau$, such that $\tau = (s_0 \rightarrow \cdots \rightarrow s_T \rightarrow s_f)$ contains the history of how the final object $s_T$ was constructed step-by-step. You will also notice a special state $s_f$. This state is known as the &lt;em&gt;sink&lt;/em&gt; and is reached whenever sampling terminates. The sink is not part of the model as such but—as we will see below—is helpful in formalizing a training objective.&lt;/p&gt;
 
@@ -1331,7 +1331,7 @@ x \cdot y = 0
 
 &lt;p&gt;Besides its pretty shape, there is one thing in particular to note about the sigmoid function: No matter how big or small the value of $z$ becomes, the function always outputs a real number between 0 and 1. This is handy, since it enables us to think of $\sigma$ as outputting a probability, where $\sigma = 0.5$ when $z = 0$, and $\sigma = 1$ as $z\rightarrow\infty$. The output of $\sigma$ will thus be our estimate of the probability that an applicant will be admitted to the university.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&quot;/assets/posts/2/lr-db.png&quot; width=&quot;800px&quot; alt=&quot;A plot showing a gradient of confidence on either side of a decision boundary&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/posts/2/lr-db.png&quot; width=&quot;800px&quot; alt=&quot;A gradient of confidence on either side of a decision boundary&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;This is a contour plot showing the “decision boundary” of a model that has been trained on our dataset with logistic regression. Even though the boundary is still linear, it has now  become more nuanced with the dark blue region indicating near certainty that $x^{(i)}$ is admitted ($\hat{y}^{(i)}\approx1$), and the dark red region indicating the opposite ($\hat{y}^{(i)}\approx0$). This is pretty nice since it reveals when our model is faced with uncertainty.&lt;/p&gt;
 
