@@ -5,8 +5,8 @@
     <description>a blog on machine learning and related technologies</description>
     <link>http://sigmoidprime.com///</link>
     <atom:link href="http://sigmoidprime.com///feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Wed, 30 Nov 2022 14:40:41 +0100</pubDate>
-    <lastBuildDate>Wed, 30 Nov 2022 14:40:41 +0100</lastBuildDate>
+    <pubDate>Wed, 30 Nov 2022 15:10:31 +0100</pubDate>
+    <lastBuildDate>Wed, 30 Nov 2022 15:10:31 +0100</lastBuildDate>
     <generator>Jekyll v3.3.0</generator>
     
       <item>
@@ -280,7 +280,7 @@ P_F(s’ \mid s)F(s) = P_B(s \mid s’)F(s’) \tag{2}
 
 &lt;p&gt;To understand how DeepDream works at an intuitive level, recall that neural networks rely on &lt;a href=&quot;/post/how-to-build-a-neural-network-pt-4&quot;&gt;backpropagation&lt;/a&gt; and are therefore differentiable end-to-end. DeepDream exploits this property — not by minimizing a loss function — but by maximizing the output of a hidden layer of one’s own choosing. Crucially, this optimization is not performed by tweaking the network’s parameters, but by tweaking the input image itself. This has the interesting effect of the input image slowly morphing into an often surreal version of itself. As shown in the animation below, the modifications are applied iteratively, with each run accentuating the effects more and more.&lt;/p&gt;
 
-&lt;iframe src=&quot;/assets/posts/6/visualization/deep_dream_layer.html&quot; width=&quot;600px&quot; height=&quot;630px&quot; scrolling=&quot;no&quot; style=&quot;border:none;margin-left:100px;&quot;&gt;&lt;/iframe&gt;
+&lt;iframe src=&quot;/assets/posts/6/visualization/deep_dream_layer.html&quot; width=&quot;66%&quot; height=&quot;630px&quot; scrolling=&quot;no&quot; style=&quot;display:block;border:none;margin:0 auto;&quot;&gt;&lt;/iframe&gt;
 
 &lt;p class=&quot;subtext&quot;&gt;Select a layer and click play. Darker colors represent higher output values.&lt;/p&gt;
 
